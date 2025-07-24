@@ -61,7 +61,7 @@ public class EnemySpawner : MonoBehaviour
         Debug.Log($"Total basic spawn weight updated to: {totalBasicSpawnWeight}");
     }
 
-    public void SpawnBasicEnemy(Tower tower, float healthModifier, float moveSpeedModifier, float attackDamageModifier)
+    public void SpawnBasicEnemy(Tower tower, float healthModifier, float moveSpeedModifier, float attackDamageModifier, float rewardModifier)
     {
         UpdateTotalBasicSpawnWeight();
 
@@ -86,7 +86,7 @@ public class EnemySpawner : MonoBehaviour
             Enemy enemy = enemyObject.GetComponent<Enemy>();
             if (enemy != null)
             {
-                enemy.Initialize(tower, healthModifier, moveSpeedModifier, attackDamageModifier);
+                enemy.Initialize(tower, healthModifier, moveSpeedModifier, attackDamageModifier, rewardModifier);
             }
             else
             {

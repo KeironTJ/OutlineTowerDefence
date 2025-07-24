@@ -24,13 +24,16 @@ public class Enemy : MonoBehaviour
     private Coroutine damageCoroutine;
     private bool isDestroyed = false;
 
-    public void Initialize(Tower tower, float healthModifier, float moveSpeedModifier, float attackDamageModifier)
+    public void Initialize(Tower tower, float healthModifier, float moveSpeedModifier, float attackDamageModifier, float rewardModifier = 1f)
     {
         this.tower = tower;
         this.target = tower.transform;
         this.health *= healthModifier;
         this.moveSpeed *= moveSpeedModifier;
         this.attackDamage *= attackDamageModifier;
+        this.basicCreditsWorth *= rewardModifier;
+        this.premiumCreditsWorth *= rewardModifier;
+        this.luxuryCreditsWorth *= rewardModifier;
     }
 
     private void FixedUpdate()

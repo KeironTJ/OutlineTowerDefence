@@ -20,6 +20,7 @@ public class WaveManager : MonoBehaviour
     [SerializeField] private int maxRatioWaves = 500; // Maximum number of waves for scaling
     [SerializeField] private float healthScalingFactor = 0.1f; // Scaling factor for health modifier
     [SerializeField] private float moveSpeedScalingFactor = 0.005f; // Scaling factor for move speed modifier
+    [SerializeField] private float rewardScalingFactor = 0.1f; // Scaling factor for reward modifier
     [SerializeField] private float attackDamageScalingFactor = 0.1f; // Scaling factor for attack damage modifier;
 
     [Header("Spawn Frequency")]
@@ -52,6 +53,7 @@ public class WaveManager : MonoBehaviour
         float healthModifier = Mathf.Pow(1 + healthScalingFactor, currentWave);
         float moveSpeedModifier = Mathf.Pow(1 + moveSpeedScalingFactor, currentWave);
         float attackDamageModifier = Mathf.Pow(1 + attackDamageScalingFactor, currentWave);
+        float rewardModifier = Mathf.Pow(1 + rewardScalingFactor, currentWave);
 
         if (currentWave % bossSpawnRate == 0)
         {
@@ -63,7 +65,7 @@ public class WaveManager : MonoBehaviour
         while (Time.time < waveEndTime)
         {
             Debug.Log($"Spawning enemy for wave {currentWave}");
-            enemySpawner.SpawnBasicEnemy(tower, healthModifier, moveSpeedModifier, attackDamageModifier);
+            enemySpawner.SpawnBasicEnemy(tower, healthModifier, moveSpeedModifier, attackDamageModifier, rewardModifier);
 
             // Calculate dynamic spawn interval
             float spawnInterval = Mathf.Lerp(maxSpawnInterval, minSpawnInterval, (float)currentWave / maxSpawnWaves);

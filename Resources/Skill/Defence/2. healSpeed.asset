@@ -17,7 +17,7 @@ MonoBehaviour:
   baseValue: 0.5
   level: 1
   maxLevel: 9999
-  upgradeModifier: 0.5
+  upgradeModifier: 1.1
   researchLevel: 0
   maxResearchlevel: 99
   researchModifier: 1.01
