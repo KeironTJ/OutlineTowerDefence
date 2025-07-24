@@ -16,11 +16,16 @@ public class WaveManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private int bossSpawnRate = 10;
 
-    [Header("Scaling Factors")]
-    [SerializeField] private int maxWaves = 500; // Maximum number of waves for scaling
+    [Header("Enemy Factors")]
+    [SerializeField] private int maxRatioWaves = 500; // Maximum number of waves for scaling
     [SerializeField] private float healthScalingFactor = 0.1f; // Scaling factor for health modifier
     [SerializeField] private float moveSpeedScalingFactor = 0.005f; // Scaling factor for move speed modifier
     [SerializeField] private float attackDamageScalingFactor = 0.1f; // Scaling factor for attack damage modifier;
+
+    [Header("Spawn Frequency")]
+    [SerializeField] private int maxSpawnWaves = 1000; // Maximum number of waves
+    [SerializeField] private float minSpawnInterval = 0.2f; // Minimum time between spawns (allows up to 5 enemies per second)
+    [SerializeField] private float maxSpawnInterval = 1f; // Maximum time between spawns (ensures at least 1 enemy per second)
 
     public void StartWave(EnemySpawner enemySpawner, Tower tower)
     {
@@ -41,7 +46,7 @@ public class WaveManager : MonoBehaviour
         Debug.Log($"Wave {currentWave} started. Wave end time: {waveEndTime}");
 
         // Adjust spawn weights for basic enemies
-        enemySpawner.AdjustBasicSpawnWeights(currentWave, maxWaves);
+        enemySpawner.AdjustBasicSpawnWeights(currentWave, maxRatioWaves);
 
         // Calculate modifiers based on current wave with exponential scaling
         float healthModifier = Mathf.Pow(1 + healthScalingFactor, currentWave);
@@ -59,7 +64,10 @@ public class WaveManager : MonoBehaviour
         {
             Debug.Log($"Spawning enemy for wave {currentWave}");
             enemySpawner.SpawnBasicEnemy(tower, healthModifier, moveSpeedModifier, attackDamageModifier);
-            yield return new WaitForSeconds(1f); // Every Second: TODO: Implement scaling logic
+
+            // Calculate dynamic spawn interval
+            float spawnInterval = Mathf.Lerp(maxSpawnInterval, minSpawnInterval, (float)currentWave / maxSpawnWaves);
+            yield return new WaitForSeconds(spawnInterval);
         }
 
         isWaveActive = false;
