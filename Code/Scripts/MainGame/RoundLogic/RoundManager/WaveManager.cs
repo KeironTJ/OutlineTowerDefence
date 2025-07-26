@@ -14,7 +14,7 @@ public class WaveManager : MonoBehaviour
     [SerializeField] private float waveEndTime;
 
     [Header("References")]
-    [SerializeField] private int bossSpawnRate = 10;
+    [SerializeField] private int bossSpawnRate = 10; 
 
     [Header("Enemy Factors")]
     [SerializeField] private int maxRatioWaves = 500; // Maximum number of waves for scaling

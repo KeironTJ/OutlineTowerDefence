@@ -5522,9 +5522,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameOverPanel: {fileID: 497071849}
-  waveInfo: {fileID: 1774191220}
+  waveManager: {fileID: 1774191220}
   sideMenu: {fileID: 1176158817}
   skillMenu: {fileID: 1158651810}
+  roundManager: {fileID: 1774191217}
+  skillManager: {fileID: 1774191221}
   difficultyNumberUI: {fileID: 1826686550}
   waveNumberUI: {fileID: 609881960}
   enemyNumberUI: {fileID: 1387226816}
@@ -6613,6 +6615,14 @@ MonoBehaviour:
   isWaveActive: 0
   waveEndTime: 0
   bossSpawnRate: 10
+  maxRatioWaves: 500
+  healthScalingFactor: 0.1
+  moveSpeedScalingFactor: 0.005
+  rewardScalingFactor: 0.1
+  attackDamageScalingFactor: 0.1
+  maxSpawnWaves: 1000
+  minSpawnInterval: 0.2
+  maxSpawnInterval: 1
 --- !u!114 &1774191221
 MonoBehaviour:
   m_ObjectHideFlags: 0

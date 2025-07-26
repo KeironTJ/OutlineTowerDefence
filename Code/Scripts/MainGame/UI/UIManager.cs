@@ -12,9 +12,11 @@ public class UIManager : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private GameObject gameOverPanel;
-    [SerializeField] private WaveManager waveInfo; // Updated to WaveManager
+    [SerializeField] private WaveManager waveManager; 
     [SerializeField] private GameObject sideMenu;
     [SerializeField] private GameObject skillMenu;
+    [SerializeField] private RoundManager roundManager;
+    [SerializeField] private SkillManager skillManager;
 
     // Wave Info
     [Header("Wave Information")]
@@ -39,8 +41,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI premiumCreditsUI;
     [SerializeField] private TextMeshProUGUI luxuryCreditsUI;
 
+
     private Tower tower;
-    private RoundManager roundManager;
     private float waveEndTime;
 
     private void Awake()
@@ -61,56 +63,23 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        StartCoroutine(FindRoundInstance());
-        StartCoroutine(FindWaveInfo());
-        StartCoroutine(FindTowerInstance());
 
-        //gameOverPanel.SetActive(false);
     }
 
-    private IEnumerator FindRoundInstance()
+    public void Initialize(RoundManager roundManager, WaveManager waveManager, Tower tower)
     {
-        WaitForSeconds wait = new WaitForSeconds(0.5f);
-        while (roundManager == null)
+        this.roundManager = roundManager;
+        this.waveManager = waveManager;
+        this.tower = tower;
+
+        Menu menu = GetComponentInChildren<Menu>();
+        if (menu != null)
         {
-            roundManager = FindObjectOfType<RoundManager>();
-            if (roundManager == null)
-            {
-                yield return wait;
-            }
+            menu.Initialize(roundManager, waveManager, tower, skillManager);
         }
+
     }
 
-    private IEnumerator FindTowerInstance()
-    {
-        WaitForSeconds wait = new WaitForSeconds(0.5f);
-        while (tower == null)
-        {
-            tower = FindObjectOfType<Tower>();
-            if (tower == null)
-            {
-                yield return wait;
-            }
-        }
-    }
-
-    private IEnumerator FindWaveInfo()
-    {
-        WaitForSeconds wait = new WaitForSeconds(0.5f);
-        while (waveInfo == null)
-        {
-            waveInfo = FindObjectOfType<WaveManager>(); // Updated to find WaveManager
-            if (waveInfo == null)
-            {
-                Debug.LogWarning("waveInfo not found, retrying...");
-                yield return wait;
-            }
-            else
-            {
-                Debug.Log("waveInfo found.");
-            }
-        }
-    }
 
     private void Update()
     {
@@ -148,24 +117,24 @@ public class UIManager : MonoBehaviour
 
     public void UpdateWaveUI()
     {
-        if (!isGameOver && waveInfo != null)
+        if (!isGameOver && waveManager != null)
         {
             difficultyNumberUI.text = $"Difficulty: {roundManager.GetRoundDifficulty().ToString()}";
-            waveNumberUI.text = $"Wave: {waveInfo.GetCurrentWave().ToString()}";
-            enemyNumberUI.text = $"Enemies: {waveInfo.GetEnemiesLeftToSpawn().ToString()} / {waveInfo.EnemiesPerWave()}";
-            loseScreenWaveNumberUI.text = $"{waveInfo.GetCurrentWave().ToString()}";
-            if (waveInfo.IsBetweenWaves())
+            waveNumberUI.text = $"Wave: {waveManager.GetCurrentWave().ToString()}";
+            enemyNumberUI.text = $"Enemies: {waveManager.GetEnemiesLeftToSpawn().ToString()} / {waveManager.EnemiesPerWave()}";
+            loseScreenWaveNumberUI.text = $"{waveManager.GetCurrentWave().ToString()}";
+            if (waveManager.IsBetweenWaves())
             {
-                float timeRemaining = waveInfo.GetTimeBetweenWavesRemaining();
+                float timeRemaining = waveManager.GetTimeBetweenWavesRemaining();
                 waveTimeRemainingUI.text = $"Next Wave In: {timeRemaining:F1}s";
-                waveProgressBar.value = 1 - (timeRemaining / waveInfo.timeBetweenWaves); // Updated logic
+                waveProgressBar.value = 1 - (timeRemaining / waveManager.timeBetweenWaves); // Updated logic
                 fillAreaImage.color = Color.red;
             }
             else
             {
-                float timeRemaining = waveInfo.GetWaveTimeRemaining();
+                float timeRemaining = waveManager.GetWaveTimeRemaining();
                 waveTimeRemainingUI.text = $"Time Left: {timeRemaining:F1}s";
-                waveProgressBar.value = 1 - (timeRemaining / waveInfo.timePerWave); // Updated logic
+                waveProgressBar.value = 1 - (timeRemaining / waveManager.timePerWave); // Updated logic
                 fillAreaImage.color = Color.cyan;
             }
         }

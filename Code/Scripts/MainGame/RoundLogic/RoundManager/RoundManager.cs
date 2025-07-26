@@ -25,6 +25,7 @@ public class RoundManager : MonoBehaviour
     {
         StartNewRound();
         SpawnTower(); // Use TowerSpawner to spawn the Tower
+        UIManager.Instance.Initialize(this, waveManager, tower);
     }
 
     private void SpawnTower()
@@ -55,6 +56,7 @@ public class RoundManager : MonoBehaviour
         {
             InitializeRound(playerManager);
             roundDifficulty = playerManager.GetDifficulty();
+            
         }
         else
         {

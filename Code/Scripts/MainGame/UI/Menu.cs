@@ -38,37 +38,20 @@ public class Menu : MonoBehaviour
 
     private void Start()
     {
-        Initialize();
     }
 
-    private void Initialize()
+    public void Initialize(RoundManager roundManager, WaveManager waveManager, Tower tower, SkillManager skillManager)
     {
+        this.roundManager = roundManager;
+        this.tower = tower;
+        this.skillManager = skillManager;
+        
         // Ensure PlayerManager is initialized
         playermanager = PlayerManager.main;
+
         if (playermanager == null)
         {
             Debug.LogError("PlayerManager is not initialized.");
-        }
-
-        // Ensure RoundManager is initialized
-        roundManager = FindObjectOfType<RoundManager>();
-        if (roundManager == null)
-        {
-            Debug.LogError("RoundManager is not found in the scene.");
-        }
-        else
-        {
-            skillManager = roundManager.GetComponent<SkillManager>();
-            if (skillManager == null)
-            {
-                Debug.LogError("SkillManager is not attached to RoundManager.");
-            }
-        }
-
-        // Ensure UI elements are assigned
-        if (basicCreditsUI == null || premiumCreditsUI == null || luxuryCreditsUI == null)
-        {
-            Debug.LogError("One or more UI elements are not assigned in the inspector.");
         }
 
         // Start the coroutine to initialize the shop if all dependencies are ready
