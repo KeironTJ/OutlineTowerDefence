@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Attack Damage
   description: The damage each bullet hits each enemy.
-  baseValue: 1
+  baseValue: 1.2
   level: 1
   maxLevel: 9999
   upgradeModifier: 1.2
