@@ -4,8 +4,8 @@ using UnityEngine;
 public class WaveManager : MonoBehaviour
 {
     [Header("Wave Settings")]
-    public float timePerWave = 30f; 
-    public float timeBetweenWaves = 5f; 
+    public float timePerWave = 30f;
+    public float timeBetweenWaves = 5f;
     [SerializeField] private float difficultyScalingFactor = 1.5f;
 
     [Header("Debugging")]
@@ -14,7 +14,7 @@ public class WaveManager : MonoBehaviour
     [SerializeField] private float waveEndTime;
 
     [Header("References")]
-    [SerializeField] private int bossSpawnRate = 10; 
+    [SerializeField] private int bossSpawnRate = 10;
 
     [Header("Enemy Factors")]
     [SerializeField] private int maxRatioWaves = 500; // Maximum number of waves for scaling
@@ -28,10 +28,14 @@ public class WaveManager : MonoBehaviour
     [SerializeField] private float minSpawnInterval = 0.2f; // Minimum time between spawns (allows up to 5 enemies per second)
     [SerializeField] private float maxSpawnInterval = 1f; // Maximum time between spawns (ensures at least 1 enemy per second)
 
+    private Coroutine waveRoutine;
+    private Tower subscribedTower; // Weak reference to the subscribed Tower
+
     public void StartWave(EnemySpawner enemySpawner, Tower tower)
     {
-        Debug.Log($"Starting wave {currentWave}. Time per wave: {timePerWave}, Time between waves: {timeBetweenWaves}");
-        StartCoroutine(WaveRoutine(enemySpawner, tower));
+        waveRoutine = StartCoroutine(WaveRoutine(enemySpawner, tower));
+        subscribedTower = tower; // Store the reference to the subscribed Tower
+        tower.TowerDestroyed += EndWaveProgression; // Subscribe to the TowerDestroyed event
     }
 
     public bool IsBetweenWaves()
@@ -44,7 +48,6 @@ public class WaveManager : MonoBehaviour
         currentWave++;
         isWaveActive = true;
         waveEndTime = Time.time + timePerWave;
-        Debug.Log($"Wave {currentWave} started. Wave end time: {waveEndTime}");
 
         // Adjust spawn weights for basic enemies
         enemySpawner.AdjustBasicSpawnWeights(currentWave, maxRatioWaves);
@@ -57,14 +60,12 @@ public class WaveManager : MonoBehaviour
 
         if (currentWave % bossSpawnRate == 0)
         {
-            Debug.Log($"Boss spawning at wave {currentWave}");
             enemySpawner.SpawnBossEnemy(tower, healthModifier, moveSpeedModifier, attackDamageModifier);
         }
 
         // Spawn enemies during the wave
         while (Time.time < waveEndTime)
         {
-            Debug.Log($"Spawning enemy for wave {currentWave}");
             enemySpawner.SpawnBasicEnemy(tower, healthModifier, moveSpeedModifier, attackDamageModifier, rewardModifier);
 
             // Calculate dynamic spawn interval
@@ -73,14 +74,11 @@ public class WaveManager : MonoBehaviour
         }
 
         isWaveActive = false;
-        Debug.Log($"Wave {currentWave} ended. Waiting {timeBetweenWaves} seconds before next wave.");
         yield return new WaitForSeconds(timeBetweenWaves);
 
         // Increment the wave counter and start the next wave
-        Debug.Log($"Wave {currentWave} is now active.");
         StartWave(enemySpawner, tower); // Start the next wave
     }
-
 
     public int GetCurrentWave()
     {
@@ -121,12 +119,39 @@ public class WaveManager : MonoBehaviour
         return isWaveActive;
     }
 
-
-
     public int EnemiesPerWave()
     {
         return Mathf.RoundToInt(currentWave * difficultyScalingFactor);
     }
 
+    public void EndWaveProgression()
+    {
+        isWaveActive = false;
+        if (waveRoutine != null)
+        {
+            StopCoroutine(waveRoutine); // Stop the current wave routine
+            waveRoutine = null;
+        }
+
+        if (subscribedTower != null)
+        {
+            subscribedTower.TowerDestroyed -= EndWaveProgression; // Unsubscribe from the TowerDestroyed event
+            subscribedTower = null; // Clear the reference
+        }
+    }
+    
+    private void OnDisable()
+    {
+        if (waveRoutine != null)
+        {
+            StopCoroutine(waveRoutine); // Stop the wave routine when the WaveManager is disabled
+        }
+
+        if (subscribedTower != null)
+        {
+            subscribedTower.TowerDestroyed -= EndWaveProgression; // Unsubscribe from the TowerDestroyed event
+            subscribedTower = null; // Clear the reference
+        }
+    }
 
 }

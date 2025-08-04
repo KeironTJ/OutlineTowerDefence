@@ -24,7 +24,7 @@ public class Enemy : MonoBehaviour
     private Coroutine damageCoroutine;
     private bool isDestroyed = false;
 
-    public void Initialize(Tower tower, float healthModifier, float moveSpeedModifier, float attackDamageModifier, float rewardModifier = 1f)
+    public void Initialize(Tower tower, float healthModifier, float moveSpeedModifier, float attackDamageModifier, float rewardModifier = 1.1f)
     {
         this.tower = tower;
         this.target = tower.transform;

@@ -18,7 +18,6 @@ public class EnemySpawner : MonoBehaviour
 
     [Header("Basic Enemy Types")]
     [SerializeField] private List<BasicEnemyType> basicEnemyTypes; // List of basic enemy types
-    [SerializeField] private int bossWaveInterval = 10; // Interval for boss waves
 
     private float totalBasicSpawnWeight;
 
@@ -80,7 +79,6 @@ public class EnemySpawner : MonoBehaviour
 
         if (selectedType != null)
         {
-            Debug.Log($"Spawning basic enemy of type: {selectedType.typeName}");
             Vector3 spawnPosition = GetRandomSpawnPosition();
             GameObject enemyObject = Instantiate(selectedType.prefab, spawnPosition, Quaternion.identity);
             Enemy enemy = enemyObject.GetComponent<Enemy>();

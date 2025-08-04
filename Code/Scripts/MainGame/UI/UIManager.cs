@@ -8,8 +8,6 @@ using TMPro;
 
 public class UIManager : MonoBehaviour
 {
-    public static UIManager Instance;
-
     [Header("References")]
     [SerializeField] private GameObject gameOverPanel;
     [SerializeField] private WaveManager waveManager; 
@@ -47,30 +45,29 @@ public class UIManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-
         // Ensure the game over panel is hidden at the start
         gameOverPanel.SetActive(false);
     }
 
-    private void Start()
+    private void OnDisable()
     {
-
+        if (tower != null)
+        {
+            tower.TowerDestroyed -= OnTowerDestroyedHandler; // Unsubscribe from the TowerDestroyed event
+        }
     }
 
-    public void Initialize(RoundManager roundManager, WaveManager waveManager, Tower tower)
+    private void OnTowerDestroyedHandler()
+    {
+        ShowGameOverPanel();
+    }
+
+    public void Initialize(RoundManager roundManager, WaveManager waveManager, Tower tower, SkillManager skillManager)
     {
         this.roundManager = roundManager;
         this.waveManager = waveManager;
         this.tower = tower;
+        this.skillManager = skillManager;
 
         Menu menu = GetComponentInChildren<Menu>();
         if (menu != null)
@@ -78,8 +75,15 @@ public class UIManager : MonoBehaviour
             menu.Initialize(roundManager, waveManager, tower, skillManager);
         }
 
+        if (tower != null)
+        {
+            tower.TowerDestroyed += OnTowerDestroyedHandler; // Subscribe to the TowerDestroyed event
+        }
+        else
+        {
+            Debug.LogError("Tower reference is not set in UIManager.");
+        }
     }
-
 
     private void Update()
     {

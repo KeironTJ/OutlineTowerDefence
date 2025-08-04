@@ -9,6 +9,7 @@ public class RoundManager : MonoBehaviour
     [SerializeField] private EnemySpawner enemySpawner; // Serialized field for EnemySpawner
     [SerializeField] private TowerSpawner towerSpawner; // Serialized field for TowerSpawner
     [SerializeField] private WaveManager waveManager; // Serialized field for WaveManager
+    [SerializeField] private UIManager uiManager; // Serialized field for UIManager
 
     [Header("Managers")]
     [SerializeField] private SkillManager skillManager; // Reference to SkillManager
@@ -23,11 +24,22 @@ public class RoundManager : MonoBehaviour
 
     private void Start()
     {
-        StartNewRound();
-        SpawnTower(); // Use TowerSpawner to spawn the Tower
-        UIManager.Instance.Initialize(this, waveManager, tower);
+        if (tower == null)
+        {
+            StartNewRound();
+            SpawnTower(); // Use TowerSpawner to spawn the Tower
+        }
     }
 
+    private void OnDisable()
+    {
+        if (tower != null)
+        {
+            tower.TowerDestroyed -= EndRound; // Unsubscribe from the TowerDestroyed event
+        }
+    }
+
+    // TOWER MANAGEMENT
     private void SpawnTower()
     {
         if (towerSpawner == null)
@@ -39,8 +51,10 @@ public class RoundManager : MonoBehaviour
         tower = towerSpawner.SpawnTower(); // Spawn the Tower and store the reference
         if (tower != null)
         {
-            tower.Initialize(this, enemySpawner, skillManager); // Initialize the Tower with SkillManager
+            tower.Initialize(this, enemySpawner, skillManager, uiManager); // Initialize the Tower with SkillManager
+            tower.TowerDestroyed += EndRound; // Subscribe to the TowerDestroyed event
             waveManager.StartWave(enemySpawner, tower); // Start the wave using WaveManager
+            uiManager.Initialize(this, waveManager, tower, skillManager); // Initialize UIManager with necessary references
         }
         else
         {
@@ -48,6 +62,16 @@ public class RoundManager : MonoBehaviour
         }
     }
 
+    public void DestroyAllBullets()
+    {
+        Bullet[] bullets = FindObjectsOfType<Bullet>();
+        foreach (Bullet bullet in bullets)
+        {
+            Destroy(bullet.gameObject);
+        }
+    }
+
+    // ROUND MANAGEMENT
     private void StartNewRound()
     {
         playerManager = PlayerManager.main;
@@ -56,7 +80,7 @@ public class RoundManager : MonoBehaviour
         {
             InitializeRound(playerManager);
             roundDifficulty = playerManager.GetDifficulty();
-            
+
         }
         else
         {
@@ -84,12 +108,29 @@ public class RoundManager : MonoBehaviour
         SetStartBasicCredits();
     }
 
-    private void SetStartBasicCredits()
+    public void EndRound()
     {
-        float startingBasicCredits = GetSkillValue(GetSkill("Start Basic Credit"));
-        IncreaseBasicCredits(startingBasicCredits);
+        SetHighestWaves();
+        DestroyAllEnemies();
+        DestroyAllBullets();
+    
+
     }
 
+    // PLAYER MANAGEMENT
+    private void SetHighestWaves()
+    {
+        if (playerManager != null)
+        {
+            int difficulty = playerManager.GetDifficulty();
+            int highestWave = playerManager.GetHighestWave(difficulty);
+
+            playerManager.SetMaxWaveAchieved(difficulty, waveManager.GetCurrentWave());
+            
+        }
+    }
+
+    // SKILLS
     public Skill GetSkill(string skillName)
     {
         return skillManager?.GetSkill(skillName);
@@ -103,6 +144,34 @@ public class RoundManager : MonoBehaviour
     public void UpgradeSkill(Skill skill, int levelIncrease)
     {
         skillManager?.UpgradeSkill(skill, levelIncrease);
+    }
+
+    // Enemies
+    private void DestroyAllEnemies()
+    {
+        Enemy[] enemies = FindObjectsOfType<Enemy>();
+        foreach (Enemy enemy in enemies)
+        {
+            Destroy(enemy.gameObject);
+        }
+    }
+
+    // ROUND DIFFICULTY
+    public void SetRoundDifficulty(int difficulty)
+    {
+        roundDifficulty = difficulty;
+    }
+
+    public int GetRoundDifficulty()
+    {
+        return roundDifficulty;
+    }
+
+    // BASIC CREDITS
+    private void SetStartBasicCredits()
+    {
+        float startingBasicCredits = GetSkillValue(GetSkill("Start Basic Credit"));
+        IncreaseBasicCredits(startingBasicCredits);
     }
 
     public void IncreaseBasicCredits(float amount)
@@ -125,29 +194,16 @@ public class RoundManager : MonoBehaviour
         }
     }
 
-    public void SetRoundDifficulty(int difficulty)
-    {
-        roundDifficulty = difficulty;
-    }
-
-    public int GetRoundDifficulty()
-    {
-        return roundDifficulty;
-    }
-
     public float GetBasicCredits()
     {
         return tempBasicCredits;
     }
 
+    // PREMIUM CREDITS
+
     public float GetPremiumCredits()
     {
         return playerManager.GetPremiumCredits();
-    }
-
-    public float GetLuxuryCredits()
-    {
-        return playerManager.GetLuxuryCredits();
     }
 
     public void IncreasePremiumCredits(float amount)
@@ -155,11 +211,16 @@ public class RoundManager : MonoBehaviour
         playerManager.premiumCredits += amount;
     }
 
+    // LUXURY CREDITS
+    public float GetLuxuryCredits()
+    {
+        return playerManager.GetLuxuryCredits();
+    }
+
     public void IncreaseLuxuryCredits(float amount)
     {
         playerManager.luxuryCredits += amount;
     }
 
-    
 
 }

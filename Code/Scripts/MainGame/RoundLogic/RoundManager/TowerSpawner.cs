@@ -8,11 +8,6 @@ public class TowerSpawner : MonoBehaviour
 
     private GameObject activeTowerInstance; // Reference to the active tower instance
 
-    private void Start()
-    {
-        
-    }
-
     public Tower SpawnTower()
     {
         if (towerPrefab != null && spawnPoint != null)

@@ -219,7 +219,6 @@ public class PlayerManager : MonoBehaviour
         return Mathf.Round(cost);
     }
 
-
     public float GetSkillLevel(Skill skill)
     {
         return skill.level;

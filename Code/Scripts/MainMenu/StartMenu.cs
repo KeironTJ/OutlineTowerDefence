@@ -21,7 +21,7 @@ public class StartMenu : MonoBehaviour
     [SerializeField] private Transform increaseDifficultyButton;
 
     [SerializeField] private int chosenDifficulty = 1;
-    [SerializeField] private int highestWave = 0;
+    [SerializeField] private int highestWave;
 
     [Header("Upgrade Screen References")]
     // Screens
@@ -62,7 +62,7 @@ public class StartMenu : MonoBehaviour
     private void Start()
     {
         playerManager = PlayerManager.main;
-        SetPlayerMaxDifficulty(playerManager.GetMaxDifficulty());                
+        SetPlayerMaxDifficulty(playerManager.GetMaxDifficulty());
         SetPlayerDifficulty(1); // In future can customize this to suit player last chosen level
         SelectMainScreen();
         InitializeShop();
@@ -73,8 +73,6 @@ public class StartMenu : MonoBehaviour
     private void Update()
     {
         DisplayCredits();
-        DisplayDifficulty();
-        DisplayHighestWave();
     }
 
     // HEADER METHODS
@@ -95,6 +93,7 @@ public class StartMenu : MonoBehaviour
 
     public void DisplayHighestWave()
     {
+        highestWave = playerManager.GetHighestWave(chosenDifficulty);
         highestWaveUI.text = $"Best Wave: {highestWave.ToString()}";
     }
 
@@ -104,6 +103,9 @@ public class StartMenu : MonoBehaviour
         increaseDifficultyButton.gameObject.SetActive(chosenDifficulty < maxDifficultyLevel);
         SetPlayerDifficulty(chosenDifficulty);
         SetPlayerHighestWave(chosenDifficulty);
+        DisplayDifficulty();
+        DisplayHighestWave();
+        Debug.Log($"Difficulty set to: {chosenDifficulty}, Highest Wave: {highestWave}");
     }
 
     public void LowerPlayerDifficulty()

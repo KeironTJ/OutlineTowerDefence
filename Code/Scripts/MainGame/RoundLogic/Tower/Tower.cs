@@ -26,12 +26,9 @@ public class Tower : MonoBehaviour
     private RoundManager roundManager;
     private EnemySpawner enemySpawner;
     private SkillManager skillManager;
+    private UIManager uiManager;
 
     // GAME SEQUENCE
-    private void Start()
-    {
-
-    }
 
     private void Update()
     {
@@ -129,11 +126,12 @@ public class Tower : MonoBehaviour
     }
 
     // Add an initialization method to replace FindObjectOfType coroutines
-    public void Initialize(RoundManager roundManager, EnemySpawner enemySpawner, SkillManager skillManager)
+    public void Initialize(RoundManager roundManager, EnemySpawner enemySpawner, SkillManager skillManager, UIManager uiManager)
     {
         this.roundManager = roundManager;
         this.enemySpawner = enemySpawner;
         this.skillManager = skillManager; // Initialize SkillManager
+        this.uiManager = uiManager; // Initialize UIManager
 
         if (skillManager != null)
         {
@@ -230,45 +228,24 @@ public class Tower : MonoBehaviour
             float x = Mathf.Sin(Mathf.Deg2Rad * angle) * skillManager.GetSkillValue(skillManager.GetSkill("Targeting Range"));
             float y = Mathf.Cos(Mathf.Deg2Rad * angle) * skillManager.GetSkillValue(skillManager.GetSkill("Targeting Range"));
             lineRenderer.SetPosition(i, new Vector3(x, y, 0));
-            angle += (360f / lineRenderer.positionCount);
-        }
-    }
-
-    public void DestroyAllEnemies()
-    {
-        // Destroy all enemies
-        Enemy[] enemies = FindObjectsOfType<Enemy>();
-        foreach (Enemy enemy in enemies)
-        {
-            Destroy(enemy.gameObject);
-        }
-    }
-
-    public void DestroyAllBullets()
-    {
-        Bullet[] bullets = FindObjectsOfType<Bullet>();
-        foreach (Bullet bullet in bullets)
-        {
-            Destroy(bullet.gameObject);
+            angle += 360f / lineRenderer.positionCount;
         }
     }
 
     // Tower States
+    public event System.Action TowerDestroyed;
+
     public void OnTowerDestroyed()
     {
+        // Trigger the TowerDestroyed event
+        TowerDestroyed?.Invoke();
+
         // End Round
         towerAlive = false;
 
         // Stop Coroutines
-
-        DestroyAllEnemies();
-        DestroyAllBullets();
         StopHealing();
 
-        //Update Stats
-
-        // Display the "You Lost" UI
-        UIManager.Instance.ShowGameOverPanel();
     }
 
     // Modularize health management into a dedicated method
