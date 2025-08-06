@@ -9,15 +9,6 @@ public class PlayerManager : MonoBehaviour
 
     public int difficultySelected; // Difficulty selected by player
 
-    [Header("Player Currency")]
-    public float premiumCredits; // Game Currency
-    public float specialCredits; // Special Currency
-    public float luxuryCredits; // Paid Currency
-
-    [Header("Player Progress")]
-    public int maxDifficultyAchieved; // Max difficulty achieved
-    public int[] difficultyMaxWaveAchieved = new int[9]; // Max wave achieved for each difficulty
-
     [Header("Skills")]
     public Dictionary<string, Skill> attackSkills = new Dictionary<string, Skill>();
     public Dictionary<string, Skill> defenceSkills = new Dictionary<string, Skill>();
@@ -97,13 +88,6 @@ public class PlayerManager : MonoBehaviour
     {
         playerData = new PlayerData
         {
-            premiumCredits = premiumCredits,
-            specialCredits = specialCredits,
-            luxuryCredits = luxuryCredits,
-            maxDifficultyAchieved = maxDifficultyAchieved,
-
-            difficultyMaxWaveAchieved = (int[])difficultyMaxWaveAchieved.Clone(),
-
             attackSkills = new List<SkillData>(),
             defenceSkills = new List<SkillData>(),
             supportSkills = new List<SkillData>(),
@@ -135,13 +119,6 @@ public class PlayerManager : MonoBehaviour
 
     private void LoadSkills()
     {
-        premiumCredits = playerData.premiumCredits;
-        specialCredits = playerData.specialCredits;
-        luxuryCredits = playerData.luxuryCredits;
-        maxDifficultyAchieved = playerData.maxDifficultyAchieved;
-
-        Array.Copy(playerData.difficultyMaxWaveAchieved, difficultyMaxWaveAchieved, difficultyMaxWaveAchieved.Length);
-
         LoadSkillData(playerData.attackSkills, attackSkills);
         LoadSkillData(playerData.defenceSkills, defenceSkills);
         LoadSkillData(playerData.supportSkills, supportSkills);
@@ -179,14 +156,7 @@ public class PlayerManager : MonoBehaviour
 
     private void SavePlayerData()
     {
-        playerData.premiumCredits = premiumCredits;
-        playerData.specialCredits = specialCredits;
-        playerData.luxuryCredits = luxuryCredits;
-        playerData.maxDifficultyAchieved = maxDifficultyAchieved;
-
-        Array.Copy(difficultyMaxWaveAchieved, playerData.difficultyMaxWaveAchieved, difficultyMaxWaveAchieved.Length);
-
-        // Only update persistent skill data
+       // Only update persistent skill data
         UpdateSkillData(playerData.attackSkills, attackSkills);
         UpdateSkillData(playerData.defenceSkills, defenceSkills);
         UpdateSkillData(playerData.supportSkills, supportSkills);
@@ -254,17 +224,15 @@ public class PlayerManager : MonoBehaviour
 
     public void IncreasePremiumCredits(float amount)
     {
-        premiumCredits += amount;
-        playerData.premiumCredits = premiumCredits; // Update playerData
+        playerData.premiumCredits += amount; // Update playerData
         SavePlayerData();
     }
 
     public bool SpendPremiumCredits(float amount)
     {
-        if (premiumCredits >= amount)
+        if (playerData.premiumCredits >= amount)
         {
-            premiumCredits -= amount;
-            playerData.premiumCredits = premiumCredits; // Update playerData
+            playerData.premiumCredits -= amount;
             SavePlayerData();
             return true;
         }
@@ -277,17 +245,15 @@ public class PlayerManager : MonoBehaviour
 
     public void IncreaseLuxuryCredits(float amount)
     {
-        luxuryCredits += amount;
-        playerData.luxuryCredits = luxuryCredits; // Update playerData
+        playerData.luxuryCredits += amount;
         SavePlayerData();
     }
 
     public bool SpendLuxuryCredits(float amount)
     {
-        if (luxuryCredits >= amount)
+        if (playerData.luxuryCredits >= amount)
         {
-            luxuryCredits -= amount;
-            playerData.luxuryCredits = luxuryCredits; // Update playerData
+            playerData.luxuryCredits -= amount;
             SavePlayerData();
             return true;
         }
@@ -300,17 +266,15 @@ public class PlayerManager : MonoBehaviour
 
     public void IncreaseSpecialCredits(float amount)
     {
-        specialCredits += amount;
-        playerData.specialCredits = specialCredits; // Update playerData
+        playerData.specialCredits += amount;
         SavePlayerData();
     }
 
     public bool SpendSpecialCredits(float amount)
     {
-        if (specialCredits >= amount)
+        if (playerData.specialCredits >= amount)
         {
-            specialCredits -= amount;
-            playerData.specialCredits = specialCredits; // Update playerData
+            playerData.specialCredits -= amount;
             SavePlayerData();
             return true;
         }
@@ -323,7 +287,7 @@ public class PlayerManager : MonoBehaviour
 
     public int GetMaxDifficulty()
     {
-        return maxDifficultyAchieved = playerData.maxDifficultyAchieved;
+        return playerData.maxDifficultyAchieved;
     }
 
     public void SetDifficulty(int difficulty)
@@ -338,30 +302,28 @@ public class PlayerManager : MonoBehaviour
 
     public void IncreaseMaxDifficulty()
     {
-        maxDifficultyAchieved += 1;
-        playerData.maxDifficultyAchieved = maxDifficultyAchieved; // Update playerData
+        playerData.maxDifficultyAchieved += 1;
         SavePlayerData();
     }
 
     public void SetMaxWaveAchieved(int difficulty, int wave)
     {
-        if (wave > difficultyMaxWaveAchieved[difficulty])
+        if (wave > playerData.difficultyMaxWaveAchieved[difficulty])
         {
             Debug.Log($"New max wave achieved for difficulty {difficulty}: {wave}");
-            difficultyMaxWaveAchieved[difficulty] = wave;
-            playerData.difficultyMaxWaveAchieved = difficultyMaxWaveAchieved; // Update playerData
+            playerData.difficultyMaxWaveAchieved[difficulty] = wave;
             SavePlayerData();
         }
         else
         {
-            Debug.Log($"Wave {wave} is not greater than current max wave {difficultyMaxWaveAchieved[difficulty]} for difficulty {difficulty}");
+            Debug.Log($"Wave {wave} is not greater than current max wave {playerData.difficultyMaxWaveAchieved[difficulty]} for difficulty {difficulty}");
         }
     }
 
     public int GetHighestWave(int difficulty)
     {
-        Debug.Log($"Max wave achieved for difficulty {difficulty}: {difficultyMaxWaveAchieved[difficulty]}");
-        return difficultyMaxWaveAchieved[difficulty];
+        Debug.Log($"Max wave achieved for difficulty {difficulty}: {playerData.difficultyMaxWaveAchieved[difficulty]}");
+        return playerData.difficultyMaxWaveAchieved[difficulty];
     }
 
     public void UpgradeSkill(Skill skill, int levelIncrease)
@@ -374,12 +336,12 @@ public class PlayerManager : MonoBehaviour
 
     public float GetPremiumCredits()
     {
-        return premiumCredits;
+        return playerData.premiumCredits;
     }
     
     public float GetLuxuryCredits()
     {
-        return luxuryCredits;
+        return playerData.luxuryCredits;
     }
 
 }

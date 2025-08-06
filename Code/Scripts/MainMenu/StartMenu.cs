@@ -83,9 +83,9 @@ public class StartMenu : MonoBehaviour
 
     public void DisplayCredits()
     {
-        premiumCreditsUI.text = "£" + NumberManager.FormatLargeNumber(playerManager.premiumCredits);
-        specialCreditsUI.text = "£" + NumberManager.FormatLargeNumber(playerManager.specialCredits);
-        luxuryCreditsUI.text = "£" + NumberManager.FormatLargeNumber(playerManager.luxuryCredits);
+        premiumCreditsUI.text = "£" + NumberManager.FormatLargeNumber(playerManager.playerData.premiumCredits);
+        specialCreditsUI.text = "£" + NumberManager.FormatLargeNumber(playerManager.playerData.specialCredits);
+        luxuryCreditsUI.text = "£" + NumberManager.FormatLargeNumber(playerManager.playerData.luxuryCredits);
     }
 
     // PLAYER INFORMATION METHODS

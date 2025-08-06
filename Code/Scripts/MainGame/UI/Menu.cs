@@ -32,7 +32,7 @@ public class Menu : MonoBehaviour
 
     private bool isMenuOpen = true;
     private Tower tower;
-    private PlayerManager playermanager = PlayerManager.main;
+    private PlayerManager playerManager = PlayerManager.main;
     private RoundManager roundManager;
     private SkillManager skillManager;
 
@@ -47,9 +47,9 @@ public class Menu : MonoBehaviour
         this.skillManager = skillManager;
         
         // Ensure PlayerManager is initialized
-        playermanager = PlayerManager.main;
+        playerManager = PlayerManager.main;
 
-        if (playermanager == null)
+        if (playerManager == null)
         {
             Debug.LogError("PlayerManager is not initialized.");
         }
@@ -175,8 +175,8 @@ public class Menu : MonoBehaviour
     private void UpdateUI()
     {
         basicCreditsUI.text = $"BC: {NumberManager.FormatLargeNumber(roundManager.tempBasicCredits)}";
-        premiumCreditsUI.text = $"PC: {NumberManager.FormatLargeNumber(playermanager.premiumCredits)}";
-        luxuryCreditsUI.text = $"LC: {NumberManager.FormatLargeNumber(playermanager.luxuryCredits)}";
+        premiumCreditsUI.text = $"PC: {NumberManager.FormatLargeNumber(playerManager.playerData.premiumCredits)}";
+        luxuryCreditsUI.text = $"LC: {NumberManager.FormatLargeNumber(playerManager.playerData.luxuryCredits)}";
     }
 
     public void ToggleMenu()

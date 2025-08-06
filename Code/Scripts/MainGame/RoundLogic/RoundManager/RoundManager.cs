@@ -208,18 +208,18 @@ public class RoundManager : MonoBehaviour
 
     public void IncreasePremiumCredits(float amount)
     {
-        playerManager.premiumCredits += amount;
+        playerManager.playerData.premiumCredits += amount;
     }
 
     // LUXURY CREDITS
     public float GetLuxuryCredits()
     {
-        return playerManager.GetLuxuryCredits();
+        return playerManager.playerData.luxuryCredits;
     }
 
     public void IncreaseLuxuryCredits(float amount)
     {
-        playerManager.luxuryCredits += amount;
+        playerManager.playerData.luxuryCredits += amount;
     }
 
 

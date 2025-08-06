@@ -78,7 +78,6 @@ public class Tower : MonoBehaviour
         if (currentHealth < maxHealth && towerAlive)
         {
             isHealing = true;
-            Debug.Log($"Healing?: {isHealing}");
 
             if (healingCoroutine == null)
             {
