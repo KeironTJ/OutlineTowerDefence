@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -18,6 +19,9 @@ public class SkillData
 [System.Serializable]
 public class PlayerData
 {
+    public string UUID;
+    public string Username;
+
     public List<SkillData> attackSkills = new List<SkillData>();
     public List<SkillData> defenceSkills = new List<SkillData>();
     public List<SkillData> supportSkills = new List<SkillData>();
@@ -30,4 +34,12 @@ public class PlayerData
     public int maxDifficultyAchieved;
 
     public int[] difficultyMaxWaveAchieved = new int[9];
+
+    // Constructor to initialize a new player
+    public PlayerData()
+    {
+        UUID = Guid.NewGuid().ToString(); // Generate a new UUID
+        Username = UUID; // Assign the UUID as the default username
+    }
+
 }

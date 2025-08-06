@@ -9,13 +9,16 @@ public class PlayerManager : MonoBehaviour
 
     public int difficultySelected; // Difficulty selected by player
 
+    [Header("Player Currency")]
     public float premiumCredits; // Game Currency
     public float specialCredits; // Special Currency
     public float luxuryCredits; // Paid Currency
 
+    [Header("Player Progress")]
     public int maxDifficultyAchieved; // Max difficulty achieved
     public int[] difficultyMaxWaveAchieved = new int[9]; // Max wave achieved for each difficulty
 
+    [Header("Skills")]
     public Dictionary<string, Skill> attackSkills = new Dictionary<string, Skill>();
     public Dictionary<string, Skill> defenceSkills = new Dictionary<string, Skill>();
     public Dictionary<string, Skill> supportSkills = new Dictionary<string, Skill>();
@@ -44,12 +47,15 @@ public class PlayerManager : MonoBehaviour
         {
             InitializeSkills();
             playerData = saveLoadManager.LoadData();
+            ValidatePlayerData();
             LoadSkills();
             SavePlayerData();
         }
         else
         {
             InitializeSkills();
+            playerData = new PlayerData(); // Ensure playerData is initialized for new players.
+            ValidatePlayerData();
             IncreaseMaxDifficulty();
             SavePlayerData();
         }
@@ -58,6 +64,28 @@ public class PlayerManager : MonoBehaviour
         StartCoroutine(SaveDataPeriodically());
     }
 
+    public void ValidatePlayerData()
+    {
+        if (playerData == null)
+        {
+            Debug.LogError("Player data is null. Initializing new player data.");
+            playerData = new PlayerData();
+        }
+
+        if (string.IsNullOrEmpty(playerData.UUID))
+        {
+            playerData.UUID = Guid.NewGuid().ToString();
+            Debug.Log("Generated new UUID for player.");
+        }
+
+        if (string.IsNullOrEmpty(playerData.Username))
+        {
+            playerData.Username = "Player_" + playerData.UUID.Substring(0, 8);
+            Debug.Log("Generated default username for player.");
+        }
+
+        SavePlayerData();
+    }
 
     public static T CloneScriptableObject<T>(T original) where T : ScriptableObject
     {

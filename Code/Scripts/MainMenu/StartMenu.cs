@@ -14,6 +14,9 @@ public class StartMenu : MonoBehaviour
     [SerializeField] private TextMeshProUGUI specialCreditsUI;
     [SerializeField] private TextMeshProUGUI luxuryCreditsUI;
 
+    [Header("Player Information")]
+    [SerializeField] private TextMeshProUGUI playerUsernameText;
+
     [Header("Play Screen References")]
     [SerializeField] private TextMeshProUGUI difficultySelectionUI;
     [SerializeField] private TextMeshProUGUI highestWaveUI;
@@ -62,6 +65,7 @@ public class StartMenu : MonoBehaviour
     private void Start()
     {
         playerManager = PlayerManager.main;
+        DisplayPlayerUsername();
         SetPlayerMaxDifficulty(playerManager.GetMaxDifficulty());
         SetPlayerDifficulty(1); // In future can customize this to suit player last chosen level
         SelectMainScreen();
@@ -82,6 +86,12 @@ public class StartMenu : MonoBehaviour
         premiumCreditsUI.text = "£" + NumberManager.FormatLargeNumber(playerManager.premiumCredits);
         specialCreditsUI.text = "£" + NumberManager.FormatLargeNumber(playerManager.specialCredits);
         luxuryCreditsUI.text = "£" + NumberManager.FormatLargeNumber(playerManager.luxuryCredits);
+    }
+
+    // PLAYER INFORMATION METHODS
+    public void DisplayPlayerUsername()
+    {
+        playerUsernameText.text = playerManager.playerData.Username;
     }
 
     // PLAY SCREEN METHODS
@@ -221,7 +231,7 @@ public class StartMenu : MonoBehaviour
     }
 
 
-    
+
 
     // Upgrades the skill associated with the button. 
     private void OnSkillButtonClicked(Skill skill, Button button)
@@ -338,5 +348,7 @@ public class StartMenu : MonoBehaviour
             buttonImage.color = color;
         }
     }
+    
+
 
 }
