@@ -19,20 +19,27 @@ public class SkillData
 [System.Serializable]
 public class PlayerData
 {
+    [Header("Player Information")]
     public string UUID;
     public string Username;
 
+    [Header("Tower Visuals")]
+    public List<string> unlockedTowerVisuals = new List<string>();
+    public string selectedTowerVisualId = "0001";
+
+    [Header("Skills")]
     public List<SkillData> attackSkills = new List<SkillData>();
     public List<SkillData> defenceSkills = new List<SkillData>();
     public List<SkillData> supportSkills = new List<SkillData>();
     public List<SkillData> specialSkills = new List<SkillData>();
 
+    [Header("Currency Information")]
     public float premiumCredits;
     public float specialCredits;
     public float luxuryCredits;
 
+    [Header("Game Progress")]
     public int maxDifficultyAchieved;
-
     public int[] difficultyMaxWaveAchieved = new int[9];
 
     // Constructor to initialize a new player
@@ -40,6 +47,10 @@ public class PlayerData
     {
         UUID = Guid.NewGuid().ToString(); // Generate a new UUID
         Username = UUID; // Assign the UUID as the default username
+
+        // Unlock default tower visuals
+        unlockedTowerVisuals = new List<string> { "0001", "0002", "0003" };
+        selectedTowerVisualId = "0001";
     }
 
 }

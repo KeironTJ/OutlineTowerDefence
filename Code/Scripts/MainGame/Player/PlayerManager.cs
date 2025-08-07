@@ -100,6 +100,8 @@ public class PlayerManager : MonoBehaviour
         LoadSkillsFromResources("Skill/Special", specialSkills, playerData.specialSkills);
     }
 
+    // SAVE AND LOAD MANAGEMENT
+
     private void LoadSkillsFromResources(string path, Dictionary<string, Skill> skillDictionary, List<SkillData> skillDataList)
     {
         Skill[] skills = Resources.LoadAll<Skill>(path);
@@ -156,7 +158,7 @@ public class PlayerManager : MonoBehaviour
 
     private void SavePlayerData()
     {
-       // Only update persistent skill data
+        // Only update persistent skill data
         UpdateSkillData(playerData.attackSkills, attackSkills);
         UpdateSkillData(playerData.defenceSkills, defenceSkills);
         UpdateSkillData(playerData.supportSkills, supportSkills);
@@ -165,6 +167,35 @@ public class PlayerManager : MonoBehaviour
         //Debug.Log("Player data before saving: " + JsonUtility.ToJson(playerData, true));
         saveLoadManager.SaveData(playerData);
     }
+
+    // TOWER VISUALS MANAGEMENT
+    public void UnlockTowerVisual(string visualId)
+    {
+        if (!playerData.unlockedTowerVisuals.Contains(visualId))
+        {
+            playerData.unlockedTowerVisuals.Add(visualId);
+            SavePlayerData();
+            Debug.Log($"Unlocked tower visual: {visualId}");
+        }
+    }
+
+    public bool SelectTowerVisual(string visualId)
+    {
+        if (playerData.unlockedTowerVisuals.Contains(visualId))
+        {
+            playerData.selectedTowerVisualId = visualId;
+            SavePlayerData();
+            Debug.Log($"Selected tower visual: {visualId}");
+            return true;
+        }
+        else
+        {
+            Debug.LogWarning($"Tower visual {visualId} is not unlocked.");
+            return false;
+        }
+    }
+
+    // SKILLS MANAGEMENT
 
     private void UpdateSkillData(List<SkillData> skillDataList, Dictionary<string, Skill> skillDictionary)
     {
@@ -221,6 +252,9 @@ public class PlayerManager : MonoBehaviour
     {
         return skill.level;
     }
+
+
+    // CURRENCY MANAGEMENT
 
     public void IncreasePremiumCredits(float amount)
     {
@@ -285,6 +319,23 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    public float GetPremiumCredits()
+    {
+        return playerData.premiumCredits;
+    }
+
+    public float GetLuxuryCredits()
+    {
+        return playerData.luxuryCredits;
+    }
+
+    public float GetSpecialCredits()
+    {
+        return playerData.specialCredits;
+    }
+
+    // DIFFICULTY MANAGEMENT
+
     public int GetMaxDifficulty()
     {
         return playerData.maxDifficultyAchieved;
@@ -334,14 +385,5 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-    public float GetPremiumCredits()
-    {
-        return playerData.premiumCredits;
-    }
-    
-    public float GetLuxuryCredits()
-    {
-        return playerData.luxuryCredits;
-    }
 
 }

@@ -42,10 +42,10 @@ GameObject:
   - component: {fileID: 2403825805312605321}
   - component: {fileID: 2671303454340085221}
   - component: {fileID: 2029798290259305542}
-  - component: {fileID: 7709556611033384518}
   - component: {fileID: 4382775991735890019}
+  - component: {fileID: 3642361115620945034}
   m_Layer: 0
-  m_Name: Player
+  m_Name: BasicCircleTower
   m_TagString: Player
   m_Icon: {fileID: 3936346786652291628, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
@@ -108,7 +108,7 @@ SpriteRenderer:
   m_SortingLayerID: 1478544675
   m_SortingLayer: 1
   m_SortingOrder: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 75f5f34dc1b5347e0b8351032682f224, type: 3}
+  m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -146,8 +146,30 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 0
---- !u!60 &7709556611033384518
-PolygonCollider2D:
+--- !u!114 &4382775991735890019
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3098058871314541354}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8ab16717ea645d449fea8c1d6101c7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  turretRotationPoint: {fileID: 2403825805312605321}
+  enemyMask:
+    serializedVersion: 2
+    m_Bits: 256
+  bulletPrefab: {fileID: 6019418362768665789, guid: 395a873e1ae347249ab1cae3066ab090, type: 3}
+  firingPoint: {fileID: 2403825805312605321}
+  baseRotationSpeed: 300
+  currentHealth: 0
+  isHealing: 0
+  towerAlive: 1
+--- !u!58 &3642361115620945034
+CircleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -179,37 +201,5 @@ PolygonCollider2D:
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.28866667}
-    oldSize: {x: 1, y: 1}
-    newSize: {x: 1, y: 1}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Points:
-    m_Paths:
-    - - {x: 0, y: 0.5773587}
-      - {x: -0.5, y: -0.28866667}
-      - {x: 0.5, y: -0.28866667}
-  m_UseDelaunayMesh: 0
---- !u!114 &4382775991735890019
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3098058871314541354}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a8ab16717ea645d449fea8c1d6101c7b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  turretRotationPoint: {fileID: 2403825805312605321}
-  enemyMask:
-    serializedVersion: 2
-    m_Bits: 256
-  bulletPrefab: {fileID: 6019418362768665789, guid: 395a873e1ae347249ab1cae3066ab090, type: 3}
-  firingPoint: {fileID: 2403825805312605321}
-  baseRotationSpeed: 300
+  serializedVersion: 2
+  m_Radius: 0.49999997

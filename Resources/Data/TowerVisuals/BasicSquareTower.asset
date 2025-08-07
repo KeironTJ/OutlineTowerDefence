@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdef8d1414dadfe48822a7684617996d, type: 3}
+  m_Name: BasicSquareTower
+  m_EditorClassIdentifier: 
+  id: 0003
+  displayName: Basic Square Tower
+  previewSprite: {fileID: 7482667652216324306, guid: 628e99be5679c4e4cb46fbe223e1d493, type: 3}
+  visualPrefab: {fileID: 3098058871314541354, guid: ffff1148dca3fa945bbe2fca5c925c0a, type: 3}
+  unlockCost: 0
+  isPurchasable: 0

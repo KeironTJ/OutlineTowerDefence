@@ -40,6 +40,22 @@ public class SaveLoadManager : MonoBehaviour
             else
             {
                 // Debug.Log("Successfully deserialized PlayerData: " + JsonUtility.ToJson(data, true));
+                // --- MIGRATION: Ensure default tower visuals are unlocked ---
+                if (data.unlockedTowerVisuals == null)
+                {
+                    data.unlockedTowerVisuals = new List<string>();
+                }
+                string[] defaultVisuals = { "0001", "0002", "0003" };
+                foreach (string id in defaultVisuals)
+                {
+                    if (!data.unlockedTowerVisuals.Contains(id))
+                        data.unlockedTowerVisuals.Add(id);
+                }
+                // Ensure selectedTowerVisualId is valid
+                if (string.IsNullOrEmpty(data.selectedTowerVisualId) || !data.unlockedTowerVisuals.Contains(data.selectedTowerVisualId))
+                {
+                    data.selectedTowerVisualId = "0001";
+                }
             }
             return data;
         }

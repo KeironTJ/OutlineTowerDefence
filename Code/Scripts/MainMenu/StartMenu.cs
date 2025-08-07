@@ -17,14 +17,18 @@ public class StartMenu : MonoBehaviour
     [Header("Player Information")]
     [SerializeField] private TextMeshProUGUI playerUsernameText;
 
-    [Header("Play Screen References")]
+    [Header("Difficulty")]
     [SerializeField] private TextMeshProUGUI difficultySelectionUI;
     [SerializeField] private TextMeshProUGUI highestWaveUI;
     [SerializeField] private Transform lowerDifficultyButton;
     [SerializeField] private Transform increaseDifficultyButton;
-
     [SerializeField] private int chosenDifficulty = 1;
     [SerializeField] private int highestWave;
+
+    // Tower Visual Selection
+    [Header("Tower Visual")]
+    [SerializeField] private Image towerVisualImage;
+
 
     [Header("Upgrade Screen References")]
     // Screens
@@ -72,6 +76,25 @@ public class StartMenu : MonoBehaviour
         InitializeShop();
         TriggerDifficultyButtons();
         ToggleCategory(attackUpgradesScreen);
+        // Load and display the selected tower visual image
+        SetTowerVisualImage();
+
+    }
+
+    // Sets the tower image in the start menu to the selected tower visual
+    public void SetTowerVisualImage()
+    {
+        if (towerVisualImage == null) return;
+        var selectedId = playerManager.playerData.selectedTowerVisualId;
+        var visuals = TowerVisualManager.Instance.allVisuals;
+        foreach (var visual in visuals)
+        {
+            if (visual.id == selectedId)
+            {
+                towerVisualImage.sprite = visual.previewSprite;
+                break;
+            }
+        }
     }
 
     private void Update()
@@ -348,7 +371,4 @@ public class StartMenu : MonoBehaviour
             buttonImage.color = color;
         }
     }
-    
-
-
 }

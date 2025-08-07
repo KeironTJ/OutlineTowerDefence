@@ -3566,7 +3566,6 @@ MonoBehaviour:
   - typeName: Tank
     prefab: {fileID: 913476891759774307, guid: d51f811bf23ebb74bb6bccd8f18c33c7, type: 3}
     spawnWeight: 0
-  bossWaveInterval: 10
 --- !u!114 &1226402245
 MonoBehaviour:
   m_ObjectHideFlags: 0
