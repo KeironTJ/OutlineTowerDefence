@@ -385,5 +385,18 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    public bool UpdateUsername(string newUsername)
+    {
+        if (string.IsNullOrEmpty(newUsername))
+        {
+            Debug.LogWarning("New username cannot be empty.");
+            return false;
+        }
+
+        playerData.Username = newUsername;
+        SavePlayerData();
+        return true;
+    }
+
 
 }

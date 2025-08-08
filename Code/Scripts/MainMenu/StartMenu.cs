@@ -17,6 +17,12 @@ public class StartMenu : MonoBehaviour
     [Header("Player Information")]
     [SerializeField] private TextMeshProUGUI playerUsernameText;
 
+    [Header("Change Username Section")]
+    [SerializeField] private GameObject changeUsernamePanel;
+    [SerializeField] private TMP_InputField changeUsernameInputField;
+    [SerializeField] private TextMeshProUGUI changeUsernameErrorText; 
+    [SerializeField] private Button changeUsernameButton;
+
     [Header("Difficulty")]
     [SerializeField] private TextMeshProUGUI difficultySelectionUI;
     [SerializeField] private TextMeshProUGUI highestWaveUI;
@@ -82,20 +88,6 @@ public class StartMenu : MonoBehaviour
     }
 
     // Sets the tower image in the start menu to the selected tower visual
-    public void SetTowerVisualImage()
-    {
-        if (towerVisualImage == null) return;
-        var selectedId = playerManager.playerData.selectedTowerVisualId;
-        var visuals = TowerVisualManager.Instance.allVisuals;
-        foreach (var visual in visuals)
-        {
-            if (visual.id == selectedId)
-            {
-                towerVisualImage.sprite = visual.previewSprite;
-                break;
-            }
-        }
-    }
 
     private void Update()
     {
@@ -115,6 +107,58 @@ public class StartMenu : MonoBehaviour
     public void DisplayPlayerUsername()
     {
         playerUsernameText.text = playerManager.playerData.Username;
+    }
+
+    public void SetTowerVisualImage()
+    {
+        if (towerVisualImage == null) return;
+        var selectedId = playerManager.playerData.selectedTowerVisualId;
+        var visuals = TowerVisualManager.Instance.allVisuals;
+        foreach (var visual in visuals)
+        {
+            if (visual.id == selectedId)
+            {
+                towerVisualImage.sprite = visual.previewSprite;
+                break;
+            }
+        }
+    }
+
+    // Change Username Methods
+    public void OpenChangeUsernamePanel()
+    {
+        changeUsernameInputField.text = playerManager.playerData.Username;
+        changeUsernamePanel.SetActive(true);
+    }
+
+    public void CloseChangeUsernamePanel()
+    {
+        changeUsernamePanel.SetActive(false);
+        changeUsernameErrorText.text = ""; // Clear any previous error messages
+        changeUsernameInputField.text = ""; // Clear the input field
+    }
+
+    public void ChangeUsername()
+    {
+        string newUsername = changeUsernameInputField.text.Trim();
+        if (!string.IsNullOrEmpty(newUsername))
+        {
+            if (playerManager.UpdateUsername(newUsername))
+            {
+                changeUsernameErrorText.text = ""; // Clear any previous error messages
+                DisplayPlayerUsername();
+                CloseChangeUsernamePanel();
+            }
+            else
+            {
+                changeUsernameErrorText.text = "Failed to update username. It may already be taken.";
+            }
+
+        }
+        else
+        {
+            changeUsernameErrorText.text = "Username cannot be empty.";
+        }
     }
 
     // PLAY SCREEN METHODS
