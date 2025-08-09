@@ -1,3 +1,4 @@
+using System; // Added for event handling
 using UnityEngine;
 
 public class TowerSpawner : MonoBehaviour
@@ -16,7 +17,12 @@ public class TowerSpawner : MonoBehaviour
         if (visualData != null && visualData.visualPrefab != null && spawnPoint != null)
         {
             activeTowerInstance = Instantiate(visualData.visualPrefab, spawnPoint.position, spawnPoint.rotation);
-            return activeTowerInstance.GetComponent<Tower>();
+            var spawnedTower = activeTowerInstance.GetComponent<Tower>();
+
+            // Trigger the TowerSpawned event
+            EventManager.TriggerEvent(EventNames.TowerSpawned, spawnedTower);
+
+            return spawnedTower;
         }
         else
         {

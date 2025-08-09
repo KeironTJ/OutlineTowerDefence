@@ -17,7 +17,7 @@ public class SaveLoadManager : MonoBehaviour
     {
         string json = JsonUtility.ToJson(data, true);
         File.WriteAllText(filePath, json);
-        Debug.Log("Data saved to local file");
+        //Debug.Log("Data saved to local file");
     }
 
     public bool SaveFileExists()

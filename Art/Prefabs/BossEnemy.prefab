@@ -206,3 +206,5 @@ MonoBehaviour:
   basicCreditsWorth: 10
   premiumCreditsWorth: 5
   luxuryCreditsWorth: 0.1
+  type: 2
+  subtype: 0

@@ -103,8 +103,6 @@ public class RoundManager : MonoBehaviour
 
         skillManager.InitializeSkills(playerManager.attackSkills, playerManager.defenceSkills, playerManager.supportSkills, playerManager.specialSkills);
 
-        Debug.Log("Round skills initialized successfully.");
-
         SetStartBasicCredits();
     }
 

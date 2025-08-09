@@ -11,7 +11,6 @@ public class EnemySpawner : MonoBehaviour
     [System.Serializable]
     public class BasicEnemyType
     {
-        public string typeName; // Name of the enemy type (e.g., Simple, Fast, Tank)
         public GameObject prefab; // Prefab for this type
         public float spawnWeight; // Weight for spawning this type
     }
@@ -32,32 +31,28 @@ public class EnemySpawner : MonoBehaviour
 
     public void AdjustBasicSpawnWeights(int currentWave, int maxWaves)
     {
-        Debug.Log($"Adjusting spawn weights for wave {currentWave} out of {maxWaves}");
+        //Debug.Log($"Adjusting spawn weights for wave {currentWave} out of {maxWaves}");
 
-        float simpleRatio = Mathf.Lerp(1f, 0.33f, (float)currentWave / maxWaves);
+        float simpleRatio = Mathf.Lerp(1f, 0.34f, (float)currentWave / maxWaves);
         float fastRatio = Mathf.Lerp(0f, 0.33f, (float)currentWave / (maxWaves * 0.5f)); // Fast enemies phase in sooner
         float tankRatio = Mathf.Lerp(0f, 0.33f, (float)currentWave / maxWaves); // Tank enemies phase in later
 
         foreach (var type in basicEnemyTypes)
         {
-            if (type.typeName == "Simple")
+            if (type.prefab.name.Contains("Simple")) // Example: Match prefab name
             {
                 type.spawnWeight = simpleRatio;
-                Debug.Log($"Simple spawn weight updated to: {type.spawnWeight}");
             }
-            else if (type.typeName == "Fast")
+            else if (type.prefab.name.Contains("Fast"))
             {
                 type.spawnWeight = fastRatio;
-                Debug.Log($"Fast spawn weight updated to: {type.spawnWeight}");
             }
-            else if (type.typeName == "Tank")
+            else if (type.prefab.name.Contains("Tank"))
             {
                 type.spawnWeight = tankRatio;
-                Debug.Log($"Tank spawn weight updated to: {type.spawnWeight}");
             }
         }
         UpdateTotalBasicSpawnWeight();
-        Debug.Log($"Total basic spawn weight updated to: {totalBasicSpawnWeight}");
     }
 
     public void SpawnBasicEnemy(Tower tower, float healthModifier, float moveSpeedModifier, float attackDamageModifier, float rewardModifier)
@@ -84,6 +79,7 @@ public class EnemySpawner : MonoBehaviour
             Enemy enemy = enemyObject.GetComponent<Enemy>();
             if (enemy != null)
             {
+                // Prefab already has type and subtype set
                 enemy.Initialize(tower, healthModifier, moveSpeedModifier, attackDamageModifier, rewardModifier);
             }
             else

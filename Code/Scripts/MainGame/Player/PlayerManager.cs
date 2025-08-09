@@ -18,6 +18,9 @@ public class PlayerManager : MonoBehaviour
     public SaveLoadManager saveLoadManager; // Make this public to access from StartMenu
     public PlayerData playerData;
 
+    // Dictionary to track destroyed enemies by type and subtype
+    private Dictionary<string, int> enemyDestructionCounts = new Dictionary<string, int>();
+
     private void Awake()
     {
         if (main == null)
@@ -163,6 +166,8 @@ public class PlayerManager : MonoBehaviour
         UpdateSkillData(playerData.defenceSkills, defenceSkills);
         UpdateSkillData(playerData.supportSkills, supportSkills);
         UpdateSkillData(playerData.specialSkills, specialSkills);
+
+        
 
         //Debug.Log("Player data before saving: " + JsonUtility.ToJson(playerData, true));
         saveLoadManager.SaveData(playerData);
@@ -398,5 +403,64 @@ public class PlayerManager : MonoBehaviour
         return true;
     }
 
+    // Method to increment the count of destroyed enemies
+    public void IncrementEnemyDestructionCount(string enemyType)
+    {
+        if (enemyDestructionCounts.ContainsKey(enemyType))
+        {
+            enemyDestructionCounts[enemyType]++;
+        }
+        else
+        {
+            enemyDestructionCounts[enemyType] = 1;
+        }
+    }
 
+    // Method to get the count of destroyed enemies by type
+    public int GetEnemyDestructionCount(string enemyType)
+    {
+        return enemyDestructionCounts.ContainsKey(enemyType) ? enemyDestructionCounts[enemyType] : 0;
+    }
+
+    private void OnEnable()
+    {
+        // Subscribe to the EnemyDestroyed event via EventManager
+        EventManager.StartListening(EventNames.EnemyDestroyed, new Action<object>(OnEnemyDestroyed));
+    }
+
+    private void OnDisable()
+    {
+        // Unsubscribe from the EnemyDestroyed event via EventManager
+        EventManager.StopListening(EventNames.EnemyDestroyed, new Action<object>(OnEnemyDestroyed));
+    }
+
+    private void OnEnemyDestroyed(object eventData)
+    {
+        if (eventData is Enemy enemy)
+        {
+            EnemyType enemyType = enemy.Type;
+            EnemySubtype enemySubtype = enemy.Subtype;
+
+            // Find the existing entry in the list
+            var existingEntry = playerData.EnemiesDestroyed.Find(e => e.EnemyType == enemyType && e.EnemySubtype == enemySubtype);
+
+            if (existingEntry != null)
+            {
+                // Increment the count if the entry exists
+                existingEntry.Count++;
+            }
+            else
+            {
+                // Add a new entry if it doesn't exist
+                playerData.EnemiesDestroyed.Add(new SerializableEnemyData
+                {
+                    EnemyType = enemyType,
+                    EnemySubtype = enemySubtype,
+                    Count = 1
+                });
+            }
+
+            SavePlayerData();
+        }
+    }
 }

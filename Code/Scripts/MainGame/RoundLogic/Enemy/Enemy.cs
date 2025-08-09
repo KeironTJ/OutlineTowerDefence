@@ -2,6 +2,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum EnemyType
+{
+    BasicEnemy,
+    AdvancedEnemy,
+    BossEnemy
+}
+
+public enum EnemySubtype
+{
+    Simple,
+    Fast,
+    Tank
+}
+
 public class Enemy : MonoBehaviour
 {
     [Header("References")]
@@ -19,13 +33,23 @@ public class Enemy : MonoBehaviour
     [SerializeField] private float premiumCreditsWorth = 0f;
     [SerializeField] private float luxuryCreditsWorth = 0f;
 
+    [Header("Enemy Type")]
+    [SerializeField] private EnemyType type; // Set in the prefab
+    [SerializeField] private EnemySubtype subtype; // Set in the prefab
+
+    public EnemyType Type => type; // Expose Type as a read-only property
+    public EnemySubtype Subtype => subtype; // Expose Subtype as a read-only property
+
     private Tower tower;
     private Transform target;
     private Coroutine damageCoroutine;
     private bool isDestroyed = false;
 
+
+
     public void Initialize(Tower tower, float healthModifier, float moveSpeedModifier, float attackDamageModifier, float rewardModifier = 1.1f)
     {
+        // Existing initialization logic
         this.tower = tower;
         this.target = tower.transform;
         this.health *= healthModifier;
@@ -97,6 +121,8 @@ public class Enemy : MonoBehaviour
         if (health <= 0 && !isDestroyed)
         {
             isDestroyed = true;
+            StopDamage(); // Stop applying damage to the tower
+            EventManager.TriggerEvent(EventNames.EnemyDestroyed, this);
             Destroy(gameObject);
 
             tower.AddCredits(basicCreditsWorth, premiumCreditsWorth, luxuryCreditsWorth);

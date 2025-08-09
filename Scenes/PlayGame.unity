@@ -3540,7 +3540,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b1424340fafb8148aba6a778d4c5efb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  towerPrefab: {fileID: 3098058871314541354, guid: 8b4b349c36b7afa4f96dbd8e50015a40, type: 3}
   spawnPoint: {fileID: 2106426072}
 --- !u!114 &1226402244
 MonoBehaviour:
@@ -3557,13 +3556,16 @@ MonoBehaviour:
   bossEnemyPrefabs:
   - {fileID: 913476891759774307, guid: 4ccb980b10b4e9744861d711e9924527, type: 3}
   basicEnemyTypes:
-  - typeName: Simple
+  - enemyType: 0
+    enemySubtype: 0
     prefab: {fileID: 913476891759774307, guid: 8d3f9bb6cc850c146ba72c2f54056f0b, type: 3}
     spawnWeight: 1
-  - typeName: Fast
+  - enemyType: 0
+    enemySubtype: 1
     prefab: {fileID: 913476891759774307, guid: 7e7c906c15f492e4d8958463d962195a, type: 3}
     spawnWeight: 0
-  - typeName: Tank
+  - enemyType: 0
+    enemySubtype: 2
     prefab: {fileID: 913476891759774307, guid: d51f811bf23ebb74bb6bccd8f18c33c7, type: 3}
     spawnWeight: 0
 --- !u!114 &1226402245

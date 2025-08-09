@@ -101,16 +101,16 @@ public class Menu : MonoBehaviour
 
     private void CreateButtonsForCategory(Dictionary<string, Skill> skills, Transform parent)
     {
-        Debug.Log($"Creating buttons for category: {parent.name}");
-        Debug.Log($"Number of skills in category: {skills.Count}");
+        //Debug.Log($"Creating buttons for category: {parent.name}");
+        //Debug.Log($"Number of skills in category: {skills.Count}");
 
         foreach (var skill in skills.Values)
         {
-            Debug.Log($"Skill Details - Name: {skill.skillName}, Active: {skill.skillActive}, Unlocked: {skill.roundSkillUnlocked}, Base Value: {skill.baseValue}, Level: {skill.level}, Max Level: {skill.maxLevel}");
+            //Debug.Log($"Skill Details - Name: {skill.skillName}, Active: {skill.skillActive}, Unlocked: {skill.roundSkillUnlocked}, Base Value: {skill.baseValue}, Level: {skill.level}, Max Level: {skill.maxLevel}");
 
             if (skill.skillActive && skill.roundSkillUnlocked)
             {
-                Debug.Log($"Skill passed filtering: {skill.skillName}");
+                //Debug.Log($"Skill passed filtering: {skill.skillName}");
                 GameObject button = Instantiate(buttonPrefab, parent);
                 if (button == null)
                 {
@@ -126,14 +126,14 @@ public class Menu : MonoBehaviour
                 }
 
                 TextMeshProUGUI[] textFields = button.GetComponentsInChildren<TextMeshProUGUI>();
-                Debug.Log($"Text fields found: {textFields.Length}");
+                //Debug.Log($"Text fields found: {textFields.Length}");
 
                 if (textFields.Length >= 3)
                 {
                     textFields[0].text = skill.skillName; // Assign the skill name to the first text field
                     textFields[1].text = NumberManager.FormatLargeNumber(skillManager.GetSkillCost(skill)); // Assign the cost to the second text field
                     textFields[2].text = NumberManager.FormatLargeNumber(skillManager.GetSkillValue(skill)); // Assign the Value to the third text field
-                    Debug.Log($"Button text set for skill: {skill.skillName}");
+                    //Debug.Log($"Button text set for skill: {skill.skillName}");
                 }
                 else
                 {
@@ -141,7 +141,7 @@ public class Menu : MonoBehaviour
                 }
 
                 buttonComponent.onClick.AddListener(() => OnSkillButtonClicked(skill, buttonComponent));
-                Debug.Log($"Button created and listener added for skill: {skill.skillName}");
+                //Debug.Log($"Button created and listener added for skill: {skill.skillName}");
             }
             else
             {

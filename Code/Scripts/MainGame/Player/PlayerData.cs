@@ -17,6 +17,14 @@ public class SkillData
 }
 
 [System.Serializable]
+public class SerializableEnemyData
+{
+    public EnemyType EnemyType;
+    public EnemySubtype EnemySubtype;
+    public int Count;
+}
+
+[System.Serializable]
 public class PlayerData
 {
     [Header("Player Information")]
@@ -41,6 +49,9 @@ public class PlayerData
     [Header("Game Progress")]
     public int maxDifficultyAchieved;
     public int[] difficultyMaxWaveAchieved = new int[9];
+
+    [Header("Enemy Destruction Data")]
+    public List<SerializableEnemyData> EnemiesDestroyed = new List<SerializableEnemyData>();
 
     // Constructor to initialize a new player
     public PlayerData()

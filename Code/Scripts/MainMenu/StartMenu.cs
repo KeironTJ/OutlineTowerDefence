@@ -78,7 +78,7 @@ public class StartMenu : MonoBehaviour
         DisplayPlayerUsername();
         SetPlayerMaxDifficulty(playerManager.GetMaxDifficulty());
         SetPlayerDifficulty(1); // In future can customize this to suit player last chosen level
-        SelectMainScreen();
+        SelectScreen(ScreenType.Main);
         InitializeShop();
         TriggerDifficultyButtons();
         ToggleCategory(attackUpgradesScreen);

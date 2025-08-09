@@ -25,10 +25,10 @@ public class SkillManager : MonoBehaviour
         debugSpecialSkills = new List<Skill>(roundSkillData.specialSkills.Values);
 
         // Log checks to ensure initialization
-        Debug.Log($"Attack Skills Initialized: {debugAttackSkills.Count} skills");
-        Debug.Log($"Defence Skills Initialized: {debugDefenceSkills.Count} skills");
-        Debug.Log($"Support Skills Initialized: {debugSupportSkills.Count} skills");
-        Debug.Log($"Special Skills Initialized: {debugSpecialSkills.Count} skills");
+        //Debug.Log($"Attack Skills Initialized: {debugAttackSkills.Count} skills");
+        //Debug.Log($"Defence Skills Initialized: {debugDefenceSkills.Count} skills");
+        //Debug.Log($"Support Skills Initialized: {debugSupportSkills.Count} skills");
+        //Debug.Log($"Special Skills Initialized: {debugSpecialSkills.Count} skills");
 
         if (debugAttackSkills.Count == 0 || debugDefenceSkills.Count == 0 || debugSupportSkills.Count == 0 || debugSpecialSkills.Count == 0)
         {
