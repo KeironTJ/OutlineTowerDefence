@@ -56,10 +56,10 @@ public class TowerVisualSelectionUI : MonoBehaviour
                 if (isUnlocked)
                 {
                     PlayerManager.main.SelectTowerVisual(id);
-                    // Update StartMenu image
-                    var startMenu = FindObjectOfType<StartMenu>();
-                    if (startMenu != null)
-                        startMenu.SetTowerVisualImage();
+                    // Update MainMenuUIManager image
+                    var mainMenu = FindObjectOfType<MainMenuUIManager>();
+                    if (mainMenu != null)
+                        mainMenu.SetTowerVisualImage();
                     CloseTowerVisualSelection(); // Close the panel after selection
                 }
                 else

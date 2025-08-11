@@ -6,7 +6,7 @@ using UnityEngine.UI;
 using TMPro;
 using System;
 
-public class StartMenu : MonoBehaviour
+public class MainMenuUIManager : MonoBehaviour
 {
 
     [Header("Main Menu Header Reference")]
