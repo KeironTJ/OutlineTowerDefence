@@ -1,15 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SIdeMenu : MonoBehaviour
 {
 
     [Header("References")]
     [SerializeField] private Animator anim;
+    [SerializeField] private Button settingsButton;
 
     private Tower tower;
-    
+
     private bool isMenuOpen = true;
 
 
@@ -23,7 +25,7 @@ public class SIdeMenu : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     private IEnumerator FindTowerInstance()
@@ -55,5 +57,11 @@ public class SIdeMenu : MonoBehaviour
         {
             Debug.LogWarning("Tower instance is not found.");
         }
+    }
+
+    public void OpenSettings()
+    {
+        // Open the settings menu
+        OptionsUIManager.Instance.EnableOptionsUIManager();
     }
 }

@@ -45,6 +45,10 @@ public class PlayerData
     public float premiumCredits;
     public float specialCredits;
     public float luxuryCredits;
+    public float totalBasicCreditsEarned;
+    public float totalPremiumCreditsEarned;
+    public float totalSpecialCreditsEarned;
+    public float totalLuxuryCreditsEarned;
 
     [Header("Game Progress")]
     public int maxDifficultyAchieved;

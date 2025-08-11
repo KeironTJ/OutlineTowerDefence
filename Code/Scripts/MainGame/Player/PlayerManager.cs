@@ -426,6 +426,9 @@ public class PlayerManager : MonoBehaviour
     {
         // Subscribe to the EnemyDestroyed event via EventManager
         EventManager.StartListening(EventNames.EnemyDestroyed, new Action<object>(OnEnemyDestroyed));
+
+        //Subscribe to Currency events
+        EventManager.StartListening(EventNames.CurrencyChanged, new Action<object>(OnCurrencyChanged));
     }
 
     private void OnDisable()

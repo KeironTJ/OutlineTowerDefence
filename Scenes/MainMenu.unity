@@ -2615,6 +2615,7 @@ GameObject:
   - component: {fileID: 567851883}
   - component: {fileID: 567851885}
   - component: {fileID: 567851884}
+  - component: {fileID: 567851886}
   m_Layer: 0
   m_Name: GameStatsPanel
   m_TagString: Untagged
@@ -2681,6 +2682,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 567851882}
   m_CullTransparentMesh: 1
+--- !u!114 &567851886
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 567851882}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01fa0828ec075a747bd84ef26a037c78, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  contentParent: {fileID: 725721355}
+  statItemPrefab: {fileID: 8450985653791507526, guid: cc2b69105558d154f8cdcc5ccd70f84f, type: 3}
 --- !u!1 &588607047
 GameObject:
   m_ObjectHideFlags: 0
@@ -3012,6 +3027,7 @@ GameObject:
   - component: {fileID: 645780491}
   - component: {fileID: 645780493}
   - component: {fileID: 645780492}
+  - component: {fileID: 645780494}
   m_Layer: 0
   m_Name: OptionsPanel
   m_TagString: Untagged
@@ -3079,6 +3095,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 645780490}
   m_CullTransparentMesh: 1
+--- !u!114 &645780494
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 645780490}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e818edff7d09aa64cbc3951b2a3dceac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &647192196
 GameObject:
   m_ObjectHideFlags: 0
@@ -4448,6 +4476,10 @@ MonoBehaviour:
     premiumCredits: 0
     specialCredits: 0
     luxuryCredits: 0
+    totalBasicCreditsEarned: 0
+    totalPremiumCreditsEarned: 0
+    totalSpecialCreditsEarned: 0
+    totalLuxuryCreditsEarned: 0
     maxDifficultyAchieved: 0
     difficultyMaxWaveAchieved: 000000000000000000000000000000000000000000000000000000000000000000000000
     EnemiesDestroyed: []

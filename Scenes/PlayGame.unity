@@ -3072,6 +3072,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   anim: {fileID: 1055747961}
+  settingsButton: {fileID: 1579690715}
 --- !u!95 &1055747961
 Animator:
   serializedVersion: 5
@@ -3556,17 +3557,11 @@ MonoBehaviour:
   bossEnemyPrefabs:
   - {fileID: 913476891759774307, guid: 4ccb980b10b4e9744861d711e9924527, type: 3}
   basicEnemyTypes:
-  - enemyType: 0
-    enemySubtype: 0
-    prefab: {fileID: 913476891759774307, guid: 8d3f9bb6cc850c146ba72c2f54056f0b, type: 3}
+  - prefab: {fileID: 913476891759774307, guid: 8d3f9bb6cc850c146ba72c2f54056f0b, type: 3}
     spawnWeight: 1
-  - enemyType: 0
-    enemySubtype: 1
-    prefab: {fileID: 913476891759774307, guid: 7e7c906c15f492e4d8958463d962195a, type: 3}
+  - prefab: {fileID: 913476891759774307, guid: 7e7c906c15f492e4d8958463d962195a, type: 3}
     spawnWeight: 0
-  - enemyType: 0
-    enemySubtype: 2
-    prefab: {fileID: 913476891759774307, guid: d51f811bf23ebb74bb6bccd8f18c33c7, type: 3}
+  - prefab: {fileID: 913476891759774307, guid: d51f811bf23ebb74bb6bccd8f18c33c7, type: 3}
     spawnWeight: 0
 --- !u!114 &1226402245
 MonoBehaviour:
@@ -5017,7 +5012,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1579690716}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1055747960}
+        m_TargetAssemblyTypeName: SIdeMenu, Assembly-CSharp
+        m_MethodName: OpenSettings
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1579690716
 MonoBehaviour:
   m_ObjectHideFlags: 0

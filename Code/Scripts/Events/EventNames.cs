@@ -11,4 +11,17 @@ public static class EventNames
     // Enemy Events
     public const string EnemySpawned = "EnemySpawned";
     public const string EnemyDestroyed = "EnemyDestroyed";
+
+    // Enum for Currency Types
+    public enum CurrencyType
+    {
+        Basic,
+        Premium,
+        Special,
+        Luxury
+    }
+
+    // Game Currency Event
+    public const string CurrencyEarned = "CurrencyEarned";
+
 }
