@@ -5,65 +5,99 @@ using UnityEngine;
 public class OptionsUIManager : MonoBehaviour
 {
     [Header("Panels")]
-    public GameObject optionsPanel;
-    public GameObject profilePanel;
-    public GameObject gameStatsPanel;
-    public GameObject settingsPanel;
+    [SerializeField] private GameObject background;
+    [SerializeField] private GameObject optionsPanel;
+    [SerializeField] private GameObject profilePanel;
+    [SerializeField] private GameObject gameStatsPanel;
+    [SerializeField] private GameObject settingsPanel;
 
     private static OptionsUIManager instance;
+    public static OptionsUIManager Instance => instance;
 
     private void Awake()
     {
-        if (instance == null)
+        if (instance != null && instance != this)
         {
-            instance = this;
-            DontDestroyOnLoad(gameObject); // Make this object persistent across scenes
+            Destroy(gameObject);
+            return;
         }
-        else
-        {
-            Destroy(gameObject); // Prevent duplicate instances
-        }
+        instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        // Auto-bind children if missing (by name)
+        if (!background) background = transform.Find("Background") ? transform.Find("Background").gameObject : null;
+        if (!optionsPanel) optionsPanel = transform.Find("OptionsPanel") ? transform.Find("OptionsPanel").gameObject : null;
+        if (!profilePanel) profilePanel = transform.Find("ProfilePanel") ? transform.Find("ProfilePanel").gameObject : null;
+        if (!gameStatsPanel) gameStatsPanel = transform.Find("GameStatsPanel") ? transform.Find("GameStatsPanel").gameObject : null;
+        if (!settingsPanel) settingsPanel = transform.Find("SettingsPanel") ? transform.Find("SettingsPanel").gameObject : null;
+
+        CloseOptions();
     }
 
-    public static OptionsUIManager Instance
+    public void OpenOptions()
     {
-        get { return instance; }
+        SafeSetActive(background, true);
+        SafeSetActive(optionsPanel, true);
+        HideSubPanels();
     }
+
+    public void CloseOptions()
+    {
+        SafeSetActive(optionsPanel, false);
+        SafeSetActive(profilePanel, false);
+        SafeSetActive(gameStatsPanel, false);
+        SafeSetActive(settingsPanel, false);
+        SafeSetActive(background, false);
+    }
+
+    public void ToggleOptions()
+    {
+        bool open = IsOpen();
+        if (open) CloseOptions();
+        else OpenOptions();
+    }
+
+    public void ShowProfile() => ShowSubPanel(profilePanel);
+    public void ShowGameStats() => ShowSubPanel(gameStatsPanel);
+    public void ShowSettings() => ShowSubPanel(settingsPanel);
 
     public void ShowPanel(GameObject panel)
     {
-        // Ensure only the specified panel is visible
-        HideAllPanels();
-        panel.SetActive(true);
+        if (!IsValid(panel)) { Debug.LogWarning("OptionsUIManager: Panel missing."); return; }
+        HideSubPanels();
+        SafeSetActive(panel, true);
     }
 
-    public void HideAllPanels()
+    private void ShowSubPanel(GameObject panel)
     {
-        // Hide all panels managed by this UI
-        optionsPanel.SetActive(false);
-        profilePanel.SetActive(false);
-        gameStatsPanel.SetActive(false);
-        settingsPanel.SetActive(false);
+        if (!IsValid(panel)) { Debug.LogWarning("OptionsUIManager: SubPanel missing."); return; }
+
+        // Ensure menu is open
+        SafeSetActive(background, true);
+        SafeSetActive(optionsPanel, true);
+
+        // Show just the requested subpanel
+        HideSubPanels();
+        SafeSetActive(panel, true);
     }
 
-    public void TogglePanel(GameObject panel)
+    public void HideSubPanels()
     {
-        // Toggle the visibility of the specified panel
-        panel.SetActive(!panel.activeSelf);
+        SafeSetActive(profilePanel, false);
+        SafeSetActive(gameStatsPanel, false);
+        SafeSetActive(settingsPanel, false);
     }
 
-    public void ToggleOptionsUIManager()
+    private bool IsOpen()
     {
-        gameObject.SetActive(!gameObject.activeSelf);
+        return background && background.activeSelf && optionsPanel && optionsPanel.activeSelf;
     }
 
-    public void EnableOptionsUIManager()
-    {
-        gameObject.SetActive(true);
-    }
+    private static bool IsValid(GameObject go) => go != null && go.scene.IsValid();
 
-    public void DisableOptionsUIManager()
+    private static void SafeSetActive(GameObject go, bool state)
     {
-        gameObject.SetActive(false);
+        if (go && go.activeSelf != state) go.SetActive(state);
     }
+    
 }

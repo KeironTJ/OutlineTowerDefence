@@ -24,4 +24,7 @@ public static class EventNames
     // Game Currency Event
     public const string CreditsEarned = "CreditsEarned";
 
+    // Skill Events
+    public const string SkillUpgraded = "SkillUpgraded";
+
 }

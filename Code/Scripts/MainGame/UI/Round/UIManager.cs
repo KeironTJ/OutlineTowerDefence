@@ -22,7 +22,6 @@ public class UIManager : MonoBehaviour
     [Header("Wave Information")]
     [SerializeField] private TextMeshProUGUI difficultyNumberUI;
     [SerializeField] private TextMeshProUGUI waveNumberUI;
-    [SerializeField] private TextMeshProUGUI enemyNumberUI;
     [SerializeField] private TextMeshProUGUI loseScreenWaveNumberUI;
     [SerializeField] private TextMeshProUGUI waveTimeRemainingUI;
     [SerializeField] private Slider waveProgressBar;
@@ -139,15 +138,15 @@ public class UIManager : MonoBehaviour
         if (tower != null)
         {
             // Update health text
-            health.text = $"{NumberManager.FormatLargeNumber(tower.GetCurrentHealth())} / {NumberManager.FormatLargeNumber(roundManager.GetSkillValue(roundManager.GetSkill("Health")))}";
+            health.text = $"{NumberManager.FormatLargeNumber(tower.GetCurrentHealth())} / {NumberManager.FormatLargeNumber(skillManager.GetSkillValue(skillManager.GetSkill("Health")))}";
 
             // Update health bar
             float currentHealth = tower.GetCurrentHealth();
-            float maxHealth = roundManager.GetSkillValue(roundManager.GetSkill("Health"));
+            float maxHealth = skillManager.GetSkillValue(skillManager.GetSkill("Health"));
             healthProgressBar.value = currentHealth / maxHealth;
 
             // Update attack damage text
-            towerAttackDamage.text = $"Attack: {NumberManager.FormatLargeNumber(roundManager.GetSkillValue(roundManager.GetSkill("Attack Damage")))}";
+            towerAttackDamage.text = $"Attack: {NumberManager.FormatLargeNumber(skillManager.GetSkillValue(skillManager.GetSkill("Attack Damage")))}";
         }
     }
 
@@ -172,15 +171,15 @@ public class UIManager : MonoBehaviour
 
     private void UpdateBasicCreditsUI(float newValue)
     {
-        basicCreditsUI.text = $"Basic: {NumberManager.FormatLargeNumber(newValue)}";
+        basicCreditsUI.text = $"BC: {NumberManager.FormatLargeNumber(newValue)}";
     }
 
     private void UpdateGlobalCreditsUI()
     {
         if (playerManager?.Wallet != null)
         {
-            premiumCreditsUI.text = $"Premium: {NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Premium))}";
-            luxuryCreditsUI.text = $"Luxury: {NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Luxury))}";
+            premiumCreditsUI.text = $"PC: {NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Premium))}";
+            luxuryCreditsUI.text = $"LC: {NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Luxury))}";
         }
         else
         {
@@ -194,12 +193,11 @@ public class UIManager : MonoBehaviour
         {
             difficultyNumberUI.text = $"Difficulty: {roundManager.GetRoundDifficulty().ToString()}";
             waveNumberUI.text = $"Wave: {waveManager.GetCurrentWave().ToString()}";
-            enemyNumberUI.text = $"Enemies: {waveManager.GetEnemiesLeftToSpawn().ToString()} / {waveManager.EnemiesPerWave()}";
             loseScreenWaveNumberUI.text = $"{waveManager.GetCurrentWave().ToString()}";
             if (waveManager.IsBetweenWaves())
             {
                 float timeRemaining = waveManager.GetTimeBetweenWavesRemaining();
-                waveTimeRemainingUI.text = $"Next Wave In: {timeRemaining:F1}s";
+                waveTimeRemainingUI.text = $"{timeRemaining:F1}s";
                 waveProgressBar.value = 1 - (timeRemaining / waveManager.timeBetweenWaves); // Updated logic
                 fillAreaImage.color = Color.red;
             }
@@ -212,9 +210,9 @@ public class UIManager : MonoBehaviour
             }
         }
         else
-        {   // Keep the wave progress bar visible but do not update its value 
+        {   
             waveProgressBar.value = waveProgressBar.value;
-            waveNumberUI.text = "N/A";
+            waveNumberUI.text = $"{waveManager.GetCurrentWave().ToString()}";
         }
     }
 

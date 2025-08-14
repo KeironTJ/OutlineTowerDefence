@@ -62,6 +62,6 @@ public class SIdeMenu : MonoBehaviour
     public void OpenSettings()
     {
         // Open the settings menu
-        OptionsUIManager.Instance.EnableOptionsUIManager();
+        OptionsUIManager.Instance.OpenOptions();
     }
 }

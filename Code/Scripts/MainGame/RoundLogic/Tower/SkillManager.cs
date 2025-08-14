@@ -83,6 +83,9 @@ public class SkillManager : MonoBehaviour
         }
 
         skill.level += levelIncrease;
+
+        // Check if health being upgraded
+        EventManager.TriggerEvent(EventNames.SkillUpgraded, skill);
     }
 
     public Dictionary<string, Skill> GetSkillsByCategory(string category)

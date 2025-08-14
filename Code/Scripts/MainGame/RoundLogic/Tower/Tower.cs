@@ -39,6 +39,8 @@ public class Tower : MonoBehaviour
     private const int rangeSegments = 50;  
     private float lastRange = -1f;    
 
+    private float lastKnownMaxHealth = 0f;
+
     
     // GAME SEQUENCE
 
@@ -51,16 +53,29 @@ public class Tower : MonoBehaviour
         ManageHealth();
     }
 
+    private void OnEnable()
+    {
+        EventManager.StartListening(EventNames.SkillUpgraded, OnSkillUpgraded);
+    }
+
+    private void OnDisable()
+    {
+        EventManager.StopListening(EventNames.SkillUpgraded, OnSkillUpgraded);
+    }
+
+       
+
     public void Initialize(RoundManager roundManager, EnemySpawner enemySpawner, SkillManager skillManager, UIManager uiManager)
     {
         this.roundManager = roundManager;
         this.enemySpawner = enemySpawner;
-        this.skillManager = skillManager; 
+        this.skillManager = skillManager;
         this.uiManager = uiManager;
 
         if (skillManager != null)
         {
-            currentHealth = skillManager.GetSkillValue(skillManager.GetSkill("Health"));
+            lastKnownMaxHealth = GetMaxHealth();
+            currentHealth = lastKnownMaxHealth;
             InvokeHealthChanged();
         }
         else
@@ -68,6 +83,71 @@ public class Tower : MonoBehaviour
             Debug.LogError("SkillManager not found during initialization!");
         }
     }
+
+    // Helper: single source of truth for max health
+    private float GetMaxHealth()
+    {
+        // prefer skillManager (should be set in Initialize)
+        if (skillManager != null)
+            return skillManager.GetSkillValue(skillManager.GetSkill("Health"));
+        return currentHealth;
+    }
+
+    // Make intent explicit: this adds a delta to current health and clamps
+    public void AddHealth(float delta)
+    {
+        float max = GetMaxHealth();
+        currentHealth = Mathf.Clamp(currentHealth + delta, 0f, max);
+        InvokeHealthChanged();
+    }
+
+    // If you need an absolute setter, expose it explicitly
+    public void SetHealthAbsolute(float value)
+    {
+        float max = GetMaxHealth();
+        currentHealth = Mathf.Clamp(value, 0f, max);
+        InvokeHealthChanged();
+    }
+
+    // Called when the maximum health value changes (e.g. upgrade)
+    // Preserve the current percentage of health by default.
+    public void OnMaxHealthChanged()
+    {
+        float newMax = GetMaxHealth();
+
+        // If we never recorded a last known max, initialize and don't attempt to scale.
+        if (lastKnownMaxHealth <= 0f)
+        {
+            lastKnownMaxHealth = newMax;
+            // Optionally, keep currentHealth as-is or set to full:
+            // currentHealth = newMax;
+            InvokeHealthChanged();
+            return;
+        }
+
+        // Preserve current percentage relative to previous max
+        float pct = (lastKnownMaxHealth > 0f) ? currentHealth / lastKnownMaxHealth : 1f;
+        currentHealth = Mathf.Clamp(newMax * pct, 0f, newMax);
+        lastKnownMaxHealth = newMax;
+        InvokeHealthChanged();
+    }
+
+    private void OnSkillUpgraded(object eventData)
+    {
+        // SkillManager currently sends the Skill instance as payload
+        var skill = eventData as Skill;
+        if (skill == null) return;
+
+        if (skill.skillName == "Health")
+        {
+            // Recompute max and preserve percentage
+            OnMaxHealthChanged();
+        }
+    }
+
+
+    // Track last known max so upgrades can compute percentage
+
 
     // Shooting / Targeting
 
@@ -183,8 +263,8 @@ public class Tower : MonoBehaviour
 
     private void InvokeHealthChanged()
     {
-        float maxHealth = (roundManager != null)
-            ? roundManager.GetSkillValue(roundManager.GetSkill("Health"))
+        float maxHealth = (skillManager != null)
+            ? skillManager.GetSkillValue(skillManager.GetSkill("Health"))
             : currentHealth;
         HealthChanged?.Invoke(currentHealth, maxHealth);
     }
@@ -194,40 +274,34 @@ public class Tower : MonoBehaviour
         return currentHealth;
     }
 
-    public void SetCurrentHealth(float health)
+    // Healing coroutine simplified and robust
+    private IEnumerator HealCurrentHealth()
     {
-        float maxHealth = roundManager.GetSkillValue(roundManager.GetSkill("Health"));
-        currentHealth = Mathf.Clamp(currentHealth + health, 0f, maxHealth);
-        InvokeHealthChanged();                          
-    }
+        isHealing = true;
+        healingCoroutine = null; // will be set at start by caller
 
-    public void TakeDamage(float attackDamage)
-    {
-        if (attackDamage <= 0f || !towerAlive) return;   
-        currentHealth -= attackDamage;
-        if (currentHealth <= 0f)
+        while (towerAlive && currentHealth < GetMaxHealth())
         {
-            currentHealth = 0f;
-            InvokeHealthChanged();                      
-            OnTowerDestroyed();
-            return;
+            float maxHealth = GetMaxHealth(); // recalc each frame
+            float healSpeed = skillManager != null ? skillManager.GetSkillValue(skillManager.GetSkill("Heal Speed")) : 0f;
+            float healAmount = healSpeed * Time.deltaTime;
+            currentHealth = Mathf.Min(currentHealth + healAmount, maxHealth);
+            InvokeHealthChanged();
+            yield return null;
         }
-        InvokeHealthChanged();                           
+
+        // finished
+        isHealing = false;
+        healingCoroutine = null;
     }
 
     void StartHealing()
     {
-        float maxHealth = roundManager.GetSkillValue(roundManager.GetSkill("Health"));
+        if (!towerAlive) return;
+        if (isHealing || healingCoroutine != null) return;
 
-        if (currentHealth < maxHealth && towerAlive)
-        {
-            isHealing = true;
-
-            if (healingCoroutine == null)
-            {
-                healingCoroutine = StartCoroutine(HealCurrentHealth());
-            }
-        }
+        // start and keep reference
+        healingCoroutine = StartCoroutine(HealCurrentHealth());
     }
 
     private void StopHealing()
@@ -236,45 +310,23 @@ public class Tower : MonoBehaviour
         {
             StopCoroutine(healingCoroutine);
             healingCoroutine = null;
-            isHealing = false; // Reset the flag if you stop healing prematurely 
         }
+        isHealing = false;
     }
 
-    private IEnumerator HealCurrentHealth()
+    // TakeDamage uses AddHealth with negative delta and invokes change
+    public void TakeDamage(float attackDamage)
     {
-        float maxHealth = skillManager.GetSkillValue(skillManager.GetSkill("Health"));
+        if (attackDamage <= 0f || !towerAlive) return;
+        AddHealth(-attackDamage);
 
-        while (currentHealth < maxHealth)
+        if (currentHealth <= 0f)
         {
-            maxHealth = skillManager.GetSkillValue(skillManager.GetSkill("Health"));
-            float healSpeed = skillManager.GetSkillValue(skillManager.GetSkill("Heal Speed"));
-
-            while (currentHealth < maxHealth)
-            {
-                float healAmount = healSpeed * Time.deltaTime; // Increment health based on deltaTime
-                currentHealth += healAmount;
-
-                if (currentHealth > maxHealth)
-                {
-                    currentHealth = maxHealth; // Cap health at maxHealth
-                    break;
-                }
-
-                InvokeHealthChanged();
-                yield return null; // Wait for the next frame
-            }
+            currentHealth = 0f;
+            InvokeHealthChanged();
+            OnTowerDestroyed();
         }
-
-        StopHealing();
-        isHealing = false; // Reset the flag when done healing
     }
-
-
-
-    
-
-    // Tower States
-
 
     public void OnTowerDestroyed()
     {

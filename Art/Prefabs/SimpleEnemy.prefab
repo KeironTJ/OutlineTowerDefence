@@ -182,3 +182,6 @@ MonoBehaviour:
   basicCreditsWorth: 1
   premiumCreditsWorth: 0
   luxuryCreditsWorth: 0
+  specialCreditsWorth: 0
+  type: 0
+  subtype: 0

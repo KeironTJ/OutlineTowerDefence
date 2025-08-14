@@ -15,7 +15,9 @@ public class RoundManager : MonoBehaviour
     [SerializeField] private SkillManager skillManager; // Reference to SkillManager
 
     public ICurrencyWallet GetRoundWallet() => roundWallet;
-    private RoundCurrencyWallet roundWallet;
+
+    [Header("Round Wallet")]
+    [SerializeField] private RoundCurrencyWallet roundWallet;
 
     private Tower tower;
     public int roundDifficulty;
@@ -144,20 +146,7 @@ public class RoundManager : MonoBehaviour
     }
 
     // SKILLS
-    public Skill GetSkill(string skillName)
-    {
-        return skillManager?.GetSkill(skillName);
-    }
 
-    public float GetSkillValue(Skill skill)
-    {
-        return skillManager?.GetSkillValue(skill) ?? 0f;
-    }
-
-    public void UpgradeSkill(Skill skill, int levelIncrease)
-    {
-        skillManager?.UpgradeSkill(skill, levelIncrease);
-    }
 
     // Enemies
     private void DestroyAllEnemies()
@@ -208,7 +197,7 @@ public class RoundManager : MonoBehaviour
 
     private void SetStartBasicCredits()
     {
-        float startingBasicCredits = GetSkillValue(GetSkill("Start Basic Credit"));
+        float startingBasicCredits = skillManager.GetSkillValue(skillManager.GetSkill("Start Basic Credit"));
         IncreaseBasicCredits(startingBasicCredits);
     }
 
@@ -217,7 +206,7 @@ public class RoundManager : MonoBehaviour
         if (amount == 0f) return;
 
         // Treat skill as a bonus (0 => x1.0, 0.25 => x1.25)
-        float bonus = GetSkillValue(GetSkill("Basic Credit Modifier"));
+        float bonus = skillManager.GetSkillValue(skillManager.GetSkill("Basic Credit Modifier"));
         float multiplier = Mathf.Max(0f, 1f + bonus);
         roundWallet?.Add(CurrencyType.Basic, amount * multiplier);
     }
