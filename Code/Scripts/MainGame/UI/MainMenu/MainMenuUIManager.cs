@@ -76,6 +76,14 @@ public class MainMenuUIManager : MonoBehaviour
     {
         playerManager = PlayerManager.main;
         DisplayPlayerUsername();
+
+        DisplayCredits();
+
+        if (playerManager?.Wallet != null)
+        {
+            playerManager.Wallet.BalanceChanged += OnBalanceChanged;
+        }
+
         SetPlayerMaxDifficulty(playerManager.GetMaxDifficulty());
         SetPlayerDifficulty(1); // In future can customize this to suit player last chosen level
         SelectScreen(ScreenType.Main);
@@ -89,12 +97,23 @@ public class MainMenuUIManager : MonoBehaviour
 
     // Sets the tower image in the start menu to the selected tower visual
 
-    private void Update()
+    private void OnDestroy()
     {
-        DisplayCredits();
+        if (playerManager?.Wallet != null)
+        {
+            playerManager.Wallet.BalanceChanged -= OnBalanceChanged;
+        }
     }
 
     // HEADER METHODS
+
+    private void OnBalanceChanged(CurrencyType type, float _)
+    {
+        if (type == CurrencyType.Premium || type == CurrencyType.Special || type == CurrencyType.Luxury)
+        {
+            DisplayCredits();
+        }
+    }
 
     public void DisplayCredits()
     {
@@ -303,7 +322,7 @@ public class MainMenuUIManager : MonoBehaviour
     // Upgrades the skill associated with the button. 
     private void OnSkillButtonClicked(Skill skill, Button button)
     {
-        if (playerManager.SpendPremiumCredits(playerManager.GetSkillCost(skill)))
+        if (playerManager.TrySpendCredits(playerManager.GetSkillCost(skill)))
         {
             playerManager.UpgradeSkill(skill, 1);
             UpdateButtonText(skill, button);

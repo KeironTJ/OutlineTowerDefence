@@ -21,10 +21,10 @@ MonoBehaviour:
   researchLevel: 0
   maxResearchlevel: 99
   researchModifier: 1.02
-  basicCost: 3
-  basicCostModifier: 1.25
-  premiumCost: 30
-  premiumCostModifier: 1.5
+  basicCost: 0
+  basicCostModifier: 0
+  premiumCost: 0
+  premiumCostModifier: 0
   premiumUnlockCost: 0
   luxuryUnlockCost: 0
   specialUnlockCost: 0

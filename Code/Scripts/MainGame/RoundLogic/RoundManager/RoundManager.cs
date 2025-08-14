@@ -14,7 +14,8 @@ public class RoundManager : MonoBehaviour
     [Header("Managers")]
     [SerializeField] private SkillManager skillManager; // Reference to SkillManager
 
-    public float tempBasicCredits = 0;
+    public ICurrencyWallet GetRoundWallet() => roundWallet;
+    private RoundCurrencyWallet roundWallet;
 
     private Tower tower;
     public int roundDifficulty;
@@ -31,8 +32,15 @@ public class RoundManager : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        EventManager.StartListening(EventNames.CreditsEarned, OnCreditsEarned);
+    }
+
     private void OnDisable()
     {
+        EventManager.StopListening(EventNames.CreditsEarned, OnCreditsEarned);
+
         if (tower != null)
         {
             tower.TowerDestroyed -= EndRound; // Unsubscribe from the TowerDestroyed event
@@ -54,7 +62,7 @@ public class RoundManager : MonoBehaviour
             tower.Initialize(this, enemySpawner, skillManager, uiManager); // Initialize the Tower with SkillManager
             tower.TowerDestroyed += EndRound; // Subscribe to the TowerDestroyed event
             waveManager.StartWave(enemySpawner, tower); // Start the wave using WaveManager
-            uiManager.Initialize(this, waveManager, tower, skillManager); // Initialize UIManager with necessary references
+            uiManager.Initialize(this, waveManager, tower, skillManager, playerManager); // Initialize UIManager with necessary references
         }
         else
         {
@@ -78,6 +86,14 @@ public class RoundManager : MonoBehaviour
 
         if (playerManager != null)
         {
+            roundWallet = new RoundCurrencyWallet(
+                playerManager.Wallet,
+                amount =>
+                {
+                    playerManager.RecordBasicSpent(amount);
+                }
+            );
+
             InitializeRound(playerManager);
             roundDifficulty = playerManager.GetDifficulty();
 
@@ -111,8 +127,7 @@ public class RoundManager : MonoBehaviour
         SetHighestWaves();
         DestroyAllEnemies();
         DestroyAllBullets();
-    
-
+        roundWallet?.ClearRound();
     }
 
     // PLAYER MANAGEMENT
@@ -165,7 +180,32 @@ public class RoundManager : MonoBehaviour
         return roundDifficulty;
     }
 
-    // BASIC CREDITS
+    // CREDITS
+    private void OnCreditsEarned(object eventData)
+    {
+        // TODO: SIMPLIFY BELOW LOGIC 
+        // Case 1: event sends Enemy
+        if (eventData is Enemy enemy)
+        {
+            IncreaseBasicCredits(enemy.GetBasicCreditsWorth());
+            playerManager.Wallet.Add(CurrencyType.Premium, enemy.GetPremiumCreditsWorth());
+            playerManager.Wallet.Add(CurrencyType.Luxury, enemy.GetLuxuryCreditsWorth());
+            playerManager.Wallet.Add(CurrencyType.Special, enemy.GetSpecialCreditsWorth());
+            return;
+        }
+
+        if (eventData is Dictionary<CurrencyType, float> rewards)
+        {
+            if (rewards.TryGetValue(CurrencyType.Basic, out var b)) IncreaseBasicCredits(b);
+            if (rewards.TryGetValue(CurrencyType.Premium, out var p)) playerManager.Wallet.Add(CurrencyType.Premium, p);
+            if (rewards.TryGetValue(CurrencyType.Luxury, out var l)) playerManager.Wallet.Add(CurrencyType.Luxury, l);
+            if (rewards.TryGetValue(CurrencyType.Special, out var s)) playerManager.Wallet.Add(CurrencyType.Special, s);
+            return;
+        }
+
+        Debug.LogWarning("CreditsEarned received unexpected event payload.");
+    }
+
     private void SetStartBasicCredits()
     {
         float startingBasicCredits = GetSkillValue(GetSkill("Start Basic Credit"));
@@ -174,50 +214,22 @@ public class RoundManager : MonoBehaviour
 
     public void IncreaseBasicCredits(float amount)
     {
-        float basicCreditModifier = GetSkillValue(GetSkill("Basic Credit Modifier"));
-        tempBasicCredits += (amount * basicCreditModifier);
+        if (amount == 0f) return;
+
+        // Treat skill as a bonus (0 => x1.0, 0.25 => x1.25)
+        float bonus = GetSkillValue(GetSkill("Basic Credit Modifier"));
+        float multiplier = Mathf.Max(0f, 1f + bonus);
+        roundWallet?.Add(CurrencyType.Basic, amount * multiplier);
     }
 
     public bool SpendBasicCredits(float amount)
     {
-        if (tempBasicCredits >= amount)
-        {
-            tempBasicCredits -= amount;
-            return true;
-        }
-        else
-        {
-            Debug.Log("Not enough Basic Credits");
-            return false;
-        }
+        return roundWallet?.TrySpend(CurrencyType.Basic, amount) ?? false; // NEW
     }
 
     public float GetBasicCredits()
     {
-        return tempBasicCredits;
-    }
-
-    // PREMIUM CREDITS
-
-    public float GetPremiumCredits()
-    {
-        return playerManager.GetPremiumCredits();
-    }
-
-    public void IncreasePremiumCredits(float amount)
-    {
-        playerManager.playerData.premiumCredits += amount;
-    }
-
-    // LUXURY CREDITS
-    public float GetLuxuryCredits()
-    {
-        return playerManager.playerData.luxuryCredits;
-    }
-
-    public void IncreaseLuxuryCredits(float amount)
-    {
-        playerManager.playerData.luxuryCredits += amount;
+        return roundWallet?.Get(CurrencyType.Basic) ?? 0f; // NEW
     }
 
 

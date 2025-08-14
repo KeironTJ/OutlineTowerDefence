@@ -25,7 +25,7 @@ MonoBehaviour:
   basicCostModifier: 7
   premiumCost: 1000
   premiumCostModifier: 10
-  premiumUnlockCost: 5000000
+  premiumUnlockCost: 0
   luxuryUnlockCost: 0
   specialUnlockCost: 0
   skillActive: 1

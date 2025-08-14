@@ -174,9 +174,9 @@ public class Menu : MonoBehaviour
 
     private void UpdateUI()
     {
-        basicCreditsUI.text = $"BC: {NumberManager.FormatLargeNumber(roundManager.tempBasicCredits)}";
-        premiumCreditsUI.text = $"PC: {NumberManager.FormatLargeNumber(playerManager.playerData.premiumCredits)}";
-        luxuryCreditsUI.text = $"LC: {NumberManager.FormatLargeNumber(playerManager.playerData.luxuryCredits)}";
+        basicCreditsUI.text = $"BC: {NumberManager.FormatLargeNumber(roundManager.GetRoundWallet().Get(CurrencyType.Basic))}";
+        premiumCreditsUI.text = $"PC: {NumberManager.FormatLargeNumber(playerManager?.Wallet.Get(CurrencyType.Premium) ?? 0)}";
+        luxuryCreditsUI.text = $"LC: {NumberManager.FormatLargeNumber(playerManager?.Wallet.Get(CurrencyType.Luxury) ?? 0)}";
     }
 
     public void ToggleMenu()

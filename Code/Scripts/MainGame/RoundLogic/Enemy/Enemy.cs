@@ -32,6 +32,7 @@ public class Enemy : MonoBehaviour
     [SerializeField] private float basicCreditsWorth = 1f;
     [SerializeField] private float premiumCreditsWorth = 0f;
     [SerializeField] private float luxuryCreditsWorth = 0f;
+    [SerializeField] private float specialCreditsWorth = 0f;
 
     [Header("Enemy Type")]
     [SerializeField] private EnemyType type; // Set in the prefab
@@ -123,9 +124,30 @@ public class Enemy : MonoBehaviour
             isDestroyed = true;
             StopDamage(); // Stop applying damage to the tower
             EventManager.TriggerEvent(EventNames.EnemyDestroyed, this);
+            EventManager.TriggerEvent(EventNames.CreditsEarned, this);
             Destroy(gameObject);
 
-            tower.AddCredits(basicCreditsWorth, premiumCreditsWorth, luxuryCreditsWorth);
+            //tower.AddCredits(basicCreditsWorth, premiumCreditsWorth, luxuryCreditsWorth);
         }
+    }
+
+    public float GetBasicCreditsWorth()
+    {
+        return basicCreditsWorth;
+    }
+
+    public float GetPremiumCreditsWorth()
+    {
+        return premiumCreditsWorth;
+    }
+
+    public float GetLuxuryCreditsWorth()
+    {
+        return luxuryCreditsWorth;
+    }
+
+    public float GetSpecialCreditsWorth()
+    {
+        return 0f; // Placeholder
     }
 }

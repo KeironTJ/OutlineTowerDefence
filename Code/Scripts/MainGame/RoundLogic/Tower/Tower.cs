@@ -16,6 +16,11 @@ public class Tower : MonoBehaviour
     [SerializeField] private bool isHealing = false;
     [SerializeField] private bool towerAlive = true;
 
+    // Events
+    public event System.Action<float, float> HealthChanged; // (current,max)
+    public event System.Action TowerDestroyed;
+
+    // Shooting
     private Transform target;
     private float timeUntilFire;
 
@@ -28,14 +33,43 @@ public class Tower : MonoBehaviour
     private SkillManager skillManager;
     private UIManager uiManager;
 
+    // Cached visuals
+    private LineRenderer rangeRenderer; 
+    private Material rangeMaterial;    
+    private const int rangeSegments = 50;  
+    private float lastRange = -1f;    
+
+    
     // GAME SEQUENCE
 
     private void Update()
     {
+        if (!towerAlive) return;
+
         DrawTargetingRange();
         ActivateShooting();
         ManageHealth();
     }
+
+    public void Initialize(RoundManager roundManager, EnemySpawner enemySpawner, SkillManager skillManager, UIManager uiManager)
+    {
+        this.roundManager = roundManager;
+        this.enemySpawner = enemySpawner;
+        this.skillManager = skillManager; 
+        this.uiManager = uiManager;
+
+        if (skillManager != null)
+        {
+            currentHealth = skillManager.GetSkillValue(skillManager.GetSkill("Health"));
+            InvokeHealthChanged();
+        }
+        else
+        {
+            Debug.LogError("SkillManager not found during initialization!");
+        }
+    }
+
+    // Shooting / Targeting
 
     public void ActivateShooting()
     {
@@ -52,110 +86,13 @@ public class Tower : MonoBehaviour
         }
     }
 
-    public float GetCurrentHealth()
-    {
-        return currentHealth;
-    }
-
-    public void SetCurrentHealth(float health)
-    {
-        float maxHealth = roundManager.GetSkillValue(roundManager.GetSkill("Health"));
-
-        if (currentHealth + health >= maxHealth)
-        {
-            currentHealth = maxHealth;
-        }
-        else
-        {
-            currentHealth = health;
-        }
-    }
-
-    void StartHealing()
-    {
-        float maxHealth = roundManager.GetSkillValue(roundManager.GetSkill("Health"));
-
-        if (currentHealth < maxHealth && towerAlive)
-        {
-            isHealing = true;
-
-            if (healingCoroutine == null)
-            {
-                healingCoroutine = StartCoroutine(HealCurrentHealth());
-            }
-        }
-    }
-
-    private void StopHealing()
-    {
-        if (healingCoroutine != null)
-        {
-            StopCoroutine(healingCoroutine);
-            healingCoroutine = null;
-            isHealing = false; // Reset the flag if you stop healing prematurely 
-        }
-    }
-
-    private IEnumerator HealCurrentHealth()
-    {
-        float maxHealth = skillManager.GetSkillValue(skillManager.GetSkill("Health"));
-
-        while (currentHealth < maxHealth)
-        {
-            maxHealth = skillManager.GetSkillValue(skillManager.GetSkill("Health"));
-            float healSpeed = skillManager.GetSkillValue(skillManager.GetSkill("Heal Speed"));
-
-            while (currentHealth < maxHealth)
-            {
-                float healAmount = healSpeed * Time.deltaTime; // Increment health based on deltaTime
-                currentHealth += healAmount;
-
-                if (currentHealth > maxHealth)
-                {
-                    currentHealth = maxHealth; // Cap health at maxHealth
-                    break;
-                }
-
-                yield return null; // Wait for the next frame
-            }
-        }
-
-        StopHealing();
-        isHealing = false; // Reset the flag when done healing
-    }
-
-    // Add an initialization method to replace FindObjectOfType coroutines
-    public void Initialize(RoundManager roundManager, EnemySpawner enemySpawner, SkillManager skillManager, UIManager uiManager)
-    {
-        this.roundManager = roundManager;
-        this.enemySpawner = enemySpawner;
-        this.skillManager = skillManager; // Initialize SkillManager
-        this.uiManager = uiManager; // Initialize UIManager
-
-        if (skillManager != null)
-        {
-            currentHealth = skillManager.GetSkillValue(skillManager.GetSkill("Health"));
-        }
-        else
-        {
-            Debug.LogError("SkillManager not found during initialization!");
-        }
-    }
-
     // Tower Actions
-    public void TakeDamage(float attackDamage)
-    {
-        currentHealth -= attackDamage;
 
-        if (currentHealth <= 0)
-        {
-            currentHealth = 0;
-            OnTowerDestroyed();
-        }
-    }
 
     private void Shoot()
     {
+        if (bulletPrefab == null || firingPoint == null || target == null) return; // NEW guards
+
         GameObject bulletObj = Instantiate(bulletPrefab, firingPoint.position, Quaternion.identity);
         Bullet bulletScript = bulletObj.GetComponent<Bullet>();
         bulletScript.SetTarget(target, this);
@@ -206,45 +143,149 @@ public class Tower : MonoBehaviour
 
     private void DrawTargetingRange()
     {
-        LineRenderer lineRenderer = GetComponent<LineRenderer>();
-        if (lineRenderer == null)
+        // NEW: cache renderer/material; update only when range changes
+        if (rangeRenderer == null)
         {
-            lineRenderer = gameObject.AddComponent<LineRenderer>();
-            lineRenderer.startWidth = 0.05f;
-            lineRenderer.endWidth = 0.05f;
-            lineRenderer.positionCount = 50;
-            lineRenderer.loop = true;
-            lineRenderer.useWorldSpace = false;
+            rangeRenderer = GetComponent<LineRenderer>();
+            if (rangeRenderer == null)
+            {
+                rangeRenderer = gameObject.AddComponent<LineRenderer>();
+                rangeRenderer.startWidth = 0.05f;
+                rangeRenderer.endWidth = 0.05f;
+                rangeRenderer.positionCount = rangeSegments;
+                rangeRenderer.loop = true;
+                rangeRenderer.useWorldSpace = false;
+                rangeRenderer.startColor = Color.cyan;
+                rangeRenderer.endColor = Color.cyan;
+                // Cache material once
+                rangeMaterial = new Material(Shader.Find("Sprites/Default"));
+                rangeRenderer.material = rangeMaterial;
+            }
         }
 
-        lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
-        lineRenderer.startColor = Color.cyan;
-        lineRenderer.endColor = Color.cyan;
+        float range = skillManager != null ? skillManager.GetSkillValue(skillManager.GetSkill("Targeting Range")) : 0f;
+        if (Mathf.Approximately(range, lastRange)) return; // only recompute when changed
+        lastRange = range;
 
-        float angle = 20f;
-        for (int i = 0; i < lineRenderer.positionCount; i++)
+        float angle = 0f;
+        float step = 360f / rangeSegments;
+        for (int i = 0; i < rangeSegments; i++)
         {
-            float x = Mathf.Sin(Mathf.Deg2Rad * angle) * skillManager.GetSkillValue(skillManager.GetSkill("Targeting Range"));
-            float y = Mathf.Cos(Mathf.Deg2Rad * angle) * skillManager.GetSkillValue(skillManager.GetSkill("Targeting Range"));
-            lineRenderer.SetPosition(i, new Vector3(x, y, 0));
-            angle += 360f / lineRenderer.positionCount;
+            float rad = Mathf.Deg2Rad * angle;
+            float x = Mathf.Sin(rad) * range;
+            float y = Mathf.Cos(rad) * range;
+            rangeRenderer.SetPosition(i, new Vector3(x, y, 0));
+            angle += step;
         }
     }
 
+    // Health Management
+
+    private void InvokeHealthChanged()
+    {
+        float maxHealth = (roundManager != null)
+            ? roundManager.GetSkillValue(roundManager.GetSkill("Health"))
+            : currentHealth;
+        HealthChanged?.Invoke(currentHealth, maxHealth);
+    }
+
+    public float GetCurrentHealth()
+    {
+        return currentHealth;
+    }
+
+    public void SetCurrentHealth(float health)
+    {
+        float maxHealth = roundManager.GetSkillValue(roundManager.GetSkill("Health"));
+        currentHealth = Mathf.Clamp(currentHealth + health, 0f, maxHealth);
+        InvokeHealthChanged();                          
+    }
+
+    public void TakeDamage(float attackDamage)
+    {
+        if (attackDamage <= 0f || !towerAlive) return;   
+        currentHealth -= attackDamage;
+        if (currentHealth <= 0f)
+        {
+            currentHealth = 0f;
+            InvokeHealthChanged();                      
+            OnTowerDestroyed();
+            return;
+        }
+        InvokeHealthChanged();                           
+    }
+
+    void StartHealing()
+    {
+        float maxHealth = roundManager.GetSkillValue(roundManager.GetSkill("Health"));
+
+        if (currentHealth < maxHealth && towerAlive)
+        {
+            isHealing = true;
+
+            if (healingCoroutine == null)
+            {
+                healingCoroutine = StartCoroutine(HealCurrentHealth());
+            }
+        }
+    }
+
+    private void StopHealing()
+    {
+        if (healingCoroutine != null)
+        {
+            StopCoroutine(healingCoroutine);
+            healingCoroutine = null;
+            isHealing = false; // Reset the flag if you stop healing prematurely 
+        }
+    }
+
+    private IEnumerator HealCurrentHealth()
+    {
+        float maxHealth = skillManager.GetSkillValue(skillManager.GetSkill("Health"));
+
+        while (currentHealth < maxHealth)
+        {
+            maxHealth = skillManager.GetSkillValue(skillManager.GetSkill("Health"));
+            float healSpeed = skillManager.GetSkillValue(skillManager.GetSkill("Heal Speed"));
+
+            while (currentHealth < maxHealth)
+            {
+                float healAmount = healSpeed * Time.deltaTime; // Increment health based on deltaTime
+                currentHealth += healAmount;
+
+                if (currentHealth > maxHealth)
+                {
+                    currentHealth = maxHealth; // Cap health at maxHealth
+                    break;
+                }
+
+                InvokeHealthChanged();
+                yield return null; // Wait for the next frame
+            }
+        }
+
+        StopHealing();
+        isHealing = false; // Reset the flag when done healing
+    }
+
+
+
+    
+
     // Tower States
-    public event System.Action TowerDestroyed;
+
 
     public void OnTowerDestroyed()
     {
-        // Trigger the TowerDestroyed event
+        if (!towerAlive) return;   
+
+        towerAlive = false;
+        StopHealing();
+        InvokeHealthChanged();      
         TowerDestroyed?.Invoke();
 
-        // End Round
-        towerAlive = false;
-
-        // Stop Coroutines
-        StopHealing();
-
+        enabled = false;      // stop Update loop
     }
 
     // Modularize health management into a dedicated method
@@ -290,12 +331,23 @@ public class Tower : MonoBehaviour
         RotateTowardsTarget(); // Rotate towards the target
     }
 
-    public void AddCredits(float basic, float premium, float luxury)
+    // Rewards
+    public void AddCredits(float basic, float premium, float luxury, float special)
     {
-        //TODO: Implement credit addition logic
-        roundManager.IncreaseBasicCredits(basic);
-        roundManager.IncreasePremiumCredits(premium);
-        roundManager.IncreaseLuxuryCredits(luxury);
+        if (basic != 0f)
+        {
+            roundManager.IncreaseBasicCredits(basic);
+        }
+
+        var rewards = new Dictionary<CurrencyType, float>();
+        if (premium != 0f) rewards[CurrencyType.Premium] = premium;
+        if (luxury != 0f) rewards[CurrencyType.Luxury] = luxury;
+        if (special != 0f) rewards[CurrencyType.Special] = special;
+
+        if (rewards.Count > 0)
+        {
+            EventManager.TriggerEvent(EventNames.CreditsEarned, rewards);
+        }
     }
 
 }

@@ -63,6 +63,14 @@ public class SaveLoadManager : MonoBehaviour
         return null;
     }
 
+    private void OnApplicationQuit()
+    {
+        // Defensive: save the latest data if PlayerManager is alive
+        if (PlayerManager.main != null && PlayerManager.main.playerData != null)
+        {
+            SaveData(PlayerManager.main.playerData);
+        }
+    }
 
 
 }

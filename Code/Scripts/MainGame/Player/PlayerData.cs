@@ -42,13 +42,20 @@ public class PlayerData
     public List<SkillData> specialSkills = new List<SkillData>();
 
     [Header("Currency Information")]
+    // Credit Balances
     public float premiumCredits;
     public float specialCredits;
     public float luxuryCredits;
+
+    // Credit Lifetime Totals
     public float totalBasicCreditsEarned;
     public float totalPremiumCreditsEarned;
     public float totalSpecialCreditsEarned;
     public float totalLuxuryCreditsEarned;
+    public float totalBasicCreditsSpent;
+    public float totalPremiumCreditsSpent;
+    public float totalSpecialCreditsSpent;
+    public float totalLuxuryCreditsSpent;
 
     [Header("Game Progress")]
     public int maxDifficultyAchieved;

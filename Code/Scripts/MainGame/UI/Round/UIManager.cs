@@ -15,6 +15,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject skillMenu;
     [SerializeField] private RoundManager roundManager;
     [SerializeField] private SkillManager skillManager;
+    [SerializeField] private PlayerManager playerManager;
+
 
     // Wave Info
     [Header("Wave Information")]
@@ -41,7 +43,9 @@ public class UIManager : MonoBehaviour
 
 
     private Tower tower;
+    private ICurrencyWallet roundWallet;
     private float waveEndTime;
+
 
     private void Awake()
     {
@@ -49,25 +53,31 @@ public class UIManager : MonoBehaviour
         gameOverPanel.SetActive(false);
     }
 
-    private void OnDisable()
-    {
-        if (tower != null)
-        {
-            tower.TowerDestroyed -= OnTowerDestroyedHandler; // Unsubscribe from the TowerDestroyed event
-        }
-    }
 
-    private void OnTowerDestroyedHandler()
-    {
-        ShowGameOverPanel();
-    }
 
-    public void Initialize(RoundManager roundManager, WaveManager waveManager, Tower tower, SkillManager skillManager)
+    public void Initialize(RoundManager roundManager, WaveManager waveManager, Tower tower, SkillManager skillManager, PlayerManager playerManager)
     {
         this.roundManager = roundManager;
         this.waveManager = waveManager;
         this.tower = tower;
         this.skillManager = skillManager;
+        this.playerManager = playerManager;
+        this.roundWallet = roundManager.GetRoundWallet();
+
+        if (roundWallet != null)
+        {
+            roundWallet.BalanceChanged += OnBalanceChanged; // Subscribe to balance changes
+        }
+        if (playerManager?.Wallet != null)
+        {
+            playerManager.Wallet.BalanceChanged += OnBalanceChanged; // Subscribe to player wallet balance changes
+        }
+        else
+        {
+            Debug.LogError("PlayerManager or Player Wallet is not set in UIManager.");
+        }
+
+        UpdateAllCurrencyUI();
 
         Menu menu = GetComponentInChildren<Menu>();
         if (menu != null)
@@ -85,11 +95,43 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    private void OnDisable()
+    {
+        if (tower != null)
+        {
+            tower.TowerDestroyed -= OnTowerDestroyedHandler;
+        }
+        if (roundWallet != null)
+        {
+            roundWallet.BalanceChanged -= OnBalanceChanged; // prevent duplicate subs on re-enable
+        }
+        if (playerManager?.Wallet != null)
+        {
+            playerManager.Wallet.BalanceChanged -= OnBalanceChanged;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (roundWallet != null)
+        {
+            roundWallet.BalanceChanged -= OnBalanceChanged; // Unsubscribe from balance changes
+        }
+        if (playerManager?.Wallet != null)
+        {
+            playerManager.Wallet.BalanceChanged -= OnBalanceChanged; // Unsubscribe from player wallet balance changes
+        }
+    }
+
+    private void OnTowerDestroyedHandler()
+    {
+        ShowGameOverPanel();
+    }
+
     private void Update()
     {
         UpdateWaveUI();
         UpdateTowerUI();
-        UpdateCreditsUI();
     }
     
     public void UpdateTowerUI()
@@ -109,13 +151,40 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void UpdateCreditsUI()
+    private void OnBalanceChanged(CurrencyType type, float newValue)
     {
-        if (roundManager != null)
+        // Update only what changed
+        if (type == CurrencyType.Basic)
         {
-            basicCreditsUI.text = $"Basic: {NumberManager.FormatLargeNumber(roundManager.GetBasicCredits())}";
-            premiumCreditsUI.text = $"Premium: {NumberManager.FormatLargeNumber(roundManager.GetPremiumCredits())}";
-            luxuryCreditsUI.text = $"Luxury: {NumberManager.FormatLargeNumber(roundManager.GetLuxuryCredits())}";
+            UpdateBasicCreditsUI(newValue);
+        }
+        else
+        {
+            UpdateGlobalCreditsUI(); // read from PlayerManager.Wallet
+        }
+    }
+
+    private void UpdateAllCurrencyUI()
+    {
+        UpdateBasicCreditsUI(roundWallet != null ? roundWallet.Get(CurrencyType.Basic) : 0f);
+        UpdateGlobalCreditsUI();
+    }
+
+    private void UpdateBasicCreditsUI(float newValue)
+    {
+        basicCreditsUI.text = $"Basic: {NumberManager.FormatLargeNumber(newValue)}";
+    }
+
+    private void UpdateGlobalCreditsUI()
+    {
+        if (playerManager?.Wallet != null)
+        {
+            premiumCreditsUI.text = $"Premium: {NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Premium))}";
+            luxuryCreditsUI.text = $"Luxury: {NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Luxury))}";
+        }
+        else
+        {
+            Debug.LogError("Player Wallet is not set in UIManager.");
         }
     }
 

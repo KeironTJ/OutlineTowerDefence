@@ -7,6 +7,7 @@ public class PlayerManager : MonoBehaviour
 {
     public static PlayerManager main;
 
+    public ICurrencyWallet Wallet { get; private set; } // Wallet for player currency
     public int difficultySelected; // Difficulty selected by player
 
     [Header("Skills")]
@@ -54,9 +55,26 @@ public class PlayerManager : MonoBehaviour
             SavePlayerData();
         }
 
+        Wallet = new PlayerCurrencyWallet(playerData, SavePlayerData);
+
         // Start the periodic save coroutine
         StartCoroutine(SaveDataPeriodically());
     }
+
+    private void OnEnable()
+    {
+        // Subscribe to Events
+        EventManager.StartListening(EventNames.EnemyDestroyed, new Action<object>(OnEnemyDestroyed));
+
+    }
+
+    private void OnDisable()
+    {
+        // Unsubscribe from the EnemyDestroyed event via EventManager
+        EventManager.StopListening(EventNames.EnemyDestroyed, new Action<object>(OnEnemyDestroyed));
+
+    }
+
 
     public void ValidatePlayerData()
     {
@@ -167,7 +185,7 @@ public class PlayerManager : MonoBehaviour
         UpdateSkillData(playerData.supportSkills, supportSkills);
         UpdateSkillData(playerData.specialSkills, specialSkills);
 
-        
+
 
         //Debug.Log("Player data before saving: " + JsonUtility.ToJson(playerData, true));
         saveLoadManager.SaveData(playerData);
@@ -261,82 +279,49 @@ public class PlayerManager : MonoBehaviour
 
     // CURRENCY MANAGEMENT
 
-    public void IncreasePremiumCredits(float amount)
+    public float GetPremiumCredits() => Wallet?.Get(CurrencyType.Premium) ?? 0f;
+    public float GetSpecialCredits() => Wallet?.Get(CurrencyType.Special) ?? 0f;
+    public float GetLuxuryCredits() => Wallet?.Get(CurrencyType.Luxury) ?? 0f;
+
+    private void OnCreditsEarned()
     {
-        playerData.premiumCredits += amount; // Update playerData
-        SavePlayerData();
+        Debug.Log("OnCreditsEarned in PlayerManager");
+        return;
     }
 
-    public bool SpendPremiumCredits(float amount)
+    public void AddCredits(float basic = 0, float premium = 0, float luxury = 0, float special = 0)
     {
-        if (playerData.premiumCredits >= amount)
+        Wallet?.Add(CurrencyType.Basic, basic);
+        Wallet?.Add(CurrencyType.Premium, premium);
+        Wallet?.Add(CurrencyType.Luxury, luxury);
+        Wallet?.Add(CurrencyType.Special, special);
+    }
+
+    public bool TrySpendCredits(float premium = 0f, float luxury = 0f, float special = 0f)
+    {
+        if (Wallet == null) return false;
+
+        // Pre-check balances (atomic intent)
+        if ((premium > 0f && Wallet.Get(CurrencyType.Premium) < premium) ||
+            (luxury  > 0f && Wallet.Get(CurrencyType.Luxury)  < luxury)  ||
+            (special > 0f && Wallet.Get(CurrencyType.Special) < special))
         {
-            playerData.premiumCredits -= amount;
-            SavePlayerData();
-            return true;
-        }
-        else
-        {
-            Debug.Log("Not enough Premium Credits");
             return false;
         }
+
+        // Commit spends (single-threaded, so pre-check is sufficient)
+        if (premium > 0f && !Wallet.TrySpend(CurrencyType.Premium, premium)) return false;
+        if (luxury  > 0f && !Wallet.TrySpend(CurrencyType.Luxury,  luxury))  return false;
+        if (special > 0f && !Wallet.TrySpend(CurrencyType.Special, special)) return false;
+
+        return true;
     }
 
-    public void IncreaseLuxuryCredits(float amount)
+    public void RecordBasicSpent(float amount)
     {
-        playerData.luxuryCredits += amount;
+        if (amount <= 0f) return;
+        playerData.totalBasicCreditsSpent += amount;
         SavePlayerData();
-    }
-
-    public bool SpendLuxuryCredits(float amount)
-    {
-        if (playerData.luxuryCredits >= amount)
-        {
-            playerData.luxuryCredits -= amount;
-            SavePlayerData();
-            return true;
-        }
-        else
-        {
-            Debug.Log("Not enough Luxury Credits");
-            return false;
-        }
-    }
-
-    public void IncreaseSpecialCredits(float amount)
-    {
-        playerData.specialCredits += amount;
-        SavePlayerData();
-    }
-
-    public bool SpendSpecialCredits(float amount)
-    {
-        if (playerData.specialCredits >= amount)
-        {
-            playerData.specialCredits -= amount;
-            SavePlayerData();
-            return true;
-        }
-        else
-        {
-            Debug.Log("Not enough Special Credits");
-            return false;
-        }
-    }
-
-    public float GetPremiumCredits()
-    {
-        return playerData.premiumCredits;
-    }
-
-    public float GetLuxuryCredits()
-    {
-        return playerData.luxuryCredits;
-    }
-
-    public float GetSpecialCredits()
-    {
-        return playerData.specialCredits;
     }
 
     // DIFFICULTY MANAGEMENT
@@ -420,21 +405,6 @@ public class PlayerManager : MonoBehaviour
     public int GetEnemyDestructionCount(string enemyType)
     {
         return enemyDestructionCounts.ContainsKey(enemyType) ? enemyDestructionCounts[enemyType] : 0;
-    }
-
-    private void OnEnable()
-    {
-        // Subscribe to the EnemyDestroyed event via EventManager
-        EventManager.StartListening(EventNames.EnemyDestroyed, new Action<object>(OnEnemyDestroyed));
-
-        //Subscribe to Currency events
-        // TODO: Add listener
-    }
-
-    private void OnDisable()
-    {
-        // Unsubscribe from the EnemyDestroyed event via EventManager
-        EventManager.StopListening(EventNames.EnemyDestroyed, new Action<object>(OnEnemyDestroyed));
     }
 
     private void OnEnemyDestroyed(object eventData)

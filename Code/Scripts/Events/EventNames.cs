@@ -22,6 +22,6 @@ public static class EventNames
     }
 
     // Game Currency Event
-    public const string CurrencyEarned = "CurrencyEarned";
+    public const string CreditsEarned = "CreditsEarned";
 
 }
