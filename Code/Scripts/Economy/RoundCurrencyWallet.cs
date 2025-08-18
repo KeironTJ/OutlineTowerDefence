@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RoundCurrencyWallet : MonoBehaviour, ICurrencyWallet
+public class RoundCurrencyWallet : ICurrencyWallet
 {
     private float basicBalance;
     private readonly ICurrencyWallet playerWallet;

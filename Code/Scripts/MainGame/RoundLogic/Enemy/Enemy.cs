@@ -131,23 +131,13 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    public float GetBasicCreditsWorth()
-    {
-        return basicCreditsWorth;
-    }
+    // Getters
+    public float GetBasicCreditsWorth() => basicCreditsWorth;
+    public float GetPremiumCreditsWorth() => premiumCreditsWorth;
+    public float GetLuxuryCreditsWorth() => luxuryCreditsWorth;
+    public float GetSpecialCreditsWorth() => specialCreditsWorth;
 
-    public float GetPremiumCreditsWorth()
-    {
-        return premiumCreditsWorth;
-    }
+    public EnemyType GetEnemyType() => type;
+    public EnemySubtype GetEnemySubtype() => subtype;
 
-    public float GetLuxuryCreditsWorth()
-    {
-        return luxuryCreditsWorth;
-    }
-
-    public float GetSpecialCreditsWorth()
-    {
-        return 0f; // Placeholder
-    }
 }

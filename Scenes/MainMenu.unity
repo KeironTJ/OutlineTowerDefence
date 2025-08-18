@@ -4487,6 +4487,7 @@ MonoBehaviour:
     maxDifficultyAchieved: 0
     difficultyMaxWaveAchieved: 000000000000000000000000000000000000000000000000000000000000000000000000
     EnemiesDestroyed: []
+    RoundHistory: []
 --- !u!114 &818530413
 MonoBehaviour:
   m_ObjectHideFlags: 0

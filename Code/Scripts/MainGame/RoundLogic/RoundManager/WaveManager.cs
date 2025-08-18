@@ -49,6 +49,8 @@ public class WaveManager : MonoBehaviour
         isWaveActive = true;
         waveEndTime = Time.time + timePerWave;
 
+        EventManager.TriggerEvent(EventNames.NewWaveStarted, currentWave);
+
         // Adjust spawn weights for basic enemies
         enemySpawner.AdjustBasicSpawnWeights(currentWave, maxRatioWaves);
 

@@ -40,17 +40,33 @@ public class PlayerManager : MonoBehaviour
     {
         if (saveLoadManager.SaveFileExists())
         {
-            InitializeSkills();
+            // 1) Load save first
             playerData = saveLoadManager.LoadData();
             ValidatePlayerData();
+
+            // 2) Load Skill assets into runtime dictionaries
+            LoadSkillAssetsIntoDictionaries();
+
+            // 3) Apply saved levels/unlocks into runtime
             LoadSkills();
+
+            // 4) Ensure PlayerData contains entries for all skills (in case new skills were added)
+            EnsurePlayerDataSkillListsFromDictionaries();
+
             SavePlayerData();
         }
         else
         {
-            InitializeSkills();
-            playerData = new PlayerData(); // Ensure playerData is initialized for new players.
+            // 1) Create new save model
+            playerData = new PlayerData();
             ValidatePlayerData();
+
+            // 2) Load Skill assets into runtime dictionaries
+            LoadSkillAssetsIntoDictionaries();
+
+            // 3) Seed PlayerData lists from runtime dictionaries (fresh player)
+            EnsurePlayerDataSkillListsFromDictionaries();
+
             IncreaseMaxDifficulty();
             SavePlayerData();
         }
@@ -65,6 +81,7 @@ public class PlayerManager : MonoBehaviour
     {
         // Subscribe to Events
         EventManager.StartListening(EventNames.EnemyDestroyed, new Action<object>(OnEnemyDestroyed));
+        EventManager.StartListening(EventNames.RoundRecordCreated, new Action<object>(OnRoundRecordUpdated));
 
     }
 
@@ -72,6 +89,7 @@ public class PlayerManager : MonoBehaviour
     {
         // Unsubscribe from the EnemyDestroyed event via EventManager
         EventManager.StopListening(EventNames.EnemyDestroyed, new Action<object>(OnEnemyDestroyed));
+        EventManager.StopListening(EventNames.RoundRecordCreated, new Action<object>(OnRoundRecordUpdated));
 
     }
 
@@ -105,28 +123,54 @@ public class PlayerManager : MonoBehaviour
         return clone;
     }
 
-    private void InitializeSkills()
+    // Load ScriptableObject skill assets into the runtime dictionaries only (no PlayerData writes here)
+    private void LoadSkillAssetsIntoDictionaries()
     {
-        playerData = new PlayerData
-        {
-            attackSkills = new List<SkillData>(),
-            defenceSkills = new List<SkillData>(),
-            supportSkills = new List<SkillData>(),
-            specialSkills = new List<SkillData>()
-        };
+        attackSkills.Clear();
+        defenceSkills.Clear();
+        supportSkills.Clear();
+        specialSkills.Clear();
 
-        LoadSkillsFromResources("Skill/Attack", attackSkills, playerData.attackSkills);
-        LoadSkillsFromResources("Skill/Defence", defenceSkills, playerData.defenceSkills);
-        LoadSkillsFromResources("Skill/Support", supportSkills, playerData.supportSkills);
-        LoadSkillsFromResources("Skill/Special", specialSkills, playerData.specialSkills);
+        LoadSkillsFromResources("Skill/Attack",  attackSkills);
+        LoadSkillsFromResources("Skill/Defence", defenceSkills);
+        LoadSkillsFromResources("Skill/Support", supportSkills);
+        LoadSkillsFromResources("Skill/Special", specialSkills);
     }
 
-    // SAVE AND LOAD MANAGEMENT
+    // Ensure PlayerData skill lists contain an entry for each runtime skill (adds missing, keeps existing)
+    private void EnsurePlayerDataSkillListsFromDictionaries()
+    {
+        EnsureListEntries(playerData.attackSkills,  attackSkills);
+        EnsureListEntries(playerData.defenceSkills, defenceSkills);
+        EnsureListEntries(playerData.supportSkills, supportSkills);
+        EnsureListEntries(playerData.specialSkills, specialSkills);
+    }
 
-    private void LoadSkillsFromResources(string path, Dictionary<string, Skill> skillDictionary, List<SkillData> skillDataList)
+    private static void EnsureListEntries(List<SkillData> list, Dictionary<string, Skill> dict)
+    {
+        if (list == null) return;
+        foreach (var kv in dict)
+        {
+            var sd = list.Find(s => s.skillName == kv.Key);
+            if (sd == null)
+            {
+                list.Add(new SkillData
+                {
+                    skillName = kv.Key,
+                    level = kv.Value.level,
+                    researchLevel = kv.Value.researchLevel,
+                    skillActive = kv.Value.skillActive,
+                    playerSkillUnlocked = kv.Value.playerSkillUnlocked,
+                    roundSkillUnlocked = kv.Value.roundSkillUnlocked
+                });
+            }
+        }
+    }
+
+    // Previous InitializeSkills removed; now a resource loader that fills only dictionaries
+    private void LoadSkillsFromResources(string path, Dictionary<string, Skill> skillDictionary)
     {
         Skill[] skills = Resources.LoadAll<Skill>(path);
-        // Debug.Log($"Loading skills from path: {path}");
         if (skills.Length == 0)
         {
             Debug.LogWarning($"No skills found at path: {path}");
@@ -134,9 +178,8 @@ public class PlayerManager : MonoBehaviour
         foreach (Skill skill in skills)
         {
             Skill clonedSkill = CloneScriptableObject(skill);
-            skillDictionary.Add(clonedSkill.skillName, clonedSkill);
-            skillDataList.Add(new SkillData { skillName = clonedSkill.skillName, level = 0, researchLevel = 0 });
-            //Debug.Log($"Loaded skill: {clonedSkill.skillName} from path: {path}");
+            if (!skillDictionary.ContainsKey(clonedSkill.skillName))
+                skillDictionary.Add(clonedSkill.skillName, clonedSkill);
         }
     }
 
@@ -180,15 +223,33 @@ public class PlayerManager : MonoBehaviour
     private void SavePlayerData()
     {
         // Only update persistent skill data
-        UpdateSkillData(playerData.attackSkills, attackSkills);
+        UpdateSkillData(playerData.attackSkills,  attackSkills);
         UpdateSkillData(playerData.defenceSkills, defenceSkills);
         UpdateSkillData(playerData.supportSkills, supportSkills);
         UpdateSkillData(playerData.specialSkills, specialSkills);
 
-
-
-        //Debug.Log("Player data before saving: " + JsonUtility.ToJson(playerData, true));
         saveLoadManager.SaveData(playerData);
+    }
+
+    // Update PlayerData entries and add if missing (important when new skills are introduced)
+    private void UpdateSkillData(List<SkillData> skillDataList, Dictionary<string, Skill> skillDictionary)
+    {
+        foreach (var kvp in skillDictionary)
+        {
+            var skillData = skillDataList.Find(s => s.skillName == kvp.Key);
+            if (skillData == null)
+            {
+                // create missing entry so it persists
+                skillData = new SkillData { skillName = kvp.Key };
+                skillDataList.Add(skillData);
+            }
+
+            skillData.level = kvp.Value.level;
+            skillData.researchLevel = kvp.Value.researchLevel;
+            skillData.skillActive = kvp.Value.skillActive;
+            skillData.playerSkillUnlocked = kvp.Value.playerSkillUnlocked;
+            skillData.roundSkillUnlocked = kvp.Value.roundSkillUnlocked;
+        }
     }
 
     // TOWER VISUALS MANAGEMENT
@@ -219,22 +280,6 @@ public class PlayerManager : MonoBehaviour
     }
 
     // SKILLS MANAGEMENT
-
-    private void UpdateSkillData(List<SkillData> skillDataList, Dictionary<string, Skill> skillDictionary)
-    {
-        foreach (var kvp in skillDictionary)
-        {
-            var skillData = skillDataList.Find(s => s.skillName == kvp.Key);
-            if (skillData != null)
-            {
-                skillData.level = kvp.Value.level;
-                skillData.researchLevel = kvp.Value.researchLevel;
-                skillData.skillActive = kvp.Value.skillActive;
-                skillData.playerSkillUnlocked = kvp.Value.playerSkillUnlocked;
-                skillData.roundSkillUnlocked = kvp.Value.roundSkillUnlocked;
-            }
-        }
-    }
 
     public Skill GetSkill(string skillName)
     {
@@ -303,7 +348,7 @@ public class PlayerManager : MonoBehaviour
 
         // Pre-check balances (atomic intent)
         if ((premium > 0f && Wallet.Get(CurrencyType.Premium) < premium) ||
-            (luxury  > 0f && Wallet.Get(CurrencyType.Luxury)  < luxury)  ||
+            (luxury > 0f && Wallet.Get(CurrencyType.Luxury) < luxury) ||
             (special > 0f && Wallet.Get(CurrencyType.Special) < special))
         {
             return false;
@@ -311,7 +356,7 @@ public class PlayerManager : MonoBehaviour
 
         // Commit spends (single-threaded, so pre-check is sufficient)
         if (premium > 0f && !Wallet.TrySpend(CurrencyType.Premium, premium)) return false;
-        if (luxury  > 0f && !Wallet.TrySpend(CurrencyType.Luxury,  luxury))  return false;
+        if (luxury > 0f && !Wallet.TrySpend(CurrencyType.Luxury, luxury)) return false;
         if (special > 0f && !Wallet.TrySpend(CurrencyType.Special, special)) return false;
 
         return true;
@@ -436,4 +481,14 @@ public class PlayerManager : MonoBehaviour
             SavePlayerData();
         }
     }
+
+    private void OnRoundRecordUpdated(object eventData)
+    {
+        if (eventData is RoundRecord roundRecord)
+        {
+            playerData.RoundHistory.Add(roundRecord);
+            SavePlayerData();
+        }
+    }
+
 }

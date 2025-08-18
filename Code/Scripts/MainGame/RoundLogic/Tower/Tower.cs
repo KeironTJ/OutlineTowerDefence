@@ -178,6 +178,8 @@ public class Tower : MonoBehaviour
         bulletScript.SetTarget(target, this);
         bulletScript.SetSpeed(skillManager.GetSkillValue(skillManager.GetSkill("Bullet Speed")));
         bulletScript.SetDamage(skillManager.GetSkillValue(skillManager.GetSkill("Attack Damage")));
+
+        EventManager.TriggerEvent(EventNames.BulletFired, bulletScript);
     }
 
     private void FindTarget()

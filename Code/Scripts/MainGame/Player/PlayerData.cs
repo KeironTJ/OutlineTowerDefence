@@ -75,4 +75,7 @@ public class PlayerData
         selectedTowerVisualId = "0001";
     }
 
+    [Header("Round History")]
+    public List<RoundRecord> RoundHistory = new List<RoundRecord>();
+
 }

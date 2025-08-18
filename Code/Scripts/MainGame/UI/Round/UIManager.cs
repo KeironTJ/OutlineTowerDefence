@@ -10,12 +10,15 @@ public class UIManager : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private GameObject gameOverPanel;
-    [SerializeField] private WaveManager waveManager; 
+    [SerializeField] private WaveManager waveManager;
     [SerializeField] private GameObject sideMenu;
     [SerializeField] private GameObject skillMenu;
     [SerializeField] private RoundManager roundManager;
     [SerializeField] private SkillManager skillManager;
     [SerializeField] private PlayerManager playerManager;
+
+    [Header("Shop Menu")]
+    [SerializeField] private Menu shopMenu;          // assign the Menu component under Canvas in Inspector
 
 
     // Wave Info
@@ -40,6 +43,13 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI premiumCreditsUI;
     [SerializeField] private TextMeshProUGUI luxuryCreditsUI;
 
+    [Header("Stats")]
+    [SerializeField] private RoundStatsView hudRoundStatsView;
+
+    [Header("Round Stats Panel")]
+    [SerializeField] private GameObject roundStatsPanel; // parent panel that contains the RoundStatsView
+
+
 
     private Tower tower;
     private ICurrencyWallet roundWallet;
@@ -50,9 +60,8 @@ public class UIManager : MonoBehaviour
     {
         // Ensure the game over panel is hidden at the start
         gameOverPanel.SetActive(false);
+        if (roundStatsPanel != null) roundStatsPanel.SetActive(false);
     }
-
-
 
     public void Initialize(RoundManager roundManager, WaveManager waveManager, Tower tower, SkillManager skillManager, PlayerManager playerManager)
     {
@@ -63,34 +72,48 @@ public class UIManager : MonoBehaviour
         this.playerManager = playerManager;
         this.roundWallet = roundManager.GetRoundWallet();
 
-        if (roundWallet != null)
+        if (hudRoundStatsView != null && this.roundManager != null)
+            hudRoundStatsView.BindLive(this.roundManager);
+
+        // NEW: initialize Shop Menu even if it's not a child of UIManager
+        if (shopMenu == null)
+            shopMenu = FindObjectOfType<Menu>(true); // finds inactive under Canvas too
+
+        if (shopMenu != null)
         {
-            roundWallet.BalanceChanged += OnBalanceChanged; // Subscribe to balance changes
-        }
-        if (playerManager?.Wallet != null)
-        {
-            playerManager.Wallet.BalanceChanged += OnBalanceChanged; // Subscribe to player wallet balance changes
+            shopMenu.Initialize(roundManager, waveManager, tower, skillManager);
         }
         else
         {
-            Debug.LogError("PlayerManager or Player Wallet is not set in UIManager.");
+            Debug.LogWarning("UIManager: Shop Menu not found. Assign 'shopMenu' in the Inspector.");
         }
+
+        if (roundWallet != null) roundWallet.BalanceChanged += OnBalanceChanged;
+        if (playerManager?.Wallet != null) playerManager.Wallet.BalanceChanged += OnBalanceChanged;
+        else Debug.LogError("PlayerManager or Player Wallet is not set in UIManager.");
 
         UpdateAllCurrencyUI();
 
-        Menu menu = GetComponentInChildren<Menu>();
-        if (menu != null)
-        {
-            menu.Initialize(roundManager, waveManager, tower, skillManager);
-        }
+        // REMOVE (no longer a child): GetComponentInChildren<Menu>()
+        // Menu menu = GetComponentInChildren<Menu>();
+        // if (menu != null) { menu.Initialize(roundManager, waveManager, tower, skillManager); }
 
-        if (tower != null)
+        if (tower != null) tower.TowerDestroyed += OnTowerDestroyedHandler;
+        else Debug.LogError("Tower reference is not set in UIManager.");
+    }
+
+    // Optional helper for your button
+    public void ToggleShopMenu()
+    {
+        if (shopMenu != null) shopMenu.ToggleMenu();      // if your Menu has this
+        else Debug.LogWarning("UIManager: shopMenu not assigned.");
+    }
+
+    public void OnRoundStart(RoundManager rm)
+    {
+        if (hudRoundStatsView != null)
         {
-            tower.TowerDestroyed += OnTowerDestroyedHandler; // Subscribe to the TowerDestroyed event
-        }
-        else
-        {
-            Debug.LogError("Tower reference is not set in UIManager.");
+            hudRoundStatsView.BindLive(rm);
         }
     }
 
@@ -132,7 +155,7 @@ public class UIManager : MonoBehaviour
         UpdateWaveUI();
         UpdateTowerUI();
     }
-    
+
     public void UpdateTowerUI()
     {
         if (tower != null)
@@ -210,7 +233,7 @@ public class UIManager : MonoBehaviour
             }
         }
         else
-        {   
+        {
             waveProgressBar.value = waveProgressBar.value;
             waveNumberUI.text = $"{waveManager.GetCurrentWave().ToString()}";
         }
@@ -221,8 +244,8 @@ public class UIManager : MonoBehaviour
         waveEndTime = endTime;
     }
 
-    public void ShowGameOverPanel() 
-    { 
+    public void ShowGameOverPanel()
+    {
         gameOverPanel.SetActive(true); // Stop the wave progress bar updates 
         sideMenu.SetActive(false); // Hide the side menu
         skillMenu.SetActive(false); // Hide the skill menu
@@ -249,6 +272,26 @@ public class UIManager : MonoBehaviour
 
     public void ViewStats()
     {
-        // Implement stats viewing logic here
+        if (roundStatsPanel == null)
+        {
+            Debug.LogWarning("RoundStats panel is not assigned on UIManager.");
+            return;
+        }
+
+        bool show = !roundStatsPanel.activeSelf;
+        roundStatsPanel.SetActive(show);
+
+        if (show && roundManager != null)
+        {
+            // Ensure the view is listening again and refresh immediately
+            if (hudRoundStatsView != null)
+                hudRoundStatsView.BindLive(roundManager);
+            else
+                Debug.LogWarning("hudRoundStatsView is not assigned.");
+
+            // Optional: also push an update event
+            EventManager.TriggerEvent(EventNames.RoundStatsUpdated, roundManager.GetCurrentRoundSummary());
+        }
     }
+
 }
