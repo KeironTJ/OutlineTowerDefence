@@ -9,7 +9,9 @@ public class OptionsUIManager : MonoBehaviour
     [SerializeField] private GameObject optionsPanel;
     [SerializeField] private GameObject profilePanel;
     [SerializeField] private GameObject gameStatsPanel;
+    [SerializeField] private GameObject roundHistoryPanel;   // the panel root in Options
     [SerializeField] private GameObject settingsPanel;
+
 
     private static OptionsUIManager instance;
     public static OptionsUIManager Instance => instance;
@@ -29,6 +31,7 @@ public class OptionsUIManager : MonoBehaviour
         if (!optionsPanel) optionsPanel = transform.Find("OptionsPanel") ? transform.Find("OptionsPanel").gameObject : null;
         if (!profilePanel) profilePanel = transform.Find("ProfilePanel") ? transform.Find("ProfilePanel").gameObject : null;
         if (!gameStatsPanel) gameStatsPanel = transform.Find("GameStatsPanel") ? transform.Find("GameStatsPanel").gameObject : null;
+        if (!roundHistoryPanel) roundHistoryPanel = transform.Find("RoundHistoryPanel") ? transform.Find("RoundHistoryPanel").gameObject : null;
         if (!settingsPanel) settingsPanel = transform.Find("SettingsPanel") ? transform.Find("SettingsPanel").gameObject : null;
 
         CloseOptions();
@@ -46,6 +49,7 @@ public class OptionsUIManager : MonoBehaviour
         SafeSetActive(optionsPanel, false);
         SafeSetActive(profilePanel, false);
         SafeSetActive(gameStatsPanel, false);
+        SafeSetActive(roundHistoryPanel, false);
         SafeSetActive(settingsPanel, false);
         SafeSetActive(background, false);
     }
@@ -60,6 +64,7 @@ public class OptionsUIManager : MonoBehaviour
     public void ShowProfile() => ShowSubPanel(profilePanel);
     public void ShowGameStats() => ShowSubPanel(gameStatsPanel);
     public void ShowSettings() => ShowSubPanel(settingsPanel);
+    public void ShowRoundHistory() => ShowSubPanel(roundHistoryPanel);
 
     public void ShowPanel(GameObject panel)
     {
@@ -86,6 +91,7 @@ public class OptionsUIManager : MonoBehaviour
         SafeSetActive(profilePanel, false);
         SafeSetActive(gameStatsPanel, false);
         SafeSetActive(settingsPanel, false);
+        SafeSetActive(roundHistoryPanel, false);
     }
 
     private bool IsOpen()
@@ -99,5 +105,4 @@ public class OptionsUIManager : MonoBehaviour
     {
         if (go && go.activeSelf != state) go.SetActive(state);
     }
-    
 }

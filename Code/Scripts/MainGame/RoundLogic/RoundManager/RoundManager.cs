@@ -19,7 +19,7 @@ public class RoundManager : MonoBehaviour
     public ICurrencyWallet GetRoundWallet() => roundWallet;
 
     [Header("Round Wallet")]
-    [SerializeField] private RoundCurrencyWallet roundWallet;
+    private RoundCurrencyWallet roundWallet;
 
     // Stats Tracking
     [Header("Stats Tracking")]
@@ -87,7 +87,7 @@ public class RoundManager : MonoBehaviour
             endedAtIsoUtc = nowUtc.ToString("o"),
             durationSeconds = duration,
             difficulty = roundDifficulty,
-            highestWave = waveManager.GetCurrentWave(),
+            highestWave = waveManager != null ? waveManager.GetCurrentWave() : 0,
             bulletsFired = bulletsFiredThisRound,
             enemiesKilled = enemiesKilledThisRound,
             creditsEarned = RoundDataConverters.ToCurrencyList(creditsEarnedThisRound),
