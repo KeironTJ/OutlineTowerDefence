@@ -10622,7 +10622,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: -2060}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1819546623
 MonoBehaviour:
@@ -13047,7 +13047,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2048219308
 RectTransform:
   m_ObjectHideFlags: 0
@@ -13824,6 +13824,14 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
       value: RoundHistoryPanel, Assembly-CSharp
       objectReference: {fileID: 0}
+    - target: {fileID: 2356034744604215989, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -85
+      objectReference: {fileID: 0}
+    - target: {fileID: 2356034744604215989, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -85
+      objectReference: {fileID: 0}
     - target: {fileID: 2455267051949274334, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
@@ -13858,7 +13866,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3189147603583273033, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3244293510384776282, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
       propertyPath: m_AnchorMax.y
@@ -13926,6 +13934,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5369220825356016902, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
       propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7768513400203000510, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: -350
+      objectReference: {fileID: 0}
+    - target: {fileID: 7768513400203000510, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
+      propertyPath: m_AnchoredPosition.x
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7788302011090195339, guid: 1c81e723efb1362468e33548b612a89d, type: 3}

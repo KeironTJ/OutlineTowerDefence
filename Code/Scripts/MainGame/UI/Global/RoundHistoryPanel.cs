@@ -28,6 +28,8 @@ public class RoundHistoryPanel : MonoBehaviour
     [SerializeField] private int maxRows = 50;
     [SerializeField] private bool showNewestFirst = true;
 
+    private bool subscribed;
+
     private void OnEnable()
     {
         if (playerManager == null) playerManager = PlayerManager.main ?? FindObjectOfType<PlayerManager>(true);
@@ -49,12 +51,16 @@ public class RoundHistoryPanel : MonoBehaviour
 
     private void Subscribe()
     {
+        if (subscribed) return;
         EventManager.StartListening(EventNames.RoundRecordCreated, OnRoundRecordCreated);
+        subscribed = true;
     }
 
     private void Unsubscribe()
     {
+        if (!subscribed) return;
         EventManager.StopListening(EventNames.RoundRecordCreated, OnRoundRecordCreated);
+        subscribed = false;
     }
 
     private void OnRoundRecordCreated(object payload)
