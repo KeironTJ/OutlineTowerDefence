@@ -64,6 +64,10 @@ public class PlayerData
     [Header("Enemy Destruction Data")]
     public List<SerializableEnemyData> EnemiesDestroyed = new List<SerializableEnemyData>();
 
+    [Header("Round History")]
+    public List<RoundRecord> RoundHistory = new List<RoundRecord>();
+
+
     // Constructor to initialize a new player
     public PlayerData()
     {
@@ -74,8 +78,4 @@ public class PlayerData
         unlockedTowerVisuals = new List<string> { "0001", "0002", "0003" };
         selectedTowerVisualId = "0001";
     }
-
-    [Header("Round History")]
-    public List<RoundRecord> RoundHistory = new List<RoundRecord>();
-
 }

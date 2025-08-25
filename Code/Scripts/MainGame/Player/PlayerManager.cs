@@ -7,74 +7,62 @@ public class PlayerManager : MonoBehaviour
 {
     public static PlayerManager main;
 
-    public ICurrencyWallet Wallet { get; private set; } // Wallet for player currency
-    public int difficultySelected; // Difficulty selected by player
+    public ICurrencyWallet Wallet { get; private set; }
+    public int difficultySelected;
 
     [Header("Skills")]
-    public Dictionary<string, Skill> attackSkills = new Dictionary<string, Skill>();
+    public Dictionary<string, Skill> attackSkills  = new Dictionary<string, Skill>();
     public Dictionary<string, Skill> defenceSkills = new Dictionary<string, Skill>();
     public Dictionary<string, Skill> supportSkills = new Dictionary<string, Skill>();
     public Dictionary<string, Skill> specialSkills = new Dictionary<string, Skill>();
 
-    public SaveLoadManager saveLoadManager; // Make this public to access from StartMenu
-    public PlayerData playerData;
+    public PlayerData playerData; // now comes from SaveManager
 
-    // Dictionary to track destroyed enemies by type and subtype
     private Dictionary<string, int> enemyDestructionCounts = new Dictionary<string, int>();
+    private bool initializedFromSave;
+
+    public bool IsInitialized => initializedFromSave;
 
     private void Awake()
     {
-        if (main == null)
-        {
-            main = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-        saveLoadManager = GetComponent<SaveLoadManager>();
+        if (main != null && main != this) { Destroy(gameObject); return; }
+        main = this;
+        DontDestroyOnLoad(gameObject);
+        if (SaveManager.main != null)
+            SaveManager.main.OnAfterLoad += OnSaveLoaded;
+    }
+
+    private void OnDestroy()
+    {
+        if (SaveManager.main != null)
+            SaveManager.main.OnAfterLoad -= OnSaveLoaded;
     }
 
     private void Start()
     {
-        if (saveLoadManager.SaveFileExists())
-        {
-            // 1) Load save first
-            playerData = saveLoadManager.LoadData();
-            ValidatePlayerData();
+        // If SaveManager already has data (because it loaded in Awake) initialize now
+        if (!initializedFromSave && SaveManager.main != null && SaveManager.main.Current != null)
+            OnSaveLoaded(SaveManager.main.Current);
+    }
 
-            // 2) Load Skill assets into runtime dictionaries
-            LoadSkillAssetsIntoDictionaries();
+    private void OnSaveLoaded(PlayerSavePayload payload)
+    {
+        if (initializedFromSave) return; // avoid double
+        if (payload == null) return;
 
-            // 3) Apply saved levels/unlocks into runtime
-            LoadSkills();
+        playerData = payload.player ?? (payload.player = new PlayerData());
+        ValidatePlayerData();
 
-            // 4) Ensure PlayerData contains entries for all skills (in case new skills were added)
-            EnsurePlayerDataSkillListsFromDictionaries();
+        LoadSkillAssetsIntoDictionaries();               // fill dictionaries
+        LogSkillCounts("After Resources.LoadAll");
+        EnsurePlayerDataSkillListsFromDictionaries();    // push dict -> lists (creates entries)
+        LoadSkills();                                    // pull list -> dict values (levels, flags)
 
-            SavePlayerData();
-        }
-        else
-        {
-            // 1) Create new save model
-            playerData = new PlayerData();
-            ValidatePlayerData();
+        Wallet = new PlayerCurrencyWallet(playerData, QueueSave);
+        initializedFromSave = true;
 
-            // 2) Load Skill assets into runtime dictionaries
-            LoadSkillAssetsIntoDictionaries();
-
-            // 3) Seed PlayerData lists from runtime dictionaries (fresh player)
-            EnsurePlayerDataSkillListsFromDictionaries();
-
-            IncreaseMaxDifficulty();
-            SavePlayerData();
-        }
-
-        Wallet = new PlayerCurrencyWallet(playerData, SavePlayerData);
-
-        // Start the periodic save coroutine
-        StartCoroutine(SaveDataPeriodically());
+        // Persist the populated lists (was empty at first load)
+        SavePlayerData();
     }
 
     private void OnEnable()
@@ -93,51 +81,38 @@ public class PlayerManager : MonoBehaviour
 
     }
 
+    private void LogSkillCounts(string label)
+    {
+        Debug.Log($"PlayerManager {label}: atk={attackSkills.Count} def={defenceSkills.Count} sup={supportSkills.Count} spc={specialSkills.Count} listAtk={playerData.attackSkills.Count}");
+    }
 
     public void ValidatePlayerData()
     {
-        if (playerData == null)
-        {
-            Debug.LogError("Player data is null. Initializing new player data.");
-            playerData = new PlayerData();
-        }
+        if (playerData == null) playerData = new PlayerData();
 
         if (string.IsNullOrEmpty(playerData.UUID))
-        {
             playerData.UUID = Guid.NewGuid().ToString();
-            Debug.Log("Generated new UUID for player.");
-        }
 
         if (string.IsNullOrEmpty(playerData.Username))
-        {
             playerData.Username = "Player_" + playerData.UUID.Substring(0, 8);
-            Debug.Log("Generated default username for player.");
-        }
-
-        SavePlayerData();
     }
 
-    public static T CloneScriptableObject<T>(T original) where T : ScriptableObject
-    {
-        T clone = ScriptableObject.Instantiate(original);
-        return clone;
-    }
+    private void QueueSave() => SaveManager.main?.QueueImmediateSave();
 
-    // Load ScriptableObject skill assets into the runtime dictionaries only (no PlayerData writes here)
+    // ===== Skills (unchanged logic) =====
+
+    public static T CloneScriptableObject<T>(T original) where T : ScriptableObject =>
+        ScriptableObject.Instantiate(original);
+
     private void LoadSkillAssetsIntoDictionaries()
     {
-        attackSkills.Clear();
-        defenceSkills.Clear();
-        supportSkills.Clear();
-        specialSkills.Clear();
-
+        attackSkills.Clear(); defenceSkills.Clear(); supportSkills.Clear(); specialSkills.Clear();
         LoadSkillsFromResources("Skill/Attack",  attackSkills);
         LoadSkillsFromResources("Skill/Defence", defenceSkills);
         LoadSkillsFromResources("Skill/Support", supportSkills);
         LoadSkillsFromResources("Skill/Special", specialSkills);
     }
 
-    // Ensure PlayerData skill lists contain an entry for each runtime skill (adds missing, keeps existing)
     private void EnsurePlayerDataSkillListsFromDictionaries()
     {
         EnsureListEntries(playerData.attackSkills,  attackSkills);
@@ -151,188 +126,121 @@ public class PlayerManager : MonoBehaviour
         if (list == null) return;
         foreach (var kv in dict)
         {
-            var sd = list.Find(s => s.skillName == kv.Key);
-            if (sd == null)
-            {
-                list.Add(new SkillData
-                {
-                    skillName = kv.Key,
-                    level = kv.Value.level,
-                    researchLevel = kv.Value.researchLevel,
-                    skillActive = kv.Value.skillActive,
-                    playerSkillUnlocked = kv.Value.playerSkillUnlocked,
-                    roundSkillUnlocked = kv.Value.roundSkillUnlocked
-                });
-            }
+            if (list.Exists(s => s.skillName == kv.Key)) continue;
+            list.Add(new SkillData {
+                skillName = kv.Key,
+                level = kv.Value.level,
+                researchLevel = kv.Value.researchLevel,
+                skillActive = kv.Value.skillActive,
+                playerSkillUnlocked = kv.Value.playerSkillUnlocked,
+                roundSkillUnlocked = kv.Value.roundSkillUnlocked
+            });
         }
     }
 
-    // Previous InitializeSkills removed; now a resource loader that fills only dictionaries
-    private void LoadSkillsFromResources(string path, Dictionary<string, Skill> skillDictionary)
+    private void LoadSkillsFromResources(string path, Dictionary<string, Skill> dict)
     {
-        Skill[] skills = Resources.LoadAll<Skill>(path);
-        if (skills.Length == 0)
+        var skills = Resources.LoadAll<Skill>(path);
+        Debug.Log($"LoadSkillsFromResources path={path} count={skills.Length}");
+        foreach (var s in skills)
         {
-            Debug.LogWarning($"No skills found at path: {path}");
-        }
-        foreach (Skill skill in skills)
-        {
-            Skill clonedSkill = CloneScriptableObject(skill);
-            if (!skillDictionary.ContainsKey(clonedSkill.skillName))
-                skillDictionary.Add(clonedSkill.skillName, clonedSkill);
+            var clone = CloneScriptableObject(s);
+            if (!dict.ContainsKey(clone.skillName))
+                dict.Add(clone.skillName, clone);
         }
     }
 
     private void LoadSkills()
     {
-        LoadSkillData(playerData.attackSkills, attackSkills);
+        LoadSkillData(playerData.attackSkills,  attackSkills);
         LoadSkillData(playerData.defenceSkills, defenceSkills);
         LoadSkillData(playerData.supportSkills, supportSkills);
         LoadSkillData(playerData.specialSkills, specialSkills);
     }
 
-    private void LoadSkillData(List<SkillData> skillDataList, Dictionary<string, Skill> skillDictionary)
+    private void LoadSkillData(List<SkillData> list, Dictionary<string, Skill> dict)
     {
-        foreach (SkillData skillData in skillDataList)
+        foreach (var sd in list)
         {
-            if (skillDictionary.TryGetValue(skillData.skillName, out Skill skill))
+            if (dict.TryGetValue(sd.skillName, out var skill))
             {
-                skill.level = skillData.level;
-                skill.researchLevel = skillData.researchLevel;
-                skill.skillActive = skillData.skillActive;
-                skill.playerSkillUnlocked = skillData.playerSkillUnlocked;
-                skill.roundSkillUnlocked = skillData.roundSkillUnlocked;
-                //Debug.Log($"Loaded skill: {skill.skillName}, Level: {skill.level}, Research Level: {skill.researchLevel}, Skill Active: {skill.skillActive}, Skill Unlocked: {skill.isUnlocked}");
+                skill.level = sd.level;
+                skill.researchLevel = sd.researchLevel;
+                skill.skillActive = sd.skillActive;
+                skill.playerSkillUnlocked = sd.playerSkillUnlocked;
+                skill.roundSkillUnlocked = sd.roundSkillUnlocked;
             }
-            else
-            {
-                Debug.LogWarning($"Skill not found in dictionary: {skillData.skillName}");
-            }
-        }
-    }
-
-    private IEnumerator SaveDataPeriodically()
-    {
-        while (true)
-        {
-            yield return new WaitForSeconds(10); // Save every 10 seconds
-            SavePlayerData();
         }
     }
 
     private void SavePlayerData()
     {
-        // Only update persistent skill data
+        if (playerData == null) return;
         UpdateSkillData(playerData.attackSkills,  attackSkills);
         UpdateSkillData(playerData.defenceSkills, defenceSkills);
         UpdateSkillData(playerData.supportSkills, supportSkills);
         UpdateSkillData(playerData.specialSkills, specialSkills);
-
-        saveLoadManager.SaveData(playerData);
+        QueueSave();
     }
 
-    // Update PlayerData entries and add if missing (important when new skills are introduced)
-    private void UpdateSkillData(List<SkillData> skillDataList, Dictionary<string, Skill> skillDictionary)
+    private void UpdateSkillData(List<SkillData> list, Dictionary<string, Skill> dict)
     {
-        foreach (var kvp in skillDictionary)
+        foreach (var kv in dict)
         {
-            var skillData = skillDataList.Find(s => s.skillName == kvp.Key);
-            if (skillData == null)
+            var sd = list.Find(s => s.skillName == kv.Key);
+            if (sd == null)
             {
-                // create missing entry so it persists
-                skillData = new SkillData { skillName = kvp.Key };
-                skillDataList.Add(skillData);
+                sd = new SkillData { skillName = kv.Key };
+                list.Add(sd);
             }
-
-            skillData.level = kvp.Value.level;
-            skillData.researchLevel = kvp.Value.researchLevel;
-            skillData.skillActive = kvp.Value.skillActive;
-            skillData.playerSkillUnlocked = kvp.Value.playerSkillUnlocked;
-            skillData.roundSkillUnlocked = kvp.Value.roundSkillUnlocked;
+            sd.level = kv.Value.level;
+            sd.researchLevel = kv.Value.researchLevel;
+            sd.skillActive = kv.Value.skillActive;
+            sd.playerSkillUnlocked = kv.Value.playerSkillUnlocked;
+            sd.roundSkillUnlocked = kv.Value.roundSkillUnlocked;
         }
     }
 
-    // TOWER VISUALS MANAGEMENT
-    public void UnlockTowerVisual(string visualId)
+    // ===== Tower Visuals =====
+    public void UnlockTowerVisual(string id)
     {
-        if (!playerData.unlockedTowerVisuals.Contains(visualId))
+        if (!playerData.unlockedTowerVisuals.Contains(id))
         {
-            playerData.unlockedTowerVisuals.Add(visualId);
+            playerData.unlockedTowerVisuals.Add(id);
             SavePlayerData();
-            Debug.Log($"Unlocked tower visual: {visualId}");
         }
     }
 
-    public bool SelectTowerVisual(string visualId)
+    public bool SelectTowerVisual(string id)
     {
-        if (playerData.unlockedTowerVisuals.Contains(visualId))
-        {
-            playerData.selectedTowerVisualId = visualId;
-            SavePlayerData();
-            Debug.Log($"Selected tower visual: {visualId}");
-            return true;
-        }
-        else
-        {
-            Debug.LogWarning($"Tower visual {visualId} is not unlocked.");
-            return false;
-        }
+        if (!playerData.unlockedTowerVisuals.Contains(id)) return false;
+        playerData.selectedTowerVisualId = id;
+        SavePlayerData();
+        return true;
     }
 
-    // SKILLS MANAGEMENT
-
-    public Skill GetSkill(string skillName)
+    // ===== Skill queries =====
+    public Skill GetSkill(string name)
     {
-        if (attackSkills.TryGetValue(skillName, out Skill attackSkill))
-        {
-            return attackSkill;
-        }
-        if (defenceSkills.TryGetValue(skillName, out Skill defenceSkill))
-        {
-            return defenceSkill;
-        }
-        if (supportSkills.TryGetValue(skillName, out Skill supportSkill))
-        {
-            return supportSkill;
-        }
-        if (specialSkills.TryGetValue(skillName, out Skill specialSkill))
-        {
-            return specialSkill;
-        }
-
-        // Debug log to check if skill is not found
-        // Debug.LogWarning($"Skill not found: {skillName}");
+        if (attackSkills.TryGetValue(name, out var s1)) return s1;
+        if (defenceSkills.TryGetValue(name, out var s2)) return s2;
+        if (supportSkills.TryGetValue(name, out var s3)) return s3;
+        if (specialSkills.TryGetValue(name, out var s4)) return s4;
         return null;
     }
 
-    public float GetSkillValue(Skill skill)
-    {
-        return skill.baseValue * Mathf.Pow(skill.level, skill.upgradeModifier + (skill.researchLevel * skill.researchModifier));
-    }
+    public float GetSkillValue(Skill s) =>
+        s == null ? 0f : s.baseValue * Mathf.Pow(s.level, s.upgradeModifier + (s.researchLevel * s.researchModifier));
 
-    public float GetSkillCost(Skill skill)
-    {
-        float cost = skill.premiumCost * (float)Math.Pow(skill.level, skill.premiumCostModifier);
-        return Mathf.Round(cost);
-    }
+    public float GetSkillCost(Skill s) =>
+        s == null ? 0f : Mathf.Round(s.premiumCost * (float)Math.Pow(s.level, s.premiumCostModifier));
 
-    public float GetSkillLevel(Skill skill)
-    {
-        return skill.level;
-    }
+    public float GetSkillLevel(Skill s) => s?.level ?? 0f;
 
-
-    // CURRENCY MANAGEMENT
-
+    // ===== Currency =====
     public float GetPremiumCredits() => Wallet?.Get(CurrencyType.Premium) ?? 0f;
     public float GetSpecialCredits() => Wallet?.Get(CurrencyType.Special) ?? 0f;
-    public float GetLuxuryCredits() => Wallet?.Get(CurrencyType.Luxury) ?? 0f;
-
-    private void OnCreditsEarned()
-    {
-        Debug.Log("OnCreditsEarned in PlayerManager");
-        return;
-    }
+    public float GetLuxuryCredits()  => Wallet?.Get(CurrencyType.Luxury)  ?? 0f;
 
     public void AddCredits(float basic = 0, float premium = 0, float luxury = 0, float special = 0)
     {
@@ -342,49 +250,32 @@ public class PlayerManager : MonoBehaviour
         Wallet?.Add(CurrencyType.Special, special);
     }
 
-    public bool TrySpendCredits(float premium = 0f, float luxury = 0f, float special = 0f)
+    public bool TrySpendCredits(float premium = 0, float luxury = 0, float special = 0)
     {
         if (Wallet == null) return false;
-
-        // Pre-check balances (atomic intent)
-        if ((premium > 0f && Wallet.Get(CurrencyType.Premium) < premium) ||
-            (luxury > 0f && Wallet.Get(CurrencyType.Luxury) < luxury) ||
-            (special > 0f && Wallet.Get(CurrencyType.Special) < special))
-        {
+        if ((premium  > 0 && Wallet.Get(CurrencyType.Premium) < premium) ||
+            (luxury   > 0 && Wallet.Get(CurrencyType.Luxury)  < luxury) ||
+            (special  > 0 && Wallet.Get(CurrencyType.Special) < special))
             return false;
-        }
 
-        // Commit spends (single-threaded, so pre-check is sufficient)
-        if (premium > 0f && !Wallet.TrySpend(CurrencyType.Premium, premium)) return false;
-        if (luxury > 0f && !Wallet.TrySpend(CurrencyType.Luxury, luxury)) return false;
-        if (special > 0f && !Wallet.TrySpend(CurrencyType.Special, special)) return false;
-
+        if (premium  > 0 && !Wallet.TrySpend(CurrencyType.Premium, premium)) return false;
+        if (luxury   > 0 && !Wallet.TrySpend(CurrencyType.Luxury,  luxury)) return false;
+        if (special  > 0 && !Wallet.TrySpend(CurrencyType.Special, special)) return false;
         return true;
     }
 
     public void RecordBasicSpent(float amount)
     {
-        if (amount <= 0f) return;
+        if (amount <= 0) return;
         playerData.totalBasicCreditsSpent += amount;
         SavePlayerData();
     }
 
-    // DIFFICULTY MANAGEMENT
+    // ===== Difficulty =====
+    public int GetMaxDifficulty() => playerData.maxDifficultyAchieved;
 
-    public int GetMaxDifficulty()
-    {
-        return playerData.maxDifficultyAchieved;
-    }
-
-    public void SetDifficulty(int difficulty)
-    {
-        difficultySelected = difficulty;
-    }
-
-    public int GetDifficulty()
-    {
-        return difficultySelected;
-    }
+    public void SetDifficulty(int d) => difficultySelected = d;
+    public int  GetDifficulty() => difficultySelected;
 
     public void IncreaseMaxDifficulty()
     {
@@ -396,87 +287,54 @@ public class PlayerManager : MonoBehaviour
     {
         if (wave > playerData.difficultyMaxWaveAchieved[difficulty])
         {
-            Debug.Log($"New max wave achieved for difficulty {difficulty}: {wave}");
             playerData.difficultyMaxWaveAchieved[difficulty] = wave;
             SavePlayerData();
         }
-        else
-        {
-            Debug.Log($"Wave {wave} is not greater than current max wave {playerData.difficultyMaxWaveAchieved[difficulty]} for difficulty {difficulty}");
-        }
     }
 
-    public int GetHighestWave(int difficulty)
-    {
-        Debug.Log($"Max wave achieved for difficulty {difficulty}: {playerData.difficultyMaxWaveAchieved[difficulty]}");
-        return playerData.difficultyMaxWaveAchieved[difficulty];
-    }
+    public int GetHighestWave(int difficulty) =>
+        playerData.difficultyMaxWaveAchieved[difficulty];
 
     public void UpgradeSkill(Skill skill, int levelIncrease)
     {
-        if (skill != null)
-        {
-            skill.level += levelIncrease;
-        }
+        if (skill == null) return;
+        skill.level += levelIncrease;
+        SavePlayerData();
     }
 
     public bool UpdateUsername(string newUsername)
     {
-        if (string.IsNullOrEmpty(newUsername))
-        {
-            Debug.LogWarning("New username cannot be empty.");
-            return false;
-        }
-
-        playerData.Username = newUsername;
+        if (string.IsNullOrWhiteSpace(newUsername)) return false;
+        playerData.Username = newUsername.Trim();
         SavePlayerData();
         return true;
     }
 
-    // Method to increment the count of destroyed enemies
+    // ===== Enemy tracking =====
     public void IncrementEnemyDestructionCount(string enemyType)
     {
         if (enemyDestructionCounts.ContainsKey(enemyType))
-        {
             enemyDestructionCounts[enemyType]++;
-        }
         else
-        {
             enemyDestructionCounts[enemyType] = 1;
-        }
     }
 
-    // Method to get the count of destroyed enemies by type
-    public int GetEnemyDestructionCount(string enemyType)
-    {
-        return enemyDestructionCounts.ContainsKey(enemyType) ? enemyDestructionCounts[enemyType] : 0;
-    }
+    public int GetEnemyDestructionCount(string enemyType) =>
+        enemyDestructionCounts.TryGetValue(enemyType, out var v) ? v : 0;
 
     private void OnEnemyDestroyed(object eventData)
     {
         if (eventData is Enemy enemy)
         {
-            EnemyType enemyType = enemy.Type;
-            EnemySubtype enemySubtype = enemy.Subtype;
+            var existing = playerData.EnemiesDestroyed
+                .Find(e => e.EnemyType == enemy.Type && e.EnemySubtype == enemy.Subtype);
 
-            // Find the existing entry in the list
-            var existingEntry = playerData.EnemiesDestroyed.Find(e => e.EnemyType == enemyType && e.EnemySubtype == enemySubtype);
-
-            if (existingEntry != null)
-            {
-                // Increment the count if the entry exists
-                existingEntry.Count++;
-            }
-            else
-            {
-                // Add a new entry if it doesn't exist
-                playerData.EnemiesDestroyed.Add(new SerializableEnemyData
-                {
-                    EnemyType = enemyType,
-                    EnemySubtype = enemySubtype,
-                    Count = 1
-                });
-            }
+            if (existing != null) existing.Count++;
+            else playerData.EnemiesDestroyed.Add(new SerializableEnemyData {
+                EnemyType = enemy.Type,
+                EnemySubtype = enemy.Subtype,
+                Count = 1
+            });
 
             SavePlayerData();
         }
@@ -484,11 +342,19 @@ public class PlayerManager : MonoBehaviour
 
     private void OnRoundRecordUpdated(object eventData)
     {
-        if (eventData is RoundRecord roundRecord)
+        if (eventData is RoundRecord rr)
         {
-            playerData.RoundHistory.Add(roundRecord);
+            playerData.RoundHistory.Add(rr);
             SavePlayerData();
         }
     }
 
+    public void ForceResyncFromCurrentSave()
+    {
+        var payload = SaveManager.main?.Current;
+        if (payload == null) return;
+        // Re-run the same path used when a save is first loaded/adopted.
+        OnSaveLoaded(payload);
+        LogSkillCounts("After Cloud Adopt Resync");
+    }
 }

@@ -241,7 +241,7 @@ public class MainMenuUIManager : MonoBehaviour
     // THIS METHOFS STARTS A NEW ROUND !!
     public void ChooseScene(string sceneName)
     {
-        playerManager.saveLoadManager.SaveData(playerManager.playerData);
+        SaveManager.main?.QueueImmediateSave();
         SceneManager.LoadScene(sceneName);
     }
 
