@@ -29,7 +29,7 @@ public class Bullet : MonoBehaviour
 
         Vector2 direction = (target.position - transform.position).normalized;
 
-        rb.velocity = direction * bulletSpeed;
+        rb.linearVelocity = direction * bulletSpeed;
     }
 
     public void SetSpeed(float speed)
@@ -42,6 +42,7 @@ public class Bullet : MonoBehaviour
         attackDamage = damage;
     }
 
+
     private void OnCollisionEnter2D(Collision2D other)
     {
         Enemy enemy = other.gameObject.GetComponent<Enemy>();
@@ -49,7 +50,7 @@ public class Bullet : MonoBehaviour
         {
             enemy.TakeDamage(attackDamage);
         }
-        Destroy(gameObject); 
+        Destroy(gameObject);
     }
 
     private void OnBecameInvisible()

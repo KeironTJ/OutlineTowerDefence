@@ -21,6 +21,7 @@ public class CloudSyncDebugUI : MonoBehaviour
 
     private async System.Threading.Tasks.Task ForceUpload()
     {
+        await System.Threading.Tasks.Task.Yield(); // Fixes CS1998
         if (CloudSyncService.main == null) return;
         // Schedule immediate upload
         typeof(CloudSyncService).GetMethod("ScheduleUpload",
@@ -29,6 +30,7 @@ public class CloudSyncDebugUI : MonoBehaviour
 
     private async System.Threading.Tasks.Task ForceDownload()
     {
+        await System.Threading.Tasks.Task.Yield(); // Fixes CS1998
         if (CloudSyncService.main == null) return;
         // Force attempt adopt now (call private via reflection or expose a public wrapper instead)
     }

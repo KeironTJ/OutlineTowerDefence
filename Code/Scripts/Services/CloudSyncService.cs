@@ -16,14 +16,12 @@ public class CloudSyncService : MonoBehaviour
     private bool busy;
 
     private float nextAuthAttemptTime;
-    private bool authEverSucceeded;
 
     // NEW: suppress next cloud upload after we just downloaded/adopted cloud data
     private bool suppressOneUpload;
 
     public bool InitialAdoptAttempted { get; private set; }
     private bool adoptionSucceeded;
-    [SerializeField] int adoptRetrySeconds = 20;
 
     private void Awake()
     {
@@ -75,7 +73,7 @@ public class CloudSyncService : MonoBehaviour
     private async Task<bool> EnsureAuthReady()
     {
         if (GameServicesInitializer.main == null) return false;
-        if (GameServicesInitializer.main.SignedIn) { authEverSucceeded = true; return true; }
+        if (GameServicesInitializer.main.SignedIn) return true;
         if (Time.unscaledTime < nextAuthAttemptTime) return false;
 
         try
@@ -83,7 +81,6 @@ public class CloudSyncService : MonoBehaviour
             await GameServicesInitializer.main.InitAndSignInAsync();
             if (GameServicesInitializer.main.SignedIn)
             {
-                authEverSucceeded = true;
                 return true;
             }
         }

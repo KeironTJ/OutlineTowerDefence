@@ -151,11 +151,12 @@ public class RoundManager : MonoBehaviour
 
     public void DestroyAllBullets()
     {
-        Bullet[] bullets = FindObjectsOfType<Bullet>();
-        foreach (Bullet bullet in bullets)
-        {
-            Destroy(bullet.gameObject);
-        }
+        var bullets = UnityEngine.Object.FindObjectsByType<Bullet>(
+            FindObjectsInactive.Exclude,
+            FindObjectsSortMode.None);
+
+        foreach (var b in bullets)
+            Destroy(b.gameObject);
     }
 
     // ROUND MANAGEMENT
@@ -371,8 +372,11 @@ public class RoundManager : MonoBehaviour
     // Enemies
     private void DestroyAllEnemies()
     {
-        Enemy[] enemies = FindObjectsOfType<Enemy>();
-        foreach (Enemy enemy in enemies)
+        var enemies = UnityEngine.Object.FindObjectsByType<Enemy>(
+            FindObjectsInactive.Exclude,
+            FindObjectsSortMode.None);
+
+        foreach (var enemy in enemies)
         {
             Destroy(enemy.gameObject);
         }

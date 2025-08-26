@@ -21,7 +21,7 @@ public class RoundLoader : MonoBehaviour
         }
 
         // Ensure UIManager is initialized
-        UIManager uiManager = FindObjectOfType<UIManager>();
+        UIManager uiManager = UnityEngine.Object.FindFirstObjectByType<UIManager>();
         if (uiManager == null)
         {
             Debug.Log("Initializing UIManager...");
@@ -30,7 +30,7 @@ public class RoundLoader : MonoBehaviour
         }
 
         // Ensure RoundManager is initialized
-        RoundManager roundManager = FindObjectOfType<RoundManager>();
+        RoundManager roundManager = UnityEngine.Object.FindFirstObjectByType<RoundManager>();
         if (roundManager == null)
         {
             Debug.Log("Initializing RoundManager...");

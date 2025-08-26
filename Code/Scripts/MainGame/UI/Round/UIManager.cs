@@ -77,7 +77,7 @@ public class UIManager : MonoBehaviour
 
         // NEW: initialize Shop Menu even if it's not a child of UIManager
         if (shopMenu == null)
-            shopMenu = FindObjectOfType<Menu>(true); // finds inactive under Canvas too
+            shopMenu = UnityEngine.Object.FindFirstObjectByType<Menu>(UnityEngine.FindObjectsInactive.Include);
 
         if (shopMenu != null)
         {
@@ -255,7 +255,7 @@ public class UIManager : MonoBehaviour
     public void ReturnToMenu()
     {
         // Find and destroy the Tower instance
-        Tower tower = FindObjectOfType<Tower>();
+        Tower tower = UnityEngine.Object.FindFirstObjectByType<Tower>();
         if (tower != null)
         {
             Destroy(tower.gameObject);

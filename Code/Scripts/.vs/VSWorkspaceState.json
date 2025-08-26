@@ -1,0 +1,10 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\MainGame",
+    "\\MainGame\\RoundLogic",
+    "\\MainGame\\RoundLogic\\RoundManager"
+  ],
+  "SelectedNode": "\\MainGame\\RoundLogic\\RoundManager\\RoundData.cs",
+  "PreviewInSolutionExplorer": false
+}

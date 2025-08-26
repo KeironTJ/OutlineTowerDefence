@@ -57,7 +57,7 @@ public class TowerVisualSelectionUI : MonoBehaviour
                 {
                     PlayerManager.main.SelectTowerVisual(id);
                     // Update MainMenuUIManager image
-                    var mainMenu = FindObjectOfType<MainMenuUIManager>();
+                    var mainMenu = UnityEngine.Object.FindFirstObjectByType<MainMenuUIManager>();
                     if (mainMenu != null)
                         mainMenu.SetTowerVisualImage();
                     CloseTowerVisualSelection(); // Close the panel after selection

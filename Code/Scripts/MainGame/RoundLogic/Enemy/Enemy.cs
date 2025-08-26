@@ -70,7 +70,7 @@ public class Enemy : MonoBehaviour
 
         // Move towards the tower
         Vector2 direction = (target.position - transform.position).normalized;
-        rb.velocity = direction * moveSpeed;
+        rb.linearVelocity = direction * moveSpeed;
     }
 
     private void OnCollisionEnter2D(Collision2D collision)

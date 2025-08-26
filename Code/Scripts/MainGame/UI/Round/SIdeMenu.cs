@@ -33,7 +33,7 @@ public class SIdeMenu : MonoBehaviour
         WaitForSeconds wait = new WaitForSeconds(0.5f);
         while (tower == null)
         {
-            tower = FindObjectOfType<Tower>();
+            tower = UnityEngine.Object.FindFirstObjectByType<Tower>();
             if (tower == null)
             {
                 yield return wait;

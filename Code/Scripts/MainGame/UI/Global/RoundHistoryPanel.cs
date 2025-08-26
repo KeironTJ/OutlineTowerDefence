@@ -32,7 +32,12 @@ public class RoundHistoryPanel : MonoBehaviour
 
     private void OnEnable()
     {
-        if (playerManager == null) playerManager = PlayerManager.main ?? FindObjectOfType<PlayerManager>(true);
+        if (playerManager == null)
+        {
+            playerManager = PlayerManager.main
+                ?? UnityEngine.Object.FindFirstObjectByType<PlayerManager>(FindObjectsInactive.Include);
+        }
+            
 
         if (detailsView == null) detailsView = GetComponentInChildren<RoundStatsView>(true);
         if (detailsPanel == null && detailsView != null) detailsPanel = detailsView.gameObject;
