@@ -2,7 +2,7 @@ using UnityEngine;
 
 public static class NumberManager
 {
-    public static string FormatLargeNumber(float number)
+    public static string FormatLargeNumber(float number, bool isInteger = false)
     {
         if (number >= 1e33)
             return (number / 1e33).ToString("0.00") + "Dc"; // Decillion
@@ -27,6 +27,9 @@ public static class NumberManager
         if (number >= 1e3)
             return (number / 1e3).ToString("0.00") + "k";  // Thousand
 
-        return number.ToString("0.00");
+        if (isInteger)
+            return number.ToString("0");
+        else
+            return number.ToString("0.00");
     }
 }

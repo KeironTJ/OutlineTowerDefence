@@ -385,23 +385,4 @@ public class Tower : MonoBehaviour
         RotateTowardsTarget(); // Rotate towards the target
     }
 
-    // Rewards
-    public void AddCredits(float basic, float premium, float luxury, float special)
-    {
-        if (basic != 0f)
-        {
-            roundManager.IncreaseBasicCredits(basic);
-        }
-
-        var rewards = new Dictionary<CurrencyType, float>();
-        if (premium != 0f) rewards[CurrencyType.Premium] = premium;
-        if (luxury != 0f) rewards[CurrencyType.Luxury] = luxury;
-        if (special != 0f) rewards[CurrencyType.Special] = special;
-
-        if (rewards.Count > 0)
-        {
-            EventManager.TriggerEvent(EventNames.CreditsEarned, rewards);
-        }
-    }
-
 }

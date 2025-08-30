@@ -123,11 +123,15 @@ public class Enemy : MonoBehaviour
         {
             isDestroyed = true;
             StopDamage(); // Stop applying damage to the tower
-            EventManager.TriggerEvent(EventNames.EnemyDestroyed, this);
-            EventManager.TriggerEvent(EventNames.CreditsEarned, this);
-            Destroy(gameObject);
 
-            //tower.AddCredits(basicCreditsWorth, premiumCreditsWorth, luxuryCreditsWorth);
+            // Payloads
+            var enemyPayload = new EnemyDestroyedEvent(type, subtype);
+
+            var creditPayload = new CreditsEarnedEvent(basicCreditsWorth, premiumCreditsWorth, luxuryCreditsWorth, specialCreditsWorth);
+
+            EventManager.TriggerEvent(EventNames.EnemyDestroyed, enemyPayload);
+            EventManager.TriggerEvent(EventNames.CreditsEarned, creditPayload);
+            Destroy(gameObject);
         }
     }
 

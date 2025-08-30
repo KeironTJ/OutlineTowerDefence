@@ -286,17 +286,16 @@ public class RoundManager : MonoBehaviour
 
     private void OnEnemyDestroyed(object eventData)
     {
-
-        if (!(eventData is Enemy enemy)) return;
-
-        enemiesKilledThisRound++;
-
-        if (!enemiesKilledByTypeAndSubtype.TryGetValue(enemy.GetEnemyType(), out var subtypeDict))
+        if (eventData is EnemyDestroyedEvent ede)
         {
-            subtypeDict = new Dictionary<EnemySubtype, int>();
-            enemiesKilledByTypeAndSubtype[enemy.GetEnemyType()] = subtypeDict;
+            enemiesKilledThisRound++;
+            if (!enemiesKilledByTypeAndSubtype.TryGetValue(ede.type, out var subtypeDict))
+            {
+                subtypeDict = new Dictionary<EnemySubtype, int>();
+                enemiesKilledByTypeAndSubtype[ede.type] = subtypeDict;
+            }
+            subtypeDict[ede.subtype] = subtypeDict.TryGetValue(ede.subtype, out var count) ? count + 1 : 1;
         }
-        subtypeDict[enemy.GetEnemySubtype()] = subtypeDict.TryGetValue(enemy.GetEnemySubtype(), out var count) ? count + 1 : 1;
 
         EventManager.TriggerEvent(EventNames.RoundStatsUpdated, GetCurrentRoundSummary());
     }
@@ -396,46 +395,20 @@ public class RoundManager : MonoBehaviour
     // CREDITS
     private void OnCreditsEarned(object eventData)
     {
-        // TODO: SIMPLIFY BELOW LOGIC 
-        if (eventData is Enemy enemy)
+        if (eventData is CreditsEarnedEvent creditsEvent)
         {
-            // Update active currencies
-            IncreaseBasicCredits(enemy.GetBasicCreditsWorth());
-            playerManager.Wallet.Add(CurrencyType.Premium, enemy.GetPremiumCreditsWorth());
-            playerManager.Wallet.Add(CurrencyType.Luxury, enemy.GetLuxuryCreditsWorth());
-            playerManager.Wallet.Add(CurrencyType.Special, enemy.GetSpecialCreditsWorth());
+            //Debug.Log($"Credits Earned - Basic: {creditsEvent.basic}, Premium: {creditsEvent.premium}, Luxury: {creditsEvent.luxury}, Special: {creditsEvent.special}");
+            IncreaseBasicCredits(creditsEvent.basic);
+            playerManager.Wallet.Add(CurrencyType.Premium, creditsEvent.premium);
+            playerManager.Wallet.Add(CurrencyType.Luxury, creditsEvent.luxury);
+            playerManager.Wallet.Add(CurrencyType.Special, creditsEvent.special);
 
-            // Update round stats
-            creditsEarnedThisRound[CurrencyType.Basic] += enemy.GetBasicCreditsWorth();
-            creditsEarnedThisRound[CurrencyType.Premium] += enemy.GetPremiumCreditsWorth();
-            creditsEarnedThisRound[CurrencyType.Luxury] += enemy.GetLuxuryCreditsWorth();
-            creditsEarnedThisRound[CurrencyType.Special] += enemy.GetSpecialCreditsWorth();
+            creditsEarnedThisRound[CurrencyType.Basic] += creditsEvent.basic;
+            creditsEarnedThisRound[CurrencyType.Premium] += creditsEvent.premium;
+            creditsEarnedThisRound[CurrencyType.Luxury] += creditsEvent.luxury;
+            creditsEarnedThisRound[CurrencyType.Special] += creditsEvent.special;
             EventManager.TriggerEvent(EventNames.RoundStatsUpdated, GetCurrentRoundSummary());
-
-            return;
         }
-
-        if (eventData is Dictionary<CurrencyType, float> rewards)
-        {
-            // Update active currencies
-            if (rewards.TryGetValue(CurrencyType.Basic, out var b)) IncreaseBasicCredits(b);
-            if (rewards.TryGetValue(CurrencyType.Premium, out var p)) playerManager.Wallet.Add(CurrencyType.Premium, p);
-            if (rewards.TryGetValue(CurrencyType.Luxury, out var l)) playerManager.Wallet.Add(CurrencyType.Luxury, l);
-            if (rewards.TryGetValue(CurrencyType.Special, out var s)) playerManager.Wallet.Add(CurrencyType.Special, s);
-
-            // Update round stats
-            creditsEarnedThisRound[CurrencyType.Basic] += b;
-            creditsEarnedThisRound[CurrencyType.Premium] += p;
-            creditsEarnedThisRound[CurrencyType.Luxury] += l;
-            creditsEarnedThisRound[CurrencyType.Special] += s;
-            EventManager.TriggerEvent(EventNames.RoundStatsUpdated, GetCurrentRoundSummary());
-
-            return;
-        }
-
-        EventManager.TriggerEvent(EventNames.RoundStatsUpdated, GetCurrentRoundSummary());
-
-        Debug.LogWarning("CreditsEarned received unexpected event payload.");
     }
 
     private void SetStartBasicCredits()
@@ -456,12 +429,12 @@ public class RoundManager : MonoBehaviour
 
     public bool SpendBasicCredits(float amount)
     {
-        return roundWallet?.TrySpend(CurrencyType.Basic, amount) ?? false; // NEW
+        return roundWallet?.TrySpend(CurrencyType.Basic, amount) ?? false; 
     }
 
     public float GetBasicCredits()
     {
-        return roundWallet?.Get(CurrencyType.Basic) ?? 0f; // NEW
+        return roundWallet?.Get(CurrencyType.Basic) ?? 0f;
     }
 
 

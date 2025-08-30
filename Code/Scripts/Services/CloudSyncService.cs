@@ -140,7 +140,7 @@ public class CloudSyncService : MonoBehaviour
         }
     }
 
-    private void ScheduleUpload()
+    public void ScheduleUpload()
     {
         pendingUpload = true;
         earliestUpload = Time.unscaledTime + uploadDebounceSeconds;

@@ -324,15 +324,15 @@ public class PlayerManager : MonoBehaviour
 
     private void OnEnemyDestroyed(object eventData)
     {
-        if (eventData is Enemy enemy)
+        if (eventData is EnemyDestroyedEvent ede)
         {
             var existing = playerData.EnemiesDestroyed
-                .Find(e => e.EnemyType == enemy.Type && e.EnemySubtype == enemy.Subtype);
+                .Find(e => e.EnemyType == ede.type && e.EnemySubtype == ede.subtype);
 
             if (existing != null) existing.Count++;
             else playerData.EnemiesDestroyed.Add(new SerializableEnemyData {
-                EnemyType = enemy.Type,
-                EnemySubtype = enemy.Subtype,
+                EnemyType = ede.type,
+                EnemySubtype = ede.subtype,
                 Count = 1
             });
 

@@ -75,6 +75,7 @@ public class WaveManager : MonoBehaviour
             yield return new WaitForSeconds(spawnInterval);
         }
 
+        EventManager.TriggerEvent(EventNames.WaveCompleted, currentWave);
         isWaveActive = false;
         yield return new WaitForSeconds(timeBetweenWaves);
 

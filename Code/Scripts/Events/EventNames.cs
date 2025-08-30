@@ -15,9 +15,11 @@ public static class EventNames
     public const string RoundRecordCreated = "RoundRecordCreated";
     public const string RoundRecordUpdated = "RoundRecordUpdated";
     public const string RoundEnded = "RoundEnded";
+    public const string RoundCompleted = "RoundCompleted";
 
     // Wave Events
     public const string NewWaveStarted = "NewWaveStarted";
+    public const string WaveCompleted = "WaveCompleted";
 
     // Enemy Events
     public const string EnemySpawned = "EnemySpawned";
@@ -25,8 +27,10 @@ public static class EventNames
 
     // Game Currency Event
     public const string CreditsEarned = "CreditsEarned";
+    public const string CreditsSpent = "CreditsSpent";
 
     // Skill Events
+    public const string SkillUnlocked = "SkillUnlocked";
     public const string SkillUpgraded = "SkillUpgraded";
 
 }

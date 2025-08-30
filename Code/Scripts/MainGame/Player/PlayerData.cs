@@ -25,6 +25,16 @@ public class SerializableEnemyData
 }
 
 [System.Serializable]
+public class ObjectiveProgressData
+{
+    public string objectiveId;
+    public float currentProgress;
+    public bool completed;
+    public bool claimed;                 
+    public string assignedAtIsoUtc;
+}
+
+[System.Serializable]
 public class PlayerData
 {
     [Header("Player Information")]
@@ -66,6 +76,18 @@ public class PlayerData
 
     [Header("Round History")]
     public List<RoundRecord> RoundHistory = new List<RoundRecord>();
+
+    [Header("Daily Login Data")]
+    public string lastDailyLoginIsoUtc = "";
+    public int dailyLoginStreak = 0; 
+
+    [Header("Objective Progress")]
+    public List<ObjectiveProgressData> dailyObjectives = new List<ObjectiveProgressData>();
+    public List<ObjectiveProgressData> weeklyObjectives = new List<ObjectiveProgressData>();
+
+    // Timestamp controlling next auto‑slot fill (daily)
+    public string lastDailyObjectiveAddIsoUtc = "";   
+    public string lastDailyObjectiveSlotKey = ""; // NEW: e.g. "20250828-12" (UTC date + slot hour)
 
 
     // Constructor to initialize a new player

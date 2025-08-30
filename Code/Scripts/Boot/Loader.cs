@@ -6,7 +6,7 @@ using TMPro;
 public class Loader : MonoBehaviour
 {
     [SerializeField] string mainSceneName = "MainMenu";
-    [SerializeField] float minShowSeconds = 0.5f;
+    [SerializeField] float minShowSeconds = 3f;
     [SerializeField] UnityEngine.UI.Slider progressBar;
     [SerializeField] TextMeshProUGUI statusText;
 
