@@ -21,7 +21,7 @@ MonoBehaviour:
   enemyType: 0
   anyEnemySubtype: 0
   enemySubtype: 1
-  creditCurrencyType: 0
+  currencyType: 0
   skillId: 
   rewardType: 1
   rewardAmount: 2500

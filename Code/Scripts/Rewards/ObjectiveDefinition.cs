@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public enum ObjectiveType { KillEnemies, CompleteRounds, CompleteWaves, SpendCredits, UnlockSkill, EarnCredits }
+public enum ObjectiveType { KillEnemies, CompleteRounds, CompleteWaves, SpendCurrency, UnlockSkill, EarnCurrency }
 public enum ObjectiveRarity { Common, Uncommon, Rare, Epic }
 public enum ObjectivePeriod { Daily, Weekly }
 
@@ -22,8 +22,8 @@ public class ObjectiveDefinition : ScriptableObject
     [SerializeField] public bool anyEnemySubtype = true;
     [SerializeField] public EnemySubtype enemySubtype;        // Only used if anyEnemySubtype == false
 
-    [Header("Credit Filter (used when type == EarnCredits or SpendCredits)")]
-    public CurrencyType creditCurrencyType = CurrencyType.Basic;
+    [Header("Currency Filter (used when type == EarnCurrency or SpendCurrency)")]
+    public CurrencyType currencyType = CurrencyType.Fragments;
 
     [Header("Skill Filter (used when type == UnlockSkill)")]
     public string skillId;                   // Leave blank for any skill (or enforce exact match)
@@ -49,9 +49,9 @@ public class ObjectiveDefinition : ScriptableObject
             anyEnemyType = false;
             anyEnemySubtype = false;
         }
-        if (type != ObjectiveType.EarnCredits && type != ObjectiveType.SpendCredits)
+        if (type != ObjectiveType.EarnCurrency && type != ObjectiveType.SpendCurrency)
         {
-            creditCurrencyType = CurrencyType.Basic;
+            currencyType = CurrencyType.Cores;
         }
         if (type != ObjectiveType.UnlockSkill)
         {

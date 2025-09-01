@@ -21,13 +21,13 @@ MonoBehaviour:
   researchLevel: 0
   maxResearchlevel: 4
   researchModifier: 1.25
-  basicCost: 500
-  basicCostModifier: 7
-  premiumCost: 1000
-  premiumCostModifier: 10
-  premiumUnlockCost: 0
-  luxuryUnlockCost: 0
-  specialUnlockCost: 0
+  frgmentsCost: 500
+  fragmentsCostModifier: 7
+  coresCost: 1000
+  coresCostModifier: 10
+  coresUnlockCost: 0
+  prismsUnlockCost: 0
+  loopsUnlockCost: 0
   skillActive: 1
   playerSkillUnlocked: 0
   roundSkillUnlocked: 0

@@ -29,10 +29,10 @@ public class Enemy : MonoBehaviour
     [SerializeField] private float damageInterval = 1f; // Interval between damage applications
 
     [Header("Enemy Rewards")]
-    [SerializeField] private float basicCreditsWorth = 1f;
-    [SerializeField] private float premiumCreditsWorth = 0f;
-    [SerializeField] private float luxuryCreditsWorth = 0f;
-    [SerializeField] private float specialCreditsWorth = 0f;
+    [SerializeField] private float fragments = 1f;
+    [SerializeField] private float cores = 0f;
+    [SerializeField] private float prisms = 0f;
+    [SerializeField] private float loops = 0f;
 
     [Header("Enemy Type")]
     [SerializeField] private EnemyType type; // Set in the prefab
@@ -56,9 +56,10 @@ public class Enemy : MonoBehaviour
         this.health *= healthModifier;
         this.moveSpeed *= moveSpeedModifier;
         this.attackDamage *= attackDamageModifier;
-        this.basicCreditsWorth *= rewardModifier;
-        this.premiumCreditsWorth *= rewardModifier;
-        this.luxuryCreditsWorth *= rewardModifier;
+        this.fragments *= rewardModifier;
+        this.cores *= rewardModifier;
+        this.prisms *= rewardModifier;
+        this.loops *= rewardModifier;
     }
 
     private void FixedUpdate()
@@ -127,19 +128,19 @@ public class Enemy : MonoBehaviour
             // Payloads
             var enemyPayload = new EnemyDestroyedEvent(type, subtype);
 
-            var creditPayload = new CreditsEarnedEvent(basicCreditsWorth, premiumCreditsWorth, luxuryCreditsWorth, specialCreditsWorth);
+            var currencyPayload = new CurrencyEarnedEvent(fragments, cores, prisms, loops);
 
             EventManager.TriggerEvent(EventNames.EnemyDestroyed, enemyPayload);
-            EventManager.TriggerEvent(EventNames.CreditsEarned, creditPayload);
+            EventManager.TriggerEvent(EventNames.CurrencyEarned, currencyPayload);
             Destroy(gameObject);
         }
     }
 
     // Getters
-    public float GetBasicCreditsWorth() => basicCreditsWorth;
-    public float GetPremiumCreditsWorth() => premiumCreditsWorth;
-    public float GetLuxuryCreditsWorth() => luxuryCreditsWorth;
-    public float GetSpecialCreditsWorth() => specialCreditsWorth;
+    public float GetFragments() => fragments;
+    public float GetCores() => cores;
+    public float GetPrisms() => prisms;
+    public float GetLoops() => loops;
 
     public EnemyType GetEnemyType() => type;
     public EnemySubtype GetEnemySubtype() => subtype;

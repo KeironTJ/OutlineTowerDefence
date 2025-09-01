@@ -7,9 +7,9 @@ using System.Collections.Generic;
 public class Menu : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private TextMeshProUGUI basicCreditsUI;
-    [SerializeField] private TextMeshProUGUI premiumCreditsUI;
-    [SerializeField] private TextMeshProUGUI luxuryCreditsUI;
+    [SerializeField] private TextMeshProUGUI fragmentsUI;
+    [SerializeField] private TextMeshProUGUI coresUI;
+    [SerializeField] private TextMeshProUGUI prismsUI;
 
     [SerializeField] private Animator anim;
 
@@ -153,7 +153,7 @@ public class Menu : MonoBehaviour
 
     private void OnSkillButtonClicked(Skill skill, Button button)
     {
-        if (roundManager.SpendBasicCredits(skillManager.GetSkillCost(skill)))
+        if (roundManager.SpendFragments(skillManager.GetSkillCost(skill)))
         {
             skillManager.UpgradeSkill(skill, 1);
             UpdateUI();
@@ -174,9 +174,9 @@ public class Menu : MonoBehaviour
 
     private void UpdateUI()
     {
-        basicCreditsUI.text = $"BC: {NumberManager.FormatLargeNumber(roundManager.GetRoundWallet().Get(CurrencyType.Basic))}";
-        premiumCreditsUI.text = $"PC: {NumberManager.FormatLargeNumber(playerManager?.Wallet.Get(CurrencyType.Premium) ?? 0)}";
-        luxuryCreditsUI.text = $"LC: {NumberManager.FormatLargeNumber(playerManager?.Wallet.Get(CurrencyType.Luxury) ?? 0)}";
+        fragmentsUI.text = $"F: {NumberManager.FormatLargeNumber(roundManager.GetRoundWallet().Get(CurrencyType.Fragments))}";
+        coresUI.text = $"C: {NumberManager.FormatLargeNumber(playerManager?.Wallet.Get(CurrencyType.Cores) ?? 0)}";
+        prismsUI.text = $"P: {NumberManager.FormatLargeNumber(playerManager?.Wallet.Get(CurrencyType.Prisms) ?? 0)}";
     }
 
     public void ToggleMenu()

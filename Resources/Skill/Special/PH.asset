@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 738dc256e81ae64448448c3e3308ef42, type: 3}
   m_Name: PH
   m_EditorClassIdentifier: 
-  skillName: Basic Credit Modifier
-  description: Multiplies Cash received.
+  skillName: Fragments Modifier
+  description: Multiplies fragments received.
   baseValue: 1
   level: 1
   maxLevel: 99
@@ -21,13 +21,13 @@ MonoBehaviour:
   researchLevel: 0
   maxResearchlevel: 99
   researchModifier: 1.02
-  basicCost: 0
-  basicCostModifier: 0
-  premiumCost: 0
-  premiumCostModifier: 0
-  premiumUnlockCost: 0
-  luxuryUnlockCost: 0
-  specialUnlockCost: 0
+  fragementsCost: 0
+  fragementsCostModifier: 0
+  coresCost: 0
+  coresCostModifier: 0
+  coresUnlockCost: 0
+  prismsUnlockCost: 0
+  loopsUnlockCost: 0
   skillActive: 0
   playerSkillUnlocked: 0
   roundSkillUnlocked: 0

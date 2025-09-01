@@ -15,7 +15,7 @@ public class RoundRecord
     public int bulletsFired;
     public int enemiesKilled;
 
-    public List<CurrencyAmount> creditsEarned = new List<CurrencyAmount>();
+    public List<CurrencyAmount> currencyEarned = new List<CurrencyAmount>();
     public List<EnemyTypeCount> enemyBreakdown = new List<EnemyTypeCount>();
 }
 

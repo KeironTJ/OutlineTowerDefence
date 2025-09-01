@@ -22,18 +22,18 @@ public class Skill : ScriptableObject
     public float researchModifier; // steps upgrade Modifier
 
     [Header("ROUND Costs")]
-    public float basicCost;
-    public float basicCostModifier; 
+    public float fragmentsCost;
+    public float fragmentsCostModifier; 
 
     [Header("PLAYER Costs")]
-    public float premiumCost;
-    public float premiumCostModifier; 
+    public float coresCost;
+    public float coresCostModifier;
 
 
     [Header("Unlock Costs")] // Used for the initial unlocking of the skill
-    public float premiumUnlockCost;
-    public float luxuryUnlockCost;
-    public float specialUnlockCost;
+    public float coresUnlockCost;
+    public float prismsUnlockCost;
+    public float loopsUnlockCost;
 
     [Header("Status")]
     public bool skillActive; // Condition to manage skill activity in game lifecycle. 

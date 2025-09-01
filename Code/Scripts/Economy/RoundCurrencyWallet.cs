@@ -4,38 +4,38 @@ using UnityEngine;
 
 public class RoundCurrencyWallet : ICurrencyWallet
 {
-    private float basicBalance;
+    private float fragmentsBalance;
     private readonly ICurrencyWallet playerWallet;
-    private readonly Action<float> onBasicSpent; // NEW
+    private readonly Action<float> onFragmentsSpent; // NEW
 
     public event Action<CurrencyType, float> BalanceChanged;
 
     // NEW: accept a spend callback
-    public RoundCurrencyWallet(ICurrencyWallet playerWallet, Action<float> onBasicSpent = null)
+    public RoundCurrencyWallet(ICurrencyWallet playerWallet, Action<float> onFragmentsSpent = null)
     {
         this.playerWallet = playerWallet;
-        this.onBasicSpent = onBasicSpent;
+        this.onFragmentsSpent = onFragmentsSpent;
 
         if (playerWallet != null)
         {
             playerWallet.BalanceChanged += (t, v) =>
             {
-                if (t != CurrencyType.Basic) BalanceChanged?.Invoke(t, v);
+                if (t != CurrencyType.Fragments) BalanceChanged?.Invoke(t, v);
             };
         }
     }
 
     public float Get(CurrencyType type)
     {
-        return type == CurrencyType.Basic ? basicBalance : playerWallet?.Get(type) ?? 0f;
+        return type == CurrencyType.Fragments ? fragmentsBalance : playerWallet?.Get(type) ?? 0f;
     }
 
     public void Set(CurrencyType type, float amount)
     {
-        if (type == CurrencyType.Basic)
+        if (type == CurrencyType.Fragments)
         {
-            basicBalance = Math.Max(0f, amount);
-            BalanceChanged?.Invoke(CurrencyType.Basic, basicBalance);
+            fragmentsBalance = Math.Max(0f, amount);
+            BalanceChanged?.Invoke(CurrencyType.Fragments, fragmentsBalance);
         }
         else
         {
@@ -47,11 +47,11 @@ public class RoundCurrencyWallet : ICurrencyWallet
     {
         if (amount == 0f) return;
 
-        if (type == CurrencyType.Basic)
+        if (type == CurrencyType.Fragments)
         {
-            basicBalance += amount;
-            BalanceChanged?.Invoke(CurrencyType.Basic, basicBalance);
-            playerWallet?.Add(CurrencyType.Basic, Math.Max(0f, amount)); // KPI forward
+            fragmentsBalance += amount;
+            BalanceChanged?.Invoke(CurrencyType.Fragments, fragmentsBalance);
+            playerWallet?.Add(CurrencyType.Fragments, Math.Max(0f, amount)); // KPI forward
         }
         else
         {
@@ -63,13 +63,13 @@ public class RoundCurrencyWallet : ICurrencyWallet
     {
         if (amount <= 0f) return true;
 
-        if (type == CurrencyType.Basic)
+        if (type == CurrencyType.Fragments)
         {
-            if (basicBalance >= amount)
+            if (fragmentsBalance >= amount)
             {
-                basicBalance -= amount;
-                BalanceChanged?.Invoke(CurrencyType.Basic, basicBalance);
-                onBasicSpent?.Invoke(amount); // NEW: record lifetime spent
+                fragmentsBalance -= amount;
+                BalanceChanged?.Invoke(CurrencyType.Fragments, fragmentsBalance);
+                onFragmentsSpent?.Invoke(amount); // NEW: record lifetime spent
                 return true;
             }
             return false;
@@ -83,12 +83,12 @@ public class RoundCurrencyWallet : ICurrencyWallet
             ? new Dictionary<CurrencyType, float>(d)
             : new Dictionary<CurrencyType, float>();
 
-        map[CurrencyType.Basic] = basicBalance;
+        map[CurrencyType.Fragments] = fragmentsBalance;
         return map;
     }
 
     public void ClearRound()
     {
-        Set(CurrencyType.Basic, 0f);
+        Set(CurrencyType.Fragments, 0f);
     }
 }

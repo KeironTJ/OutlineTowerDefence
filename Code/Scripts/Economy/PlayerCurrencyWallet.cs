@@ -19,10 +19,10 @@ public class PlayerCurrencyWallet : ICurrencyWallet
     {
         switch (type)
         {
-            case CurrencyType.Premium: return data.premiumCredits;
-            case CurrencyType.Luxury:  return data.luxuryCredits;
-            case CurrencyType.Special: return data.specialCredits;
-            case CurrencyType.Basic:   return 0f; // round-only
+            case CurrencyType.Cores: return data.cores;
+            case CurrencyType.Loops:  return data.loops;
+            case CurrencyType.Prisms: return data.prisms;
+            case CurrencyType.Fragments:   return 0f; // round-only
             default: return 0f;
         }
     }
@@ -32,19 +32,19 @@ public class PlayerCurrencyWallet : ICurrencyWallet
         amount = Math.Max(0f, amount);
         switch (type)
         {
-            case CurrencyType.Premium:
-                data.premiumCredits = amount;
-                BalanceChanged?.Invoke(type, data.premiumCredits);
+            case CurrencyType.Cores:
+                data.cores = amount;
+                BalanceChanged?.Invoke(type, data.cores);
                 break;
-            case CurrencyType.Luxury:
-                data.luxuryCredits = amount;
-                BalanceChanged?.Invoke(type, data.luxuryCredits);
+            case CurrencyType.Loops:
+                data.loops = amount;
+                BalanceChanged?.Invoke(type, data.loops);
                 break;
-            case CurrencyType.Special:
-                data.specialCredits = amount;
-                BalanceChanged?.Invoke(type, data.specialCredits);
+            case CurrencyType.Prisms:
+                data.prisms = amount;
+                BalanceChanged?.Invoke(type, data.prisms);
                 break;
-            case CurrencyType.Basic:
+            case CurrencyType.Fragments:
                 return; // not stored here
         }
         saveCallback?.Invoke();
@@ -56,27 +56,27 @@ public class PlayerCurrencyWallet : ICurrencyWallet
 
         switch (type)
         {
-            case CurrencyType.Basic:
-                if (amount > 0) data.totalBasicCreditsEarned += amount;
+            case CurrencyType.Fragments:
+                if (amount > 0) data.totalFragmentsEarned += amount;
                 saveCallback?.Invoke();
                 return;
 
-            case CurrencyType.Premium:
-                data.premiumCredits += amount;
-                if (amount > 0) data.totalPremiumCreditsEarned += amount;
-                BalanceChanged?.Invoke(type, data.premiumCredits);
+            case CurrencyType.Cores:
+                data.cores += amount;
+                if (amount > 0) data.totalCoresEarned += amount;
+                BalanceChanged?.Invoke(type, data.cores);
                 break;
 
-            case CurrencyType.Luxury:
-                data.luxuryCredits += amount;
-                if (amount > 0) data.totalLuxuryCreditsEarned += amount;
-                BalanceChanged?.Invoke(type, data.luxuryCredits);
+            case CurrencyType.Prisms:
+                data.prisms += amount;
+                if (amount > 0) data.totalPrismsEarned += amount;
+                BalanceChanged?.Invoke(type, data.prisms);
                 break;
 
-            case CurrencyType.Special:
-                data.specialCredits += amount;
-                if (amount > 0) data.totalSpecialCreditsEarned += amount;
-                BalanceChanged?.Invoke(type, data.specialCredits);
+            case CurrencyType.Loops:
+                data.loops += amount;
+                if (amount > 0) data.totalLoopsEarned += amount;
+                BalanceChanged?.Invoke(type, data.loops);
                 break;
         }
         saveCallback?.Invoke();
@@ -88,40 +88,40 @@ public class PlayerCurrencyWallet : ICurrencyWallet
 
         switch (type)
         {
-            case CurrencyType.Premium:
-                if (data.premiumCredits >= amount)
+            case CurrencyType.Cores:
+                if (data.cores >= amount)
                 {
-                    data.premiumCredits -= amount;
-                    data.totalPremiumCreditsSpent += amount;
-                    BalanceChanged?.Invoke(type, data.premiumCredits);
+                    data.cores -= amount;
+                    data.totalCoresSpent += amount;
+                    BalanceChanged?.Invoke(type, data.cores);
                     saveCallback?.Invoke();
                     return true;
                 }
                 return false;
 
-            case CurrencyType.Luxury:
-                if (data.luxuryCredits >= amount)
+            case CurrencyType.Prisms:
+                if (data.prisms >= amount)
                 {
-                    data.luxuryCredits -= amount;
-                    data.totalLuxuryCreditsSpent += amount;
-                    BalanceChanged?.Invoke(type, data.luxuryCredits);
+                    data.prisms -= amount;
+                    data.totalPrismsSpent += amount;
+                    BalanceChanged?.Invoke(type, data.prisms);
                     saveCallback?.Invoke();
                     return true;
                 }
                 return false;
 
-            case CurrencyType.Special:
-                if (data.specialCredits >= amount)
+            case CurrencyType.Loops:
+                if (data.loops >= amount)
                 {
-                    data.specialCredits -= amount;
-                    data.totalSpecialCreditsSpent += amount;
-                    BalanceChanged?.Invoke(type, data.specialCredits);
+                    data.loops -= amount;
+                    data.totalLoopsSpent += amount;
+                    BalanceChanged?.Invoke(type, data.loops);
                     saveCallback?.Invoke();
                     return true;
                 }
                 return false;
 
-            case CurrencyType.Basic:
+            case CurrencyType.Fragments:
                 return false;
         }
         return false;
@@ -131,10 +131,10 @@ public class PlayerCurrencyWallet : ICurrencyWallet
     {
         return new Dictionary<CurrencyType, float>
         {
-            { CurrencyType.Basic,   0f },
-            { CurrencyType.Premium, data.premiumCredits },
-            { CurrencyType.Luxury,  data.luxuryCredits  },
-            { CurrencyType.Special, data.specialCredits }
+            { CurrencyType.Fragments,   0f },
+            { CurrencyType.Prisms, data.prisms },
+            { CurrencyType.Loops,  data.loops  },
+            { CurrencyType.Cores, data.cores }
         };
     }
 }

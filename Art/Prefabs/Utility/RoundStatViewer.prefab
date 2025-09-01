@@ -335,7 +335,7 @@ MonoBehaviour:
   highestWaveText: {fileID: 6736688431509742792}
   bulletsFiredText: {fileID: 3410257232385433026}
   enemiesKilledText: {fileID: 1267603175058621129}
-  creditsContainer: {fileID: 275900166716484299}
+  currencyContainer: {fileID: 275900166716484299}
   rowTextPrefab: {fileID: 8450985653791507526, guid: f17575fc7cf7dd246b78c5567974db27, type: 3}
   enemyBreakdownContainer: {fileID: 613059689274034778}
   minUpdateInterval: 0.2
@@ -350,7 +350,7 @@ GameObject:
   - component: {fileID: 275900166716484299}
   - component: {fileID: 5120966838491267327}
   m_Layer: 0
-  m_Name: CreditsContainer
+  m_Name: CurrencyContainer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -737,7 +737,7 @@ GameObject:
   - component: {fileID: 4785043501439703522}
   - component: {fileID: 5142989247449762285}
   m_Layer: 0
-  m_Name: CreditHeader
+  m_Name: CurrencyHeader
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -790,7 +790,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Credits Breakdown:'
+  m_text: 'Currency Breakdown:'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

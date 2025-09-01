@@ -26,8 +26,8 @@ public static class EventNames
     public const string EnemyDestroyed = "EnemyDestroyed";
 
     // Game Currency Event
-    public const string CreditsEarned = "CreditsEarned";
-    public const string CreditsSpent = "CreditsSpent";
+    public const string CurrencyEarned = "CurrencyEarned";
+    public const string CurrencySpent = "CurrencySpent";
 
     // Skill Events
     public const string SkillUnlocked = "SkillUnlocked";

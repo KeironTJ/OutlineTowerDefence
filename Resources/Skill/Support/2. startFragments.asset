@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 738dc256e81ae64448448c3e3308ef42, type: 3}
-  m_Name: 2. startBasicCredit
+  m_Name: 2. startFragments
   m_EditorClassIdentifier: 
-  skillName: Start Basic Credit
+  skillName: Start Fragments
   description: 
   baseValue: 1
   level: 1
@@ -21,13 +21,13 @@ MonoBehaviour:
   researchLevel: 0
   maxResearchlevel: 200
   researchModifier: 1.5
-  basicCost: 2
-  basicCostModifier: 1.25
-  premiumCost: 30
-  premiumCostModifier: 1.5
-  premiumUnlockCost: 0
-  luxuryUnlockCost: 0
-  specialUnlockCost: 0
+  fragmentsCost: 2
+  fragmentsCostModifier: 1.25
+  coresCost: 30
+  coresCostModifier: 1.5
+  coresUnlockCost: 0
+  prismsUnlockCost: 0
+  loopsUnlockCost: 0
   skillActive: 1
   playerSkillUnlocked: 1
   roundSkillUnlocked: 0

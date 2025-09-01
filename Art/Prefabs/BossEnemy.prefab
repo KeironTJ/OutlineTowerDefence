@@ -203,8 +203,8 @@ MonoBehaviour:
   moveSpeed: 1
   attackDamage: 5
   damageInterval: 1
-  basicCreditsWorth: 10
-  premiumCreditsWorth: 5
-  luxuryCreditsWorth: 0.1
+  fragmentsWorth: 10
+  coresWorth: 5
+  prismsWorth: 0.1
   type: 2
   subtype: 0

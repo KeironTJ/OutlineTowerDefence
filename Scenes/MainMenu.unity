@@ -1366,7 +1366,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ac221e5f7e79504c8a9a7b515fe0c4c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dailyPremiumReward: 250
+  dailyCoresReward: 250
 --- !u!4 &115070702
 Transform:
   m_ObjectHideFlags: 0
@@ -1808,7 +1808,7 @@ GameObject:
   - component: {fileID: 170607618}
   - component: {fileID: 170607617}
   m_Layer: 5
-  m_Name: PremiumCredit
+  m_Name: Cores
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3502,7 +3502,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: SC
+  m_text: L
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3638,7 +3638,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: PC
+  m_text: C
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -5184,7 +5184,7 @@ GameObject:
   - component: {fileID: 706821386}
   - component: {fileID: 706821385}
   m_Layer: 5
-  m_Name: SpecialCredits
+  m_Name: Loops
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5964,17 +5964,17 @@ MonoBehaviour:
     defenceSkills: []
     supportSkills: []
     specialSkills: []
-    premiumCredits: 0
-    specialCredits: 0
-    luxuryCredits: 0
-    totalBasicCreditsEarned: 0
-    totalPremiumCreditsEarned: 0
-    totalSpecialCreditsEarned: 0
-    totalLuxuryCreditsEarned: 0
-    totalBasicCreditsSpent: 0
-    totalPremiumCreditsSpent: 0
-    totalSpecialCreditsSpent: 0
-    totalLuxuryCreditsSpent: 0
+    cores: 0
+    prisms: 0
+    loops: 0
+    totalFragmentsEarned: 0
+    totalCoresEarned: 0
+    totalPrismsEarned: 0
+    totalLoopsEarned: 0
+    totalFragmentsSpent: 0
+    totalCoresSpent: 0
+    totalPrismsSpent: 0
+    totalLoopsSpent: 0
     maxDifficultyAchieved: 0
     difficultyMaxWaveAchieved: 000000000000000000000000000000000000000000000000000000000000000000000000
     EnemiesDestroyed: []
@@ -10106,8 +10106,8 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 170607616}
-  - {fileID: 706821384}
   - {fileID: 1609014769}
+  - {fileID: 706821384}
   - {fileID: 813380874}
   m_Father: {fileID: 1101699968}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -12025,7 +12025,7 @@ GameObject:
   - component: {fileID: 1609014771}
   - component: {fileID: 1609014770}
   m_Layer: 5
-  m_Name: LuxuryCredits
+  m_Name: Prisms
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -15127,7 +15127,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: LC
+  m_text: P
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -17658,9 +17658,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9668ba026bd8b74882e2befae732fa4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  premiumCreditsUI: {fileID: 366093273}
-  specialCreditsUI: {fileID: 826989422}
-  luxuryCreditsUI: {fileID: 934768018}
+  coresUI: {fileID: 366093273}
+  prismsUI: {fileID: 826989422}
+  loopsUI: {fileID: 934768018}
   playerUsernameText: {fileID: 1578006638}
   changeUsernamePanel: {fileID: 483195893}
   changeUsernameInputField: {fileID: 32347966}

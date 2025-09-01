@@ -39,9 +39,10 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI towerAttackDamage;
 
     [Header("Currency Information")]
-    [SerializeField] private TextMeshProUGUI basicCreditsUI;
-    [SerializeField] private TextMeshProUGUI premiumCreditsUI;
-    [SerializeField] private TextMeshProUGUI luxuryCreditsUI;
+    [SerializeField] private TextMeshProUGUI fragmentsUI;
+    [SerializeField] private TextMeshProUGUI coresUI;
+    [SerializeField] private TextMeshProUGUI prismsUI;
+    //[SerializeField] private TextMeshProUGUI loopsUI;
 
     [Header("Stats")]
     [SerializeField] private RoundStatsView hudRoundStatsView;
@@ -176,33 +177,34 @@ public class UIManager : MonoBehaviour
     private void OnBalanceChanged(CurrencyType type, float newValue)
     {
         // Update only what changed
-        if (type == CurrencyType.Basic)
+        if (type == CurrencyType.Fragments)
         {
-            UpdateBasicCreditsUI(newValue);
+            UpdateFragmentsUI(newValue);
         }
         else
         {
-            UpdateGlobalCreditsUI(); // read from PlayerManager.Wallet
+            UpdateGlobalCurrencyUI(); // read from PlayerManager.Wallet
         }
     }
 
     private void UpdateAllCurrencyUI()
     {
-        UpdateBasicCreditsUI(roundWallet != null ? roundWallet.Get(CurrencyType.Basic) : 0f);
-        UpdateGlobalCreditsUI();
+        UpdateFragmentsUI(roundWallet != null ? roundWallet.Get(CurrencyType.Fragments) : 0f);
+        UpdateGlobalCurrencyUI();
     }
 
-    private void UpdateBasicCreditsUI(float newValue)
+    private void UpdateFragmentsUI(float newValue)
     {
-        basicCreditsUI.text = $"BC: {NumberManager.FormatLargeNumber(newValue)}";
+        fragmentsUI.text = $"F: {NumberManager.FormatLargeNumber(newValue)}";
     }
 
-    private void UpdateGlobalCreditsUI()
+    private void UpdateGlobalCurrencyUI()
     {
         if (playerManager?.Wallet != null)
         {
-            premiumCreditsUI.text = $"PC: {NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Premium))}";
-            luxuryCreditsUI.text = $"LC: {NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Luxury))}";
+            coresUI.text = $"C: {NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Cores))}";
+            prismsUI.text = $"P: {NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Prisms))}";
+            //loopsUI.text = $"L: {NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Loops))}";
         }
         else
         {

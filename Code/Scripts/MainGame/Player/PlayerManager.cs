@@ -233,41 +233,42 @@ public class PlayerManager : MonoBehaviour
         s == null ? 0f : s.baseValue * Mathf.Pow(s.level, s.upgradeModifier + (s.researchLevel * s.researchModifier));
 
     public float GetSkillCost(Skill s) =>
-        s == null ? 0f : Mathf.Round(s.premiumCost * (float)Math.Pow(s.level, s.premiumCostModifier));
+        s == null ? 0f : Mathf.Round(s.coresCost * (float)Math.Pow(s.level, s.coresCostModifier));
 
     public float GetSkillLevel(Skill s) => s?.level ?? 0f;
 
     // ===== Currency =====
-    public float GetPremiumCredits() => Wallet?.Get(CurrencyType.Premium) ?? 0f;
-    public float GetSpecialCredits() => Wallet?.Get(CurrencyType.Special) ?? 0f;
-    public float GetLuxuryCredits()  => Wallet?.Get(CurrencyType.Luxury)  ?? 0f;
+    public float GetCores() => Wallet?.Get(CurrencyType.Cores) ?? 0f;
+    public float GetPrisms() => Wallet?.Get(CurrencyType.Prisms) ?? 0f;
+    public float GetLoops()  => Wallet?.Get(CurrencyType.Loops)  ?? 0f;
 
-    public void AddCredits(float basic = 0, float premium = 0, float luxury = 0, float special = 0)
+    public void AddCurrency(float fragments = 0, float cores = 0, float prisms = 0, float loops = 0)
     {
-        Wallet?.Add(CurrencyType.Basic, basic);
-        Wallet?.Add(CurrencyType.Premium, premium);
-        Wallet?.Add(CurrencyType.Luxury, luxury);
-        Wallet?.Add(CurrencyType.Special, special);
+        Wallet?.Add(CurrencyType.Fragments, fragments);
+        Wallet?.Add(CurrencyType.Cores, cores);
+        Wallet?.Add(CurrencyType.Prisms, prisms);
+        Wallet?.Add(CurrencyType.Loops, loops);
     }
 
-    public bool TrySpendCredits(float premium = 0, float luxury = 0, float special = 0)
+    public bool TrySpendCurrency(float cores = 0, float prisms = 0, float loops = 0)
     {
         if (Wallet == null) return false;
-        if ((premium  > 0 && Wallet.Get(CurrencyType.Premium) < premium) ||
-            (luxury   > 0 && Wallet.Get(CurrencyType.Luxury)  < luxury) ||
-            (special  > 0 && Wallet.Get(CurrencyType.Special) < special))
+        if ((cores > 0 && Wallet.Get(CurrencyType.Cores) < cores) ||
+            (prisms > 0 && Wallet.Get(CurrencyType.Prisms) < prisms) ||
+            (loops > 0 && Wallet.Get(CurrencyType.Loops) < loops))
             return false;
 
-        if (premium  > 0 && !Wallet.TrySpend(CurrencyType.Premium, premium)) return false;
-        if (luxury   > 0 && !Wallet.TrySpend(CurrencyType.Luxury,  luxury)) return false;
-        if (special  > 0 && !Wallet.TrySpend(CurrencyType.Special, special)) return false;
+        if (cores > 0 && !Wallet.TrySpend(CurrencyType.Cores, cores)) return false;
+        if (prisms > 0 && !Wallet.TrySpend(CurrencyType.Prisms, prisms)) return false;
+        if (loops > 0 && !Wallet.TrySpend(CurrencyType.Loops, loops)) return false;
         return true;
+
     }
 
-    public void RecordBasicSpent(float amount)
+    public void RecordFragmentsSpent(float amount)
     {
         if (amount <= 0) return;
-        playerData.totalBasicCreditsSpent += amount;
+        playerData.totalFragmentsSpent += amount;
         SavePlayerData();
     }
 

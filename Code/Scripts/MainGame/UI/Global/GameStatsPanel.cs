@@ -21,10 +21,10 @@ public class GameStatsPanel : MonoBehaviour
         var stats = new List<string>
         {
             $"CURRENCY: ",
-            $"Basic Credits Earned: {playerData.totalBasicCreditsEarned}",
-            $"Premium Credits Earned: {playerData.totalPremiumCreditsEarned}",
-            $"Special Credits Earned: {playerData.totalSpecialCreditsEarned}",
-            $"Luxury Credits Earned: {playerData.totalLuxuryCreditsEarned}",
+            $"Fragments Earned: {playerData.totalFragmentsEarned}",
+            $"Cores Earned: {playerData.totalCoresEarned}",
+            $"Prisms Earned: {playerData.totalPrismsEarned}",
+            $"Loops Earned: {playerData.totalLoopsEarned}",
             $" "
         };
 

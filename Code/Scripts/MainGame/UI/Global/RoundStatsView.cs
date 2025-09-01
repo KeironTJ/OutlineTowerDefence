@@ -14,8 +14,8 @@ public class RoundStatsView : MonoBehaviour
     [SerializeField] private TextMeshProUGUI bulletsFiredText;
     [SerializeField] private TextMeshProUGUI enemiesKilledText;
 
-    [Header("Credits List")]
-    [SerializeField] private Transform creditsContainer;
+    [Header("Currency List")]
+    [SerializeField] private Transform currencyContainer;
     [SerializeField] private GameObject rowTextPrefab; // prefab with a TextMeshProUGUI component
 
     [Header("Enemy Breakdown List")]
@@ -96,7 +96,7 @@ public class RoundStatsView : MonoBehaviour
         enemiesKilledText.text = $"Kills: {record.enemiesKilled}";
 
         // Build line lists once, then update rows in-place (no destroy/recreate)
-        var creditLines = record.creditsEarned
+        var currencyLines = record.currencyEarned
             .OrderBy(c => c.type) // stable order
             .Select(c => $"{c.type}: {c.amount:0.##}")
             .ToList();
@@ -113,7 +113,7 @@ public class RoundStatsView : MonoBehaviour
             }
         }
 
-        PopulateList(creditsContainer, creditLines);
+        PopulateList(currencyContainer, currencyLines);
         PopulateList(enemyBreakdownContainer, enemyLines);
     }
 
@@ -168,7 +168,7 @@ public class RoundStatsView : MonoBehaviour
         if (bulletsFiredText == null) Debug.LogWarning("RoundStatsView: bulletsFiredText not assigned.", this);
         if (enemiesKilledText == null) Debug.LogWarning("RoundStatsView: enemiesKilledText not assigned.", this);
 
-        if (creditsContainer == null) Debug.LogWarning("RoundStatsView: creditsContainer not assigned (drag from Hierarchy).", this);
+        if (currencyContainer == null) Debug.LogWarning("RoundStatsView: currencyContainer not assigned (drag from Hierarchy).", this);
         if (enemyBreakdownContainer == null) Debug.LogWarning("RoundStatsView: enemyBreakdownContainer not assigned (drag from Hierarchy).", this);
 
         if (rowTextPrefab == null)

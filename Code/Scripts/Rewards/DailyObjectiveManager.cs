@@ -37,18 +37,18 @@ public class DailyObjectiveManager : MonoBehaviour
     {
         EventManager.StartListening(EventNames.EnemyDestroyed, OnEnemyDestroyed);
         EventManager.StartListening(EventNames.RoundEnded, OnRoundCompleted);
-        EventManager.StartListening(EventNames.CreditsEarned, OnCreditsEarned);
-        EventManager.StartListening(EventNames.CreditsSpent, OnCreditsSpent);        
-        EventManager.StartListening(EventNames.SkillUnlocked, OnSkillUnlocked); 
-        EventManager.StartListening(EventNames.WaveCompleted, OnWaveCompleted);      
+        EventManager.StartListening(EventNames.CurrencyEarned, OnCurrencyEarned);
+        EventManager.StartListening(EventNames.CurrencySpent, OnCurrencySpent);
+        EventManager.StartListening(EventNames.SkillUnlocked, OnSkillUnlocked);
+        EventManager.StartListening(EventNames.WaveCompleted, OnWaveCompleted);
     }
 
     private void OnDisable()
     {
         EventManager.StopListening(EventNames.EnemyDestroyed, OnEnemyDestroyed);
         EventManager.StopListening(EventNames.RoundEnded, OnRoundCompleted);
-        EventManager.StopListening(EventNames.CreditsEarned, OnCreditsEarned);
-        EventManager.StopListening(EventNames.CreditsSpent, OnCreditsSpent);   
+        EventManager.StopListening(EventNames.CurrencyEarned, OnCurrencyEarned);
+        EventManager.StopListening(EventNames.CurrencySpent, OnCurrencySpent);
         EventManager.StopListening(EventNames.SkillUnlocked, OnSkillUnlocked);
         EventManager.StopListening(EventNames.WaveCompleted, OnWaveCompleted);
     }
@@ -311,18 +311,17 @@ public class DailyObjectiveManager : MonoBehaviour
     {
         switch (def.rewardType)
         {
-            case CurrencyType.Premium:
-                PlayerManager.main?.AddCredits(premium: def.rewardAmount);
+            case CurrencyType.Cores:
+                PlayerManager.main?.AddCurrency(cores: def.rewardAmount);
                 break;
-            case CurrencyType.Special:
-                PlayerManager.main?.AddCredits(special: def.rewardAmount);
+            case CurrencyType.Prisms:
+                PlayerManager.main?.AddCurrency(prisms: def.rewardAmount);
                 break;
-            case CurrencyType.Luxury:
-                PlayerManager.main?.AddCredits(luxury: def.rewardAmount);
+            case CurrencyType.Loops:
+                PlayerManager.main?.AddCurrency(loops: def.rewardAmount);
                 break;
             default:
-                // If you have a basic currency reward enum add it here; otherwise ignore.
-                PlayerManager.main?.AddCredits(basic: def.rewardAmount);
+                PlayerManager.main?.AddCurrency(fragments: def.rewardAmount);
                 break;
         }
         CloudSyncService.main?.ScheduleUpload();
@@ -370,44 +369,44 @@ public class DailyObjectiveManager : MonoBehaviour
                 Progress(rt, 1f);
     }
 
-    private void OnCreditsEarned(object data)
+    private void OnCurrencyEarned(object data)
     {
-        if (data is CreditsEarnedEvent ce)
+        if (data is CurrencyEarnedEvent ce)
         {
-            if (ce.basic + ce.premium + ce.luxury + ce.special <= 0f) return;
-            Debug.Log($"[DailyObjectiveManager] OnCreditsEarned: B{ce.basic} P{ce.premium} L{ce.luxury} S{ce.special}");
+            if (ce.fragments + ce.cores + ce.prisms + ce.loops <= 0f) return;
+            Debug.Log($"[DailyObjectiveManager] OnCurrencyEarned: F{ce.fragments} C{ce.cores} P{ce.prisms} L{ce.loops}");
 
             foreach (var rt in activeDaily)
             {
                 var def = rt.definition;
-                if (def.type != ObjectiveType.EarnCredits) continue;
-                switch (def.creditCurrencyType)
+                if (def.type != ObjectiveType.EarnCurrency) continue;
+                switch (def.currencyType)
                 {
-                    case CurrencyType.Basic: if (ce.basic > 0f) Progress(rt, ce.basic); break;
-                    case CurrencyType.Premium: if (ce.premium > 0f) Progress(rt, ce.premium); break;
-                    case CurrencyType.Luxury: if (ce.luxury > 0f) Progress(rt, ce.luxury); break;
-                    case CurrencyType.Special: if (ce.special > 0f) Progress(rt, ce.special); break;
+                    case CurrencyType.Fragments: if (ce.fragments > 0f) Progress(rt, ce.fragments); break;
+                    case CurrencyType.Cores: if (ce.cores > 0f) Progress(rt, ce.cores); break;
+                    case CurrencyType.Prisms: if (ce.prisms > 0f) Progress(rt, ce.prisms); break;
+                    case CurrencyType.Loops: if (ce.loops > 0f) Progress(rt, ce.loops); break;
                 }
             }
         }
     }
 
-    private void OnCreditsSpent(object data)
+    private void OnCurrencySpent(object data)
     {
-        if (data is SpendCreditsEvent se)
+        if (data is SpendCurrencyEvent se)
         {
-            if (se.basic + se.premium + se.luxury + se.special <= 0f) return;
+            if (se.fragments + se.cores + se.prisms + se.loops <= 0f) return;
 
             foreach (var rt in activeDaily)
             {
                 var def = rt.definition;
-                if (def.type != ObjectiveType.SpendCredits) continue;
-                switch (def.creditCurrencyType)
+                if (def.type != ObjectiveType.SpendCurrency) continue;
+                switch (def.currencyType)
                 {
-                    case CurrencyType.Basic:   if (se.basic   > 0f) Progress(rt, se.basic);   break;
-                    case CurrencyType.Premium: if (se.premium > 0f) Progress(rt, se.premium); break;
-                    case CurrencyType.Luxury:  if (se.luxury  > 0f) Progress(rt, se.luxury);  break;
-                    case CurrencyType.Special: if (se.special > 0f) Progress(rt, se.special); break;
+                    case CurrencyType.Fragments:   if (se.fragments   > 0f) Progress(rt, se.fragments);   break;
+                    case CurrencyType.Cores: if (se.cores > 0f) Progress(rt, se.cores); break;
+                    case CurrencyType.Prisms:  if (se.prisms  > 0f) Progress(rt, se.prisms);  break;
+                    case CurrencyType.Loops: if (se.loops > 0f) Progress(rt, se.loops); break;
                 }
             }
         }

@@ -106,6 +106,6 @@ public class SkillManager : MonoBehaviour
 
         float playerSkillLevel = PlayerManager.main.GetSkillLevel(PlayerManager.main.GetSkill(skill.skillName));
         float currentSkillRoundLevel = skill.level - playerSkillLevel + 1;
-        return skill.basicCost * Mathf.Pow(currentSkillRoundLevel, skill.basicCostModifier);
+        return skill.fragmentsCost * Mathf.Pow(currentSkillRoundLevel, skill.fragmentsCostModifier);
     }
 }

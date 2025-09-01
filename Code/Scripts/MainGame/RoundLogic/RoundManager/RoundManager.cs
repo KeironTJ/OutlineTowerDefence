@@ -29,12 +29,12 @@ public class RoundManager : MonoBehaviour
     [SerializeField] private int bulletsFiredThisRound;
     [SerializeField] private int enemiesKilledThisRound;
     private Dictionary<EnemyType, Dictionary<EnemySubtype, int>> enemiesKilledByTypeAndSubtype = new Dictionary<EnemyType, Dictionary<EnemySubtype, int>>();
-    private Dictionary<CurrencyType, float> creditsEarnedThisRound = new Dictionary<CurrencyType, float>
+    private Dictionary<CurrencyType, float> currencyEarnedThisRound = new Dictionary<CurrencyType, float>
     {
-        { CurrencyType.Basic, 0f },
-        { CurrencyType.Premium, 0f },
-        { CurrencyType.Luxury, 0f },
-        { CurrencyType.Special, 0f }
+        { CurrencyType.Fragments, 0f },
+        { CurrencyType.Cores, 0f },
+        { CurrencyType.Prisms, 0f },
+        { CurrencyType.Loops, 0f }
     };
 
     [SerializeField] private RoundSummary lastRoundSummary;
@@ -44,7 +44,7 @@ public class RoundManager : MonoBehaviour
     {
         public float durationSeconds;
         public int bulletsFired;
-        public Dictionary<CurrencyType, float> creditsEarned;
+        public Dictionary<CurrencyType, float> currencyEarned;
     }
 
     public RoundSummary GetCurrentRoundSummary()
@@ -53,7 +53,7 @@ public class RoundManager : MonoBehaviour
         {
             durationSeconds = Time.time - roundStartTime,
             bulletsFired = bulletsFiredThisRound,
-            creditsEarned = new Dictionary<CurrencyType, float>(creditsEarnedThisRound)
+            currencyEarned = new Dictionary<CurrencyType, float>(currencyEarnedThisRound)
         };
     }
 
@@ -71,7 +71,7 @@ public class RoundManager : MonoBehaviour
             highestWave = waveManager != null ? waveManager.GetCurrentWave() : 0,
             bulletsFired = bulletsFiredThisRound,
             enemiesKilled = enemiesKilledThisRound,
-            creditsEarned = RoundDataConverters.ToCurrencyList(creditsEarnedThisRound),
+            currencyEarned = RoundDataConverters.ToCurrencyList(currencyEarnedThisRound),
             enemyBreakdown = RoundDataConverters.ToEnemyBreakdown(enemiesKilledByTypeAndSubtype)
         };
     }
@@ -90,7 +90,7 @@ public class RoundManager : MonoBehaviour
             highestWave = waveManager != null ? waveManager.GetCurrentWave() : 0,
             bulletsFired = bulletsFiredThisRound,
             enemiesKilled = enemiesKilledThisRound,
-            creditsEarned = RoundDataConverters.ToCurrencyList(creditsEarnedThisRound),
+            currencyEarned = RoundDataConverters.ToCurrencyList(currencyEarnedThisRound),
             enemyBreakdown = RoundDataConverters.ToEnemyBreakdown(enemiesKilledByTypeAndSubtype)
         };
     }
@@ -106,7 +106,7 @@ public class RoundManager : MonoBehaviour
 
     private void OnEnable()
     {
-        EventManager.StartListening(EventNames.CreditsEarned, OnCreditsEarned);
+        EventManager.StartListening(EventNames.CurrencyEarned, OnCurrencyEarned);
         EventManager.StartListening(EventNames.BulletFired, OnBulletFired);
         EventManager.StartListening(EventNames.EnemyDestroyed, OnEnemyDestroyed);
         EventManager.StartListening(EventNames.NewWaveStarted, OnNewWaveStarted);
@@ -115,7 +115,7 @@ public class RoundManager : MonoBehaviour
 
     private void OnDisable()
     {
-        EventManager.StopListening(EventNames.CreditsEarned, OnCreditsEarned);
+        EventManager.StopListening(EventNames.CurrencyEarned, OnCurrencyEarned);
         EventManager.StopListening(EventNames.BulletFired, OnBulletFired);
         EventManager.StopListening(EventNames.EnemyDestroyed, OnEnemyDestroyed);
         EventManager.StopListening(EventNames.NewWaveStarted, OnNewWaveStarted);
@@ -174,7 +174,7 @@ public class RoundManager : MonoBehaviour
                 playerManager.Wallet,
                 amount =>
                 {
-                    playerManager.RecordBasicSpent(amount);
+                    playerManager.RecordFragmentsSpent(amount);
                 }
             );
 
@@ -205,7 +205,7 @@ public class RoundManager : MonoBehaviour
 
         skillManager.InitializeSkills(playerManager.attackSkills, playerManager.defenceSkills, playerManager.supportSkills, playerManager.specialSkills);
 
-        SetStartBasicCredits();
+        SetStartFragments();
     }
 
     public void EndRound()
@@ -220,7 +220,7 @@ public class RoundManager : MonoBehaviour
         {
             durationSeconds = GetRoundLengthInSeconds(),
             bulletsFired = bulletsFiredThisRound,
-            creditsEarned = new Dictionary<CurrencyType, float>(creditsEarnedThisRound)
+            currencyEarned = new Dictionary<CurrencyType, float>(currencyEarnedThisRound)
         };
 
         var roundRecord = BuildRoundRecord();
@@ -237,12 +237,12 @@ public class RoundManager : MonoBehaviour
     {
         bulletsFiredThisRound = 0;
         enemiesKilledThisRound = 0;
-        creditsEarnedThisRound = new Dictionary<CurrencyType, float>
+        currencyEarnedThisRound = new Dictionary<CurrencyType, float>
         {
-            [CurrencyType.Basic] = 0f,
-            [CurrencyType.Premium] = 0f,
-            [CurrencyType.Luxury] = 0f,
-            [CurrencyType.Special] = 0f
+            [CurrencyType.Fragments] = 0f,
+            [CurrencyType.Cores] = 0f,
+            [CurrencyType.Prisms] = 0f,
+            [CurrencyType.Loops] = 0f
         };
 
         enemiesKilledByTypeAndSubtype.Clear();
@@ -277,11 +277,11 @@ public class RoundManager : MonoBehaviour
         return (roundEndTime > 0f) ? (roundEndTime - roundStartTime) : (Time.time - roundStartTime);
     }
 
-    public float GetCreditsPerMinute(CurrencyType type)
+    public float GetCurrencyPerMinute(CurrencyType type)
     {
         float secs = GetRoundLengthInSeconds();
         if (secs <= 0.01f) return 0f;
-        return (creditsEarnedThisRound.TryGetValue(type, out var amt) ? amt : 0f) * (60f / secs);
+        return (currencyEarnedThisRound.TryGetValue(type, out var amt) ? amt : 0f) * (60f / secs);
     }
 
     private void OnEnemyDestroyed(object eventData)
@@ -301,7 +301,7 @@ public class RoundManager : MonoBehaviour
     }
 
     public int GetBulletsFiredThisRound() => bulletsFiredThisRound;
-    public float GetCreditsEarnedThisRound(CurrencyType type) => creditsEarnedThisRound.TryGetValue(type, out var amt) ? amt : 0f;
+    public float GetCurrencyEarnedThisRound(CurrencyType type) => currencyEarnedThisRound.TryGetValue(type, out var amt) ? amt : 0f;
 
     public int GetEnemiesKilledByType(EnemyType type)
     {
@@ -392,49 +392,49 @@ public class RoundManager : MonoBehaviour
         return roundDifficulty;
     }
 
-    // CREDITS
-    private void OnCreditsEarned(object eventData)
+    // CURRENCY
+    private void OnCurrencyEarned(object eventData)
     {
-        if (eventData is CreditsEarnedEvent creditsEvent)
+        if (eventData is CurrencyEarnedEvent currencyEarned)
         {
-            //Debug.Log($"Credits Earned - Basic: {creditsEvent.basic}, Premium: {creditsEvent.premium}, Luxury: {creditsEvent.luxury}, Special: {creditsEvent.special}");
-            IncreaseBasicCredits(creditsEvent.basic);
-            playerManager.Wallet.Add(CurrencyType.Premium, creditsEvent.premium);
-            playerManager.Wallet.Add(CurrencyType.Luxury, creditsEvent.luxury);
-            playerManager.Wallet.Add(CurrencyType.Special, creditsEvent.special);
+            //Debug.Log($"Currency Earned - Fragments: {currencyEarned.fragments}, Cores: {currencyEarned.cores}, Prisms: {currencyEarned.prisms}, Loops: {currencyEarned.loops}");
+            IncreaseFragments(currencyEarned.fragments);
+            playerManager.Wallet.Add(CurrencyType.Cores, currencyEarned.cores);
+            playerManager.Wallet.Add(CurrencyType.Prisms, currencyEarned.prisms);
+            playerManager.Wallet.Add(CurrencyType.Loops, currencyEarned.loops);
 
-            creditsEarnedThisRound[CurrencyType.Basic] += creditsEvent.basic;
-            creditsEarnedThisRound[CurrencyType.Premium] += creditsEvent.premium;
-            creditsEarnedThisRound[CurrencyType.Luxury] += creditsEvent.luxury;
-            creditsEarnedThisRound[CurrencyType.Special] += creditsEvent.special;
+            currencyEarnedThisRound[CurrencyType.Fragments] += currencyEarned.fragments;
+            currencyEarnedThisRound[CurrencyType.Cores] += currencyEarned.cores;
+            currencyEarnedThisRound[CurrencyType.Prisms] += currencyEarned.prisms;
+            currencyEarnedThisRound[CurrencyType.Loops] += currencyEarned.loops;
             EventManager.TriggerEvent(EventNames.RoundStatsUpdated, GetCurrentRoundSummary());
         }
     }
 
-    private void SetStartBasicCredits()
+    private void SetStartFragments()
     {
-        float startingBasicCredits = skillManager.GetSkillValue(skillManager.GetSkill("Start Basic Credit"));
-        IncreaseBasicCredits(startingBasicCredits);
+        float startingFragments = skillManager.GetSkillValue(skillManager.GetSkill("Start Fragments"));
+        IncreaseFragments(startingFragments);
     }
 
-    public void IncreaseBasicCredits(float amount)
+    public void IncreaseFragments(float amount)
     {
         if (amount == 0f) return;
 
         // Treat skill as a bonus (0 => x1.0, 0.25 => x1.25)
-        float bonus = skillManager.GetSkillValue(skillManager.GetSkill("Basic Credit Modifier"));
+        float bonus = skillManager.GetSkillValue(skillManager.GetSkill("Fragments Modifier"));
         float multiplier = Mathf.Max(0f, 1f + bonus);
-        roundWallet?.Add(CurrencyType.Basic, amount * multiplier);
+        roundWallet?.Add(CurrencyType.Fragments, amount * multiplier);
     }
 
-    public bool SpendBasicCredits(float amount)
+    public bool SpendFragments(float amount)
     {
-        return roundWallet?.TrySpend(CurrencyType.Basic, amount) ?? false; 
+        return roundWallet?.TrySpend(CurrencyType.Fragments, amount) ?? false;
     }
 
-    public float GetBasicCredits()
+    public float GetFragments()
     {
-        return roundWallet?.Get(CurrencyType.Basic) ?? 0f;
+        return roundWallet?.Get(CurrencyType.Fragments) ?? 0f;
     }
 
 

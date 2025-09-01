@@ -5,7 +5,7 @@ public class DailyLoginRewardManager : MonoBehaviour
 {
     public static DailyLoginRewardManager main;
 
-    [SerializeField] int dailyPremiumReward = 250;
+    [SerializeField] int dailyCoresReward = 250;
 
     private void Awake()
     {
@@ -31,11 +31,11 @@ public class DailyLoginRewardManager : MonoBehaviour
         if (pd == null || !CanClaimToday()) return;
 
         pd.lastDailyLoginIsoUtc = DateTime.UtcNow.ToString("o");
-        PlayerManager.main?.AddCredits(
-            basic: 0,
-            premium: dailyPremiumReward,
-            luxury: 0,
-            special: 0
+        PlayerManager.main?.AddCurrency(
+            fragments: 0,
+            cores: dailyCoresReward,
+            prisms: 0,
+            loops: 0
         );
         pd.dailyLoginStreak = (pd.dailyLoginStreak == 0 || DateTime.UtcNow.Date == DateTime.Parse(pd.lastDailyLoginIsoUtc).AddDays(1).Date)
             ? pd.dailyLoginStreak + 1 : 1;

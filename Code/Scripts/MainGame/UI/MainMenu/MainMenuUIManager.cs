@@ -10,9 +10,9 @@ public class MainMenuUIManager : MonoBehaviour
 {
 
     [Header("Main Menu Header Reference")]
-    [SerializeField] private TextMeshProUGUI premiumCreditsUI;
-    [SerializeField] private TextMeshProUGUI specialCreditsUI;
-    [SerializeField] private TextMeshProUGUI luxuryCreditsUI;
+    [SerializeField] private TextMeshProUGUI coresUI;
+    [SerializeField] private TextMeshProUGUI prismsUI;
+    [SerializeField] private TextMeshProUGUI loopsUI;
 
     [Header("Player Information")]
     [SerializeField] private TextMeshProUGUI playerUsernameText;
@@ -77,7 +77,7 @@ public class MainMenuUIManager : MonoBehaviour
         playerManager = PlayerManager.main;
         DisplayPlayerUsername();
 
-        DisplayCredits();
+        DisplayCurrency();
 
         if (playerManager?.Wallet != null)
         {
@@ -109,17 +109,17 @@ public class MainMenuUIManager : MonoBehaviour
 
     private void OnBalanceChanged(CurrencyType type, float _)
     {
-        if (type == CurrencyType.Premium || type == CurrencyType.Special || type == CurrencyType.Luxury)
+        if (type == CurrencyType.Cores || type == CurrencyType.Prisms || type == CurrencyType.Loops)
         {
-            DisplayCredits();
+            DisplayCurrency();
         }
     }
 
-    public void DisplayCredits()
+    public void DisplayCurrency()
     {
-        premiumCreditsUI.text = "£" + NumberManager.FormatLargeNumber(playerManager.playerData.premiumCredits);
-        specialCreditsUI.text = "£" + NumberManager.FormatLargeNumber(playerManager.playerData.specialCredits);
-        luxuryCreditsUI.text = "£" + NumberManager.FormatLargeNumber(playerManager.playerData.luxuryCredits);
+        coresUI.text = NumberManager.FormatLargeNumber(playerManager.playerData.cores);
+        prismsUI.text = NumberManager.FormatLargeNumber(playerManager.playerData.prisms);
+        loopsUI.text = NumberManager.FormatLargeNumber(playerManager.playerData.loops);
     }
 
     // PLAYER INFORMATION METHODS
@@ -322,8 +322,10 @@ public class MainMenuUIManager : MonoBehaviour
     // Upgrades the skill associated with the button. 
     private void OnSkillButtonClicked(Skill skill, Button button)
     {
-        if (playerManager.TrySpendCredits(playerManager.GetSkillCost(skill)))
+        Debug.Log($"Attempting to upgrade skill: {skill.skillName}");
+        if (playerManager.TrySpendCurrency(playerManager.GetSkillCost(skill)))
         {
+            Debug.Log($"Successfully upgraded skill: {skill.skillName} at cost {playerManager.GetSkillCost(skill)}");
             playerManager.UpgradeSkill(skill, 1);
             UpdateButtonText(skill, button);
         }
@@ -336,7 +338,7 @@ public class MainMenuUIManager : MonoBehaviour
         if (textFields.Length >= 3)
         {
             textFields[0].text = skill.skillName;
-            textFields[1].text = NumberManager.FormatLargeNumber(playerManager.GetSkillCost(skill));
+            textFields[1].text = "C: " + NumberManager.FormatLargeNumber(playerManager.GetSkillCost(skill));
             textFields[2].text = NumberManager.FormatLargeNumber(playerManager.GetSkillValue(skill));
         }
     }

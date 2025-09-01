@@ -5,8 +5,8 @@ using UnityEngine;
 // Enum for Currency Types
 public enum CurrencyType
 {
-    Basic,
-    Premium,
-    Special,
-    Luxury
+    Fragments, // USED FOR IN ROUND UPGRADING
+    Cores, // MAIN GAME CURRENCY
+    Prisms, // SECONDARY CURRENCY
+    Loops // USED FOR TIME-BASED UPGRADING
 }

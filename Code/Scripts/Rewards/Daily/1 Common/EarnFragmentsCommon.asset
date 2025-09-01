@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b587523b96e89a4f94ee01d37383eed, type: 3}
-  m_Name: EarnPremiumCreditsUncommon
+  m_Name: EarnFragmentsCommon
   m_EditorClassIdentifier: 
-  id: 1051
+  id: 1050
   period: 0
   type: 5
-  rarity: 1
-  targetAmount: 1000
+  rarity: 0
+  targetAmount: 10000
   anyEnemyType: 0
   enemyType: 0
   anyEnemySubtype: 0
   enemySubtype: 0
-  creditCurrencyType: 1
+  currencyType: 0
   skillId: 
   rewardType: 1
-  rewardAmount: 2500
+  rewardAmount: 1000
   manualClaim: 1
-  description: 'Earn 1000 Premium Credits from killing enemies. '
+  description: Earn 10k Fragments from killing enemies.
