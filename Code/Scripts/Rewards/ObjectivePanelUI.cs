@@ -34,12 +34,12 @@ public class ObjectivePanelUI : MonoBehaviour
         progressSlider.maxValue = Mathf.Max(1, def.targetAmount);
         progressSlider.value = Mathf.Clamp(rt.progressData.currentProgress, 0, def.targetAmount);
 
-        titleText.text = $"{def.type} ({def.difficulty})";
+        titleText.text = $"{def.type} ({def.rarity})";
         descText.text = def.description;
         rewardText.text = $"{def.rewardType} +{def.rewardAmount}";
 
         UpdateProgressVisual();
-        UpdateStateVisuals();   // REPLACED (was Refresh + UpdateCompletion)
+        UpdateStateVisuals();   
 
         claimButton.onClick.RemoveAllListeners();
         claimButton.onClick.AddListener(() =>

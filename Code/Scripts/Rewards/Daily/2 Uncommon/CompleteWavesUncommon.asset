@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b587523b96e89a4f94ee01d37383eed, type: 3}
-  m_Name: Kill100BasicFastEnemyEASY
+  m_Name: CompleteWavesUncommon
   m_EditorClassIdentifier: 
-  id: 1002
+  id: CompleteWavesUncommon
   period: 0
-  type: 0
-  difficulty: 0
+  type: 2
+  rarity: 1
   targetAmount: 250
   anyEnemyType: 0
   enemyType: 0
   anyEnemySubtype: 0
-  enemySubtype: 1
+  enemySubtype: 0
   creditCurrencyType: 0
   skillId: 
   rewardType: 1
-  rewardAmount: 1000
+  rewardAmount: 2500
   manualClaim: 1
-  description: Kill 250 Basic Fast Enemies.
+  description: Complete 250 Waves.

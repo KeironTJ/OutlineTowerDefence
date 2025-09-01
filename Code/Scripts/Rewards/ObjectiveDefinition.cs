@@ -1,7 +1,7 @@
 using UnityEngine;
 
 public enum ObjectiveType { KillEnemies, CompleteRounds, CompleteWaves, SpendCredits, UnlockSkill, EarnCredits }
-public enum ObjectiveDifficulty { Easy, Medium, Hard }
+public enum ObjectiveRarity { Common, Uncommon, Rare, Epic }
 public enum ObjectivePeriod { Daily, Weekly }
 
 [CreateAssetMenu(menuName = "Rewards/Objective")]
@@ -11,7 +11,7 @@ public class ObjectiveDefinition : ScriptableObject
     public string id;
     public ObjectivePeriod period = ObjectivePeriod.Daily;
     public ObjectiveType type;
-    public ObjectiveDifficulty difficulty = ObjectiveDifficulty.Easy;
+    public ObjectiveRarity rarity = ObjectiveRarity.Common;
 
     [Header("Goal")]
     public float targetAmount = 1f;
@@ -30,7 +30,7 @@ public class ObjectiveDefinition : ScriptableObject
 
     [Header("Reward")]
     public CurrencyType rewardType;
-    public int rewardAmount = 10;
+    public int rewardAmount = 1000;
     public bool manualClaim = true;
 
     [Header("UI")]

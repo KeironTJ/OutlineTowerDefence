@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b587523b96e89a4f94ee01d37383eed, type: 3}
-  m_Name: Earn10000BasicCreditsEasy
+  m_Name: KillBasicSimpleEnemyUncommon
   m_EditorClassIdentifier: 
-  id: 1050
+  id: 1001
   period: 0
-  type: 5
-  difficulty: 0
-  targetAmount: 10000
+  type: 0
+  rarity: 1
+  targetAmount: 1000
   anyEnemyType: 0
   enemyType: 0
   anyEnemySubtype: 0
@@ -24,6 +24,6 @@ MonoBehaviour:
   creditCurrencyType: 0
   skillId: 
   rewardType: 1
-  rewardAmount: 1000
+  rewardAmount: 2500
   manualClaim: 1
-  description: Earn 10k Basic Credits from killing enemies.
+  description: Kill 1000 Basic Simple Enemies.

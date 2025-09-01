@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b587523b96e89a4f94ee01d37383eed, type: 3}
-  m_Name: Complete50WavesEasy
+  m_Name: CompleteRoundsUncommon
   m_EditorClassIdentifier: 
-  id: 1200
+  id: 1502
   period: 0
-  type: 2
-  difficulty: 0
-  targetAmount: 50
+  type: 1
+  rarity: 1
+  targetAmount: 3
   anyEnemyType: 0
   enemyType: 0
   anyEnemySubtype: 0
@@ -24,6 +24,6 @@ MonoBehaviour:
   creditCurrencyType: 0
   skillId: 
   rewardType: 1
-  rewardAmount: 1000
+  rewardAmount: 2500
   manualClaim: 1
-  description: Complete 50 waves.
+  description: 'Complete 3 Rounds. '

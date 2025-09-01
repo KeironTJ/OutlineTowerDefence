@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b587523b96e89a4f94ee01d37383eed, type: 3}
-  m_Name: Complete1RoundEasy
+  m_Name: KillBasicFastEnemyUncommon
   m_EditorClassIdentifier: 
-  id: 1100
+  id: 1002
   period: 0
-  type: 1
-  difficulty: 0
-  targetAmount: 1
+  type: 0
+  rarity: 1
+  targetAmount: 250
   anyEnemyType: 0
   enemyType: 0
   anyEnemySubtype: 0
-  enemySubtype: 0
+  enemySubtype: 1
   creditCurrencyType: 0
   skillId: 
   rewardType: 1
-  rewardAmount: 1000
+  rewardAmount: 2500
   manualClaim: 1
-  description: 'Complete 1 round. '
+  description: Kill 250 Basic Fast Enemies.
