@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b6d134d9d062684fad2bfbe8b8cbf99, type: 3}
+  m_Name: Loops
+  m_EditorClassIdentifier: 
+  type: 3
+  icon: {fileID: -8835393102756497814, guid: bde3b8775e3f8e64eaf1d52b52a62ce6, type: 3}
+  displayName: Loops

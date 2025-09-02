@@ -174,9 +174,9 @@ public class Menu : MonoBehaviour
 
     private void UpdateUI()
     {
-        fragmentsUI.text = $"F: {NumberManager.FormatLargeNumber(roundManager.GetRoundWallet().Get(CurrencyType.Fragments))}";
-        coresUI.text = $"C: {NumberManager.FormatLargeNumber(playerManager?.Wallet.Get(CurrencyType.Cores) ?? 0)}";
-        prismsUI.text = $"P: {NumberManager.FormatLargeNumber(playerManager?.Wallet.Get(CurrencyType.Prisms) ?? 0)}";
+        fragmentsUI.text = $"{NumberManager.FormatLargeNumber(roundManager.GetRoundWallet().Get(CurrencyType.Fragments))}";
+        coresUI.text = $"{NumberManager.FormatLargeNumber(playerManager?.Wallet.Get(CurrencyType.Cores) ?? 0)}";
+        prismsUI.text = $"{NumberManager.FormatLargeNumber(playerManager?.Wallet.Get(CurrencyType.Prisms) ?? 0)}";
     }
 
     public void ToggleMenu()

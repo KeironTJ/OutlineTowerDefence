@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: 2. startFragments
   m_EditorClassIdentifier: 
   skillName: Start Fragments
-  description: 
+  description: The amount of fragment you start with.
   baseValue: 1
   level: 1
   maxLevel: 200

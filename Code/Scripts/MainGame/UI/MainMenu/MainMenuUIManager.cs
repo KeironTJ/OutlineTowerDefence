@@ -10,9 +10,13 @@ public class MainMenuUIManager : MonoBehaviour
 {
 
     [Header("Main Menu Header Reference")]
-    [SerializeField] private TextMeshProUGUI coresUI;
-    [SerializeField] private TextMeshProUGUI prismsUI;
-    [SerializeField] private TextMeshProUGUI loopsUI;
+    [SerializeField] private CurrencyDisplayUI coresUI;
+    [SerializeField] private CurrencyDisplayUI prismsUI;
+    [SerializeField] private CurrencyDisplayUI loopsUI;
+    [SerializeField] private CurrencyDefinition coresDef;
+    [SerializeField] private CurrencyDefinition prismsDef;
+    [SerializeField] private CurrencyDefinition loopsDef;
+
 
     [Header("Player Information")]
     [SerializeField] private TextMeshProUGUI playerUsernameText;
@@ -117,9 +121,9 @@ public class MainMenuUIManager : MonoBehaviour
 
     public void DisplayCurrency()
     {
-        coresUI.text = NumberManager.FormatLargeNumber(playerManager.playerData.cores);
-        prismsUI.text = NumberManager.FormatLargeNumber(playerManager.playerData.prisms);
-        loopsUI.text = NumberManager.FormatLargeNumber(playerManager.playerData.loops);
+        coresUI.SetCurrency(coresDef, playerManager.Wallet.Get(CurrencyType.Cores));
+        prismsUI.SetCurrency(prismsDef, playerManager.Wallet.Get(CurrencyType.Prisms));
+        loopsUI.SetCurrency(loopsDef, playerManager.Wallet.Get(CurrencyType.Loops));
     }
 
     // PLAYER INFORMATION METHODS
