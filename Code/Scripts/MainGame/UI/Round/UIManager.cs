@@ -42,7 +42,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI fragmentsUI;
     [SerializeField] private TextMeshProUGUI coresUI;
     [SerializeField] private TextMeshProUGUI prismsUI;
-    //[SerializeField] private TextMeshProUGUI loopsUI;
+    [SerializeField] private TextMeshProUGUI loopsUI;
 
     [Header("Stats")]
     [SerializeField] private RoundStatsView hudRoundStatsView;
@@ -202,9 +202,9 @@ public class UIManager : MonoBehaviour
     {
         if (playerManager?.Wallet != null)
         {
-            coresUI.text = $"C: {NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Cores))}";
-            prismsUI.text = $"P: {NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Prisms))}";
-            //loopsUI.text = $"L: {NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Loops))}";
+            coresUI.text = $"{NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Cores))}";
+            prismsUI.text = $"{NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Prisms))}";
+            loopsUI.text = $"{NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Loops))}";
         }
         else
         {

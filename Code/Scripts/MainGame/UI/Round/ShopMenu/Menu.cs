@@ -7,10 +7,6 @@ using System.Collections.Generic;
 public class Menu : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private TextMeshProUGUI fragmentsUI;
-    [SerializeField] private TextMeshProUGUI coresUI;
-    [SerializeField] private TextMeshProUGUI prismsUI;
-
     [SerializeField] private Animator anim;
 
     [SerializeField] private GameObject buttonPrefab; // Reference to the button prefab
@@ -156,7 +152,6 @@ public class Menu : MonoBehaviour
         if (roundManager.SpendFragments(skillManager.GetSkillCost(skill)))
         {
             skillManager.UpgradeSkill(skill, 1);
-            UpdateUI();
             UpdateButtonText(skill, button);
         }
     }
@@ -172,13 +167,6 @@ public class Menu : MonoBehaviour
         }
     }
 
-    private void UpdateUI()
-    {
-        fragmentsUI.text = $"{NumberManager.FormatLargeNumber(roundManager.GetRoundWallet().Get(CurrencyType.Fragments))}";
-        coresUI.text = $"{NumberManager.FormatLargeNumber(playerManager?.Wallet.Get(CurrencyType.Cores) ?? 0)}";
-        prismsUI.text = $"{NumberManager.FormatLargeNumber(playerManager?.Wallet.Get(CurrencyType.Prisms) ?? 0)}";
-    }
-
     public void ToggleMenu()
     {
         isMenuOpen = !isMenuOpen;
@@ -191,8 +179,6 @@ public class Menu : MonoBehaviour
         {
             return;
         }
-
-        UpdateUI();
     }
 
     public void ToggleCategory(Transform categoryParent)
