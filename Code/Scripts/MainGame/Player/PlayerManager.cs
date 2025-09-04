@@ -11,12 +11,12 @@ public class PlayerManager : MonoBehaviour
     public int difficultySelected;
 
     [Header("Skills")]
-    public Dictionary<string, Skill> attackSkills  = new Dictionary<string, Skill>();
+    public Dictionary<string, Skill> attackSkills = new Dictionary<string, Skill>();
     public Dictionary<string, Skill> defenceSkills = new Dictionary<string, Skill>();
     public Dictionary<string, Skill> supportSkills = new Dictionary<string, Skill>();
     public Dictionary<string, Skill> specialSkills = new Dictionary<string, Skill>();
 
-    public PlayerData playerData; 
+    public PlayerData playerData;
 
     private Dictionary<string, int> enemyDestructionCounts = new Dictionary<string, int>();
     private bool initializedFromSave;
@@ -43,6 +43,12 @@ public class PlayerManager : MonoBehaviour
         // If SaveManager already has data (because it loaded in Awake) initialize now
         if (!initializedFromSave && SaveManager.main != null && SaveManager.main.Current != null)
             OnSaveLoaded(SaveManager.main.Current);
+
+        if (playerData.totalRoundsCompleted == 0 && playerData.RoundHistory != null && playerData.RoundHistory.Count > 0)
+        {
+            BackfillPlayerStats(playerData);
+            SavePlayerData();
+        }
     }
 
     private void OnSaveLoaded(PlayerSavePayload payload)
@@ -70,6 +76,8 @@ public class PlayerManager : MonoBehaviour
         // Subscribe to Events
         EventManager.StartListening(EventNames.EnemyDestroyed, new Action<object>(OnEnemyDestroyed));
         EventManager.StartListening(EventNames.RoundRecordCreated, new Action<object>(OnRoundRecordUpdated));
+        EventManager.StartListening(EventNames.WaveCompleted, new Action<object>(OnWaveCompleted));
+        EventManager.StartListening(EventNames.RoundEnded, new Action<object>(OnRoundEnded));
 
     }
 
@@ -78,6 +86,8 @@ public class PlayerManager : MonoBehaviour
         // Unsubscribe from the EnemyDestroyed event via EventManager
         EventManager.StopListening(EventNames.EnemyDestroyed, new Action<object>(OnEnemyDestroyed));
         EventManager.StopListening(EventNames.RoundRecordCreated, new Action<object>(OnRoundRecordUpdated));
+        EventManager.StopListening(EventNames.WaveCompleted, new Action<object>(OnWaveCompleted));
+        EventManager.StopListening(EventNames.RoundEnded, new Action<object>(OnRoundEnded));
 
     }
 
@@ -107,7 +117,7 @@ public class PlayerManager : MonoBehaviour
     private void LoadSkillAssetsIntoDictionaries()
     {
         attackSkills.Clear(); defenceSkills.Clear(); supportSkills.Clear(); specialSkills.Clear();
-        LoadSkillsFromResources("Skill/Attack",  attackSkills);
+        LoadSkillsFromResources("Skill/Attack", attackSkills);
         LoadSkillsFromResources("Skill/Defence", defenceSkills);
         LoadSkillsFromResources("Skill/Support", supportSkills);
         LoadSkillsFromResources("Skill/Special", specialSkills);
@@ -115,7 +125,7 @@ public class PlayerManager : MonoBehaviour
 
     private void EnsurePlayerDataSkillListsFromDictionaries()
     {
-        EnsureListEntries(playerData.attackSkills,  attackSkills);
+        EnsureListEntries(playerData.attackSkills, attackSkills);
         EnsureListEntries(playerData.defenceSkills, defenceSkills);
         EnsureListEntries(playerData.supportSkills, supportSkills);
         EnsureListEntries(playerData.specialSkills, specialSkills);
@@ -127,7 +137,8 @@ public class PlayerManager : MonoBehaviour
         foreach (var kv in dict)
         {
             if (list.Exists(s => s.skillName == kv.Key)) continue;
-            list.Add(new SkillData {
+            list.Add(new SkillData
+            {
                 skillName = kv.Key,
                 level = kv.Value.level,
                 researchLevel = kv.Value.researchLevel,
@@ -152,7 +163,7 @@ public class PlayerManager : MonoBehaviour
 
     private void LoadSkills()
     {
-        LoadSkillData(playerData.attackSkills,  attackSkills);
+        LoadSkillData(playerData.attackSkills, attackSkills);
         LoadSkillData(playerData.defenceSkills, defenceSkills);
         LoadSkillData(playerData.supportSkills, supportSkills);
         LoadSkillData(playerData.specialSkills, specialSkills);
@@ -176,7 +187,7 @@ public class PlayerManager : MonoBehaviour
     private void SavePlayerData()
     {
         if (playerData == null) return;
-        UpdateSkillData(playerData.attackSkills,  attackSkills);
+        UpdateSkillData(playerData.attackSkills, attackSkills);
         UpdateSkillData(playerData.defenceSkills, defenceSkills);
         UpdateSkillData(playerData.supportSkills, supportSkills);
         UpdateSkillData(playerData.specialSkills, specialSkills);
@@ -240,7 +251,7 @@ public class PlayerManager : MonoBehaviour
     // ===== Currency =====
     public float GetCores() => Wallet?.Get(CurrencyType.Cores) ?? 0f;
     public float GetPrisms() => Wallet?.Get(CurrencyType.Prisms) ?? 0f;
-    public float GetLoops()  => Wallet?.Get(CurrencyType.Loops)  ?? 0f;
+    public float GetLoops() => Wallet?.Get(CurrencyType.Loops) ?? 0f;
 
     public void AddCurrency(float fragments = 0, float cores = 0, float prisms = 0, float loops = 0)
     {
@@ -276,7 +287,7 @@ public class PlayerManager : MonoBehaviour
     public int GetMaxDifficulty() => playerData.maxDifficultyAchieved;
 
     public void SetDifficulty(int d) => difficultySelected = d;
-    public int  GetDifficulty() => difficultySelected;
+    public int GetDifficulty() => difficultySelected;
 
     public void IncreaseMaxDifficulty()
     {
@@ -331,7 +342,8 @@ public class PlayerManager : MonoBehaviour
                 .Find(e => e.EnemyType == ede.type && e.EnemySubtype == ede.subtype);
 
             if (existing != null) existing.Count++;
-            else playerData.EnemiesDestroyed.Add(new SerializableEnemyData {
+            else playerData.EnemiesDestroyed.Add(new SerializableEnemyData
+            {
                 EnemyType = ede.type,
                 EnemySubtype = ede.subtype,
                 Count = 1
@@ -357,5 +369,30 @@ public class PlayerManager : MonoBehaviour
         // Re-run the same path used when a save is first loaded/adopted.
         OnSaveLoaded(payload);
         LogSkillCounts("After Cloud Adopt Resync");
+    }
+
+    public void BackfillPlayerStats(PlayerData data)
+    {
+        data.totalRoundsCompleted = data.RoundHistory != null ? data.RoundHistory.Count : 0;
+        data.totalWavesCompleted = 0;
+        if (data.RoundHistory != null)
+        {
+            foreach (var round in data.RoundHistory)
+            {
+                data.totalWavesCompleted += round.highestWave; // Adjust field name as needed
+            }
+        }
+    }
+
+    private void OnWaveCompleted(object eventData)
+    {
+        playerData.totalWavesCompleted++;
+        SavePlayerData();
+    }
+
+    private void OnRoundEnded(object eventData)
+    {
+        playerData.totalRoundsCompleted++;
+        SavePlayerData();
     }
 }

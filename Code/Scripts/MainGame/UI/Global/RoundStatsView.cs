@@ -21,6 +21,10 @@ public class RoundStatsView : MonoBehaviour
     [Header("Enemy Breakdown List")]
     [SerializeField] private Transform enemyBreakdownContainer;
 
+    [Header("Stats Table")]
+    [SerializeField] private Transform statsTableContainer;
+    [SerializeField] private GameObject statItemPrefab;
+
     [Header("Performance")]
     [SerializeField] private float minUpdateInterval = 0.2f; // seconds (5 Hz)
     private float _lastUpdateTime;
@@ -89,32 +93,36 @@ public class RoundStatsView : MonoBehaviour
     {
         if (record == null) return;
 
-        durationText.text = FormatDuration(record.durationSeconds);
-        difficultyText.text = $"Difficulty: {record.difficulty}";
-        highestWaveText.text = $"Highest Wave: {record.highestWave}";
-        bulletsFiredText.text = $"Bullets: {NumberManager.FormatLargeNumber(record.bulletsFired, true)}";
-        enemiesKilledText.text = $"Kills: {NumberManager.FormatLargeNumber(record.enemiesKilled, true)}";
+        // Clear previous rows
+        foreach (Transform child in statsTableContainer)
+            Destroy(child.gameObject);
 
-        // Build line lists once, then update rows in-place (no destroy/recreate)
-        var currencyLines = record.currencyEarned
-            .OrderBy(c => c.type) // stable order
-            .Select(c => $"{c.type}: {NumberManager.FormatLargeNumber(c.amount)}")
-            .ToList();
+        // Header
+        AddHeaderRow("Round Summary");
 
-        var enemyLines = new List<string>();
+        // Main stats
+        AddStatRow("Duration", FormatDuration(record.durationSeconds));
+        AddStatRow("Difficulty", record.difficulty.ToString());
+        AddStatRow("Highest Wave", record.highestWave.ToString());
+        AddStatRow("Bullets Fired", NumberManager.FormatLargeNumber(record.bulletsFired, true));
+
+        // Currency section
+        AddHeaderRow("Currency Earned");
+        foreach (var c in record.currencyEarned.OrderBy(c => c.type))
+            AddStatRow(c.type.ToString(), NumberManager.FormatLargeNumber(c.amount));
+
+        // Enemy breakdown section
+        AddHeaderRow("Enemies Destroyed",NumberManager.FormatLargeNumber(record.enemiesKilled, true));
         foreach (var type in record.enemyBreakdown)
         {
             if (type.total <= 0) continue;
-            enemyLines.Add($"Enemy Type: {type.type} ({NumberManager.FormatLargeNumber(type.total, true)})");
+            AddHeaderRow(type.type.ToString(), NumberManager.FormatLargeNumber(type.total, true), true);
             foreach (var sub in type.subtypes)
             {
                 if (sub.count <= 0) continue;
-                enemyLines.Add($"  SubType: {sub.subtype} ({NumberManager.FormatLargeNumber(sub.count, true)})");
+                AddStatRow(sub.subtype.ToString(), NumberManager.FormatLargeNumber(sub.count, true));
             }
         }
-
-        PopulateList(currencyContainer, currencyLines);
-        PopulateList(enemyBreakdownContainer, enemyLines);
     }
 
     // Update existing children when counts match; rebuild only if needed
@@ -170,6 +178,7 @@ public class RoundStatsView : MonoBehaviour
 
         if (currencyContainer == null) Debug.LogWarning("RoundStatsView: currencyContainer not assigned (drag from Hierarchy).", this);
         if (enemyBreakdownContainer == null) Debug.LogWarning("RoundStatsView: enemyBreakdownContainer not assigned (drag from Hierarchy).", this);
+        if (statsTableContainer == null) Debug.LogWarning("RoundStatsView: statsTableContainer not assigned (drag from Hierarchy).", this);
 
         if (rowTextPrefab == null)
         {
@@ -181,4 +190,36 @@ public class RoundStatsView : MonoBehaviour
         }
     }
 
+    private void AddStatRow(string label, string value)
+    {
+        GameObject statItem = Instantiate(statItemPrefab, statsTableContainer);
+        var labelText = statItem.transform.Find("LabelText").GetComponent<TMPro.TMP_Text>();
+        var valueText = statItem.transform.Find("ValueText").GetComponent<TMPro.TMP_Text>();
+        labelText.text = label;
+        valueText.text = value;
+    }
+
+    private void AddHeaderRow(string label, string value = "", bool isSubHeader = false)
+    {
+        GameObject statItem = Instantiate(statItemPrefab, statsTableContainer);
+        var labelText = statItem.transform.Find("LabelText").GetComponent<TMPro.TMP_Text>();
+        var valueText = statItem.transform.Find("ValueText").GetComponent<TMPro.TMP_Text>();
+        labelText.text = label;
+        valueText.text = value;
+
+        if (!isSubHeader)
+        {
+            labelText.fontStyle = TMPro.FontStyles.Bold | TMPro.FontStyles.Underline;
+            labelText.fontSize *= 1.2f;
+            valueText.fontStyle = TMPro.FontStyles.Bold | TMPro.FontStyles.Underline;
+            valueText.fontSize *= 1.2f;
+        }
+        else
+        {
+            labelText.fontStyle = TMPro.FontStyles.Bold;
+            labelText.fontSize *= 1.1f;
+            valueText.fontStyle = TMPro.FontStyles.Bold;
+            valueText.fontSize *= 1.1f;
+        }
+    }
 }

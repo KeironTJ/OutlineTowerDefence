@@ -1,7 +1,16 @@
 using UnityEngine;
 
+/// <summary>
+/// Provides utility methods for formatting large numbers for display.
+/// </summary>
 public static class NumberManager
 {
+    /// <summary>
+    /// Formats a large number into a human-readable string with appropriate suffixes (e.g., k, M, B).
+    /// </summary>
+    /// <param name="number">The number to format.</param>
+    /// <param name="isInteger">If true, formats the number with no decimals; otherwise, uses two decimal places.</param>
+    /// <returns>A formatted string representing the number with a suffix if applicable.</returns>
     public static string FormatLargeNumber(float number, bool isInteger = false)
     {
         if (number >= 1e33)

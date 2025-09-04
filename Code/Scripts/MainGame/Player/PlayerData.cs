@@ -80,6 +80,8 @@ public class PlayerData
     public List<SerializableEnemyData> EnemiesDestroyed = new List<SerializableEnemyData>();
 
     [Header("Round History")]
+    public int totalRoundsCompleted;
+    public int totalWavesCompleted;
     public List<RoundRecord> RoundHistory = new List<RoundRecord>();
 
     [Header("Daily Login Data")]
