@@ -7,20 +7,6 @@ using TMPro;
 
 public class RoundStatsView : MonoBehaviour
 {
-    [Header("Bindings")]
-    [SerializeField] private TextMeshProUGUI durationText;
-    [SerializeField] private TextMeshProUGUI difficultyText;
-    [SerializeField] private TextMeshProUGUI highestWaveText;
-    [SerializeField] private TextMeshProUGUI bulletsFiredText;
-    [SerializeField] private TextMeshProUGUI enemiesKilledText;
-
-    [Header("Currency List")]
-    [SerializeField] private Transform currencyContainer;
-    [SerializeField] private GameObject rowTextPrefab; // prefab with a TextMeshProUGUI component
-
-    [Header("Enemy Breakdown List")]
-    [SerializeField] private Transform enemyBreakdownContainer;
-
     [Header("Stats Table")]
     [SerializeField] private Transform statsTableContainer;
     [SerializeField] private GameObject statItemPrefab;
@@ -32,6 +18,14 @@ public class RoundStatsView : MonoBehaviour
     private bool liveMode = false;
     private RoundManager boundRoundManager;
     private bool subscribed;
+
+    private void Update()
+    {
+        if (!liveMode || boundRoundManager == null) return;
+        if (Time.unscaledTime - _lastUpdateTime < minUpdateInterval) return;
+        _lastUpdateTime = Time.unscaledTime;
+        Populate(boundRoundManager.GetLiveRoundRecord());
+    }
 
     // Call this for the in-round HUD
     public void BindLive(RoundManager roundManager)
@@ -125,35 +119,6 @@ public class RoundStatsView : MonoBehaviour
         }
     }
 
-    // Update existing children when counts match; rebuild only if needed
-    private void PopulateList(Transform container, IList<string> lines)
-    {
-      if (container == null || rowTextPrefab == null) return;
-
-      // If same count: update text in-place (no layout churn)
-      if (container.childCount == lines.Count)
-      {
-          for (int i = 0; i < lines.Count; i++)
-          {
-              var child = container.GetChild(i);
-              var txt = child.GetComponent<TextMeshProUGUI>() ?? child.GetComponentInChildren<TextMeshProUGUI>(true);
-              if (txt != null) txt.text = lines[i];
-          }
-          return;
-      }
-
-      // Otherwise rebuild (count changed)
-      for (int i = container.childCount - 1; i >= 0; i--)
-          Destroy(container.GetChild(i).gameObject);
-
-      for (int i = 0; i < lines.Count; i++)
-      {
-          var go = Instantiate(rowTextPrefab, container, false);
-          var txt = go.GetComponent<TextMeshProUGUI>() ?? go.GetComponentInChildren<TextMeshProUGUI>(true);
-          if (txt != null) txt.text = lines[i];
-      }
-    }
-
     private static string FormatDuration(float seconds)
     {
         var ts = TimeSpan.FromSeconds(Mathf.Max(0f, seconds));
@@ -162,33 +127,6 @@ public class RoundStatsView : MonoBehaviour
         return $"{ts.Minutes:D2}:{ts.Seconds:D2}";
     }
 
-    private void Awake()
-    {
-        ValidateBindings();
-    }
-
-    [ContextMenu("Validate bindings")]
-    private void ValidateBindings()
-    {
-        if (durationText == null) Debug.LogWarning("RoundStatsView: durationText not assigned.", this);
-        if (difficultyText == null) Debug.LogWarning("RoundStatsView: difficultyText not assigned.", this);
-        if (highestWaveText == null) Debug.LogWarning("RoundStatsView: highestWaveText not assigned.", this);
-        if (bulletsFiredText == null) Debug.LogWarning("RoundStatsView: bulletsFiredText not assigned.", this);
-        if (enemiesKilledText == null) Debug.LogWarning("RoundStatsView: enemiesKilledText not assigned.", this);
-
-        if (currencyContainer == null) Debug.LogWarning("RoundStatsView: currencyContainer not assigned (drag from Hierarchy).", this);
-        if (enemyBreakdownContainer == null) Debug.LogWarning("RoundStatsView: enemyBreakdownContainer not assigned (drag from Hierarchy).", this);
-        if (statsTableContainer == null) Debug.LogWarning("RoundStatsView: statsTableContainer not assigned (drag from Hierarchy).", this);
-
-        if (rowTextPrefab == null)
-        {
-            Debug.LogWarning("RoundStatsView: rowTextPrefab not assigned.", this);
-        }
-        else if (rowTextPrefab.GetComponentInChildren<TextMeshProUGUI>(true) == null)
-        {
-            Debug.LogWarning("RoundStatsView: rowTextPrefab has no TextMeshProUGUI component (add one on the root or a child).", rowTextPrefab);
-        }
-    }
 
     private void AddStatRow(string label, string value)
     {
