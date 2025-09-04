@@ -16,7 +16,7 @@ public class PlayerManager : MonoBehaviour
     public Dictionary<string, Skill> supportSkills = new Dictionary<string, Skill>();
     public Dictionary<string, Skill> specialSkills = new Dictionary<string, Skill>();
 
-    public PlayerData playerData; // now comes from SaveManager
+    public PlayerData playerData; 
 
     private Dictionary<string, int> enemyDestructionCounts = new Dictionary<string, int>();
     private bool initializedFromSave;
@@ -47,7 +47,7 @@ public class PlayerManager : MonoBehaviour
 
     private void OnSaveLoaded(PlayerSavePayload payload)
     {
-        if (initializedFromSave) return; // avoid double
+        if (initializedFromSave) return; // only load once per session
         if (payload == null) return;
 
         playerData = payload.player ?? (payload.player = new PlayerData());

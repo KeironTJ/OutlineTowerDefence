@@ -21,10 +21,10 @@ public class GameStatsPanel : MonoBehaviour
         var stats = new List<string>
         {
             $"CURRENCY: ",
-            $"Fragments Earned: {playerData.totalFragmentsEarned}",
-            $"Cores Earned: {playerData.totalCoresEarned}",
-            $"Prisms Earned: {playerData.totalPrismsEarned}",
-            $"Loops Earned: {playerData.totalLoopsEarned}",
+            $"Fragments Earned: {NumberManager.FormatLargeNumber(playerData.totalFragmentsEarned)}",
+            $"Cores Earned: {NumberManager.FormatLargeNumber(playerData.totalCoresEarned)}",
+            $"Prisms Earned: {NumberManager.FormatLargeNumber(playerData.totalPrismsEarned)}",
+            $"Loops Earned: {NumberManager.FormatLargeNumber(playerData.totalLoopsEarned)}",
             $" "
         };
 
@@ -45,7 +45,7 @@ public class GameStatsPanel : MonoBehaviour
             stats.Add($"{group.Key}:");
             foreach (var enemyData in group)
             {
-                stats.Add($"  {enemyData.EnemySubtype}: {enemyData.Count}");
+                stats.Add($"  {enemyData.EnemySubtype}: {NumberManager.FormatLargeNumber(enemyData.Count, true)}");
             }
         }
 

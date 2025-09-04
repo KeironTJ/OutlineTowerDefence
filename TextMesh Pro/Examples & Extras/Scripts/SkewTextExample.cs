@@ -151,7 +151,7 @@ namespace TMPro.Examples
                 // Upload the mesh with the revised information
                 m_TextComponent.UpdateVertexData();
 
-                yield return null; // new WaitForSeconds(0.025f);
+                yield return null; //WaitForSeconds(0.025f);
             }
         }
     }

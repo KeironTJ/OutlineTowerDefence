@@ -92,24 +92,24 @@ public class RoundStatsView : MonoBehaviour
         durationText.text = FormatDuration(record.durationSeconds);
         difficultyText.text = $"Difficulty: {record.difficulty}";
         highestWaveText.text = $"Highest Wave: {record.highestWave}";
-        bulletsFiredText.text = $"Bullets: {record.bulletsFired}";
-        enemiesKilledText.text = $"Kills: {record.enemiesKilled}";
+        bulletsFiredText.text = $"Bullets: {NumberManager.FormatLargeNumber(record.bulletsFired, true)}";
+        enemiesKilledText.text = $"Kills: {NumberManager.FormatLargeNumber(record.enemiesKilled, true)}";
 
         // Build line lists once, then update rows in-place (no destroy/recreate)
         var currencyLines = record.currencyEarned
             .OrderBy(c => c.type) // stable order
-            .Select(c => $"{c.type}: {c.amount:0.##}")
+            .Select(c => $"{c.type}: {NumberManager.FormatLargeNumber(c.amount)}")
             .ToList();
 
         var enemyLines = new List<string>();
         foreach (var type in record.enemyBreakdown)
         {
             if (type.total <= 0) continue;
-            enemyLines.Add($"Enemy Type: {type.type} ({type.total})");
+            enemyLines.Add($"Enemy Type: {type.type} ({NumberManager.FormatLargeNumber(type.total, true)})");
             foreach (var sub in type.subtypes)
             {
                 if (sub.count <= 0) continue;
-                enemyLines.Add($"  SubType: {sub.subtype} ({sub.count})");
+                enemyLines.Add($"  SubType: {sub.subtype} ({NumberManager.FormatLargeNumber(sub.count, true)})");
             }
         }
 

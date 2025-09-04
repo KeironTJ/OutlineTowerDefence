@@ -11,6 +11,6 @@ public class CurrencyDisplayUI : MonoBehaviour
     {
         if (iconImage) iconImage.sprite = def.icon;
         if (iconImage) iconImage.enabled = showIcon;
-        if (amountText) amountText.text = showText ? amount.ToString("0.##") : "";
+        if (amountText) amountText.text = showText ? NumberManager.FormatLargeNumber(amount) : "";
     }
 }

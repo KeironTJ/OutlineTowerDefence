@@ -16,12 +16,12 @@ MonoBehaviour:
   period: 0
   type: 0
   rarity: 0
-  targetAmount: 1
-  anyEnemyType: 1
-  enemyType: 0
-  anyEnemySubtype: 1
+  targetAmount: 5
+  anyEnemyType: 0
+  enemyType: 2
+  anyEnemySubtype: 0
   enemySubtype: 0
-  currencyType: 0
+  currencyType: 1
   skillId: 
   rewardType: 1
   rewardAmount: 1000

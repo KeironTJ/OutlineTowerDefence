@@ -592,15 +592,17 @@ MonoBehaviour:
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_enableWordWrapping: 1
+  m_TextWrappingMode: 1
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 1
+  m_ActiveFontFeatures: 6e72656b
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
+  m_EmojiFallbackSupport: 1
   m_parseCtrlCharacters: 1
   m_isOrthographic: 1
   m_isCullingEnabled: 0
@@ -760,7 +762,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 535, y: -472.23502}
-  m_SizeDelta: {x: 476.85, y: 53.63}
+  m_SizeDelta: {x: 522.07, y: 53.63}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4785043501439703522
 CanvasRenderer:
@@ -833,15 +835,17 @@ MonoBehaviour:
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_enableWordWrapping: 1
+  m_TextWrappingMode: 1
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 1
+  m_ActiveFontFeatures: 6e72656b
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
+  m_EmojiFallbackSupport: 1
   m_parseCtrlCharacters: 1
   m_isOrthographic: 1
   m_isCullingEnabled: 0
@@ -1176,15 +1180,17 @@ MonoBehaviour:
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_enableWordWrapping: 1
+  m_TextWrappingMode: 1
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 1
+  m_ActiveFontFeatures: 6e72656b
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
+  m_EmojiFallbackSupport: 1
   m_parseCtrlCharacters: 1
   m_isOrthographic: 1
   m_isCullingEnabled: 0
@@ -1213,6 +1219,10 @@ PrefabInstance:
     - target: {fileID: 2719405801851781823, guid: f17575fc7cf7dd246b78c5567974db27, type: 3}
       propertyPath: m_text
       value: DURATION
+      objectReference: {fileID: 0}
+    - target: {fileID: 2719405801851781823, guid: f17575fc7cf7dd246b78c5567974db27, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 8288028921481825334, guid: f17575fc7cf7dd246b78c5567974db27, type: 3}
       propertyPath: m_Name
@@ -1335,6 +1345,10 @@ PrefabInstance:
       propertyPath: m_text
       value: BULLETS
       objectReference: {fileID: 0}
+    - target: {fileID: 2719405801851781823, guid: f17575fc7cf7dd246b78c5567974db27, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
+      objectReference: {fileID: 0}
     - target: {fileID: 8288028921481825334, guid: f17575fc7cf7dd246b78c5567974db27, type: 3}
       propertyPath: m_Name
       value: BulletsFiredText
@@ -1456,6 +1470,10 @@ PrefabInstance:
       propertyPath: m_text
       value: TOTAL ENEMIES
       objectReference: {fileID: 0}
+    - target: {fileID: 2719405801851781823, guid: f17575fc7cf7dd246b78c5567974db27, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
+      objectReference: {fileID: 0}
     - target: {fileID: 8288028921481825334, guid: f17575fc7cf7dd246b78c5567974db27, type: 3}
       propertyPath: m_Name
       value: EnemiesKilledText
@@ -1573,6 +1591,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7768513400203000510}
     m_Modifications:
+    - target: {fileID: 1547505270502906726, guid: 100312eaf525b1a4986b5c908e506419, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
+      objectReference: {fileID: 0}
     - target: {fileID: 4176030989644655127, guid: 100312eaf525b1a4986b5c908e506419, type: 3}
       propertyPath: m_Name
       value: CloseButton
@@ -1686,6 +1708,10 @@ PrefabInstance:
     - target: {fileID: 2719405801851781823, guid: f17575fc7cf7dd246b78c5567974db27, type: 3}
       propertyPath: m_text
       value: WAVE
+      objectReference: {fileID: 0}
+    - target: {fileID: 2719405801851781823, guid: f17575fc7cf7dd246b78c5567974db27, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 8288028921481825334, guid: f17575fc7cf7dd246b78c5567974db27, type: 3}
       propertyPath: m_Name
@@ -1807,6 +1833,10 @@ PrefabInstance:
     - target: {fileID: 2719405801851781823, guid: f17575fc7cf7dd246b78c5567974db27, type: 3}
       propertyPath: m_text
       value: DIFFICULTY
+      objectReference: {fileID: 0}
+    - target: {fileID: 2719405801851781823, guid: f17575fc7cf7dd246b78c5567974db27, type: 3}
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 8288028921481825334, guid: f17575fc7cf7dd246b78c5567974db27, type: 3}
       propertyPath: m_Name

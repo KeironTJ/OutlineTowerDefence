@@ -21,8 +21,8 @@ MonoBehaviour:
   researchLevel: 0
   maxResearchlevel: 99
   researchModifier: 1.02
-  fragementsCost: 0
-  fragementsCostModifier: 0
+  fragmentsCost: 0
+  fragmentsCostModifier: 0
   coresCost: 0
   coresCostModifier: 0
   coresUnlockCost: 0

@@ -397,7 +397,6 @@ public class RoundManager : MonoBehaviour
     {
         if (eventData is CurrencyEarnedEvent currencyEarned)
         {
-            //Debug.Log($"Currency Earned - Fragments: {currencyEarned.fragments}, Cores: {currencyEarned.cores}, Prisms: {currencyEarned.prisms}, Loops: {currencyEarned.loops}");
             IncreaseFragments(currencyEarned.fragments);
             playerManager.Wallet.Add(CurrencyType.Cores, currencyEarned.cores);
             playerManager.Wallet.Add(CurrencyType.Prisms, currencyEarned.prisms);

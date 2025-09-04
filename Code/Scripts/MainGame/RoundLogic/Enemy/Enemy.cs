@@ -127,7 +127,6 @@ public class Enemy : MonoBehaviour
 
             // Payloads
             var enemyPayload = new EnemyDestroyedEvent(type, subtype);
-
             var currencyPayload = new CurrencyEarnedEvent(fragments, cores, prisms, loops);
 
             EventManager.TriggerEvent(EventNames.EnemyDestroyed, enemyPayload);

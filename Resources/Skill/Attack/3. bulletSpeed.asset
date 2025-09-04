@@ -14,14 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Bullet Speed
   description: How quickly each bullet moves towards the enemy.
-  baseValue: 3
+  baseValue: 5
   level: 1
   maxLevel: 16
   upgradeModifier: 1
   researchLevel: 0
   maxResearchlevel: 4
   researchModifier: 1.25
-  frgmentsCost: 500
+  fragmentsCost: 0
   fragmentsCostModifier: 7
   coresCost: 1000
   coresCostModifier: 10

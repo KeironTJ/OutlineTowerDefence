@@ -17,7 +17,7 @@ public class CloudSyncService : MonoBehaviour
 
     private float nextAuthAttemptTime;
 
-    // NEW: suppress next cloud upload after we just downloaded/adopted cloud data
+    // suppress next cloud upload after downloaded/adopted cloud data
     private bool suppressOneUpload;
 
     public bool InitialAdoptAttempted { get; private set; }

@@ -76,7 +76,6 @@ public class UIManager : MonoBehaviour
         if (hudRoundStatsView != null && this.roundManager != null)
             hudRoundStatsView.BindLive(this.roundManager);
 
-        // NEW: initialize Shop Menu even if it's not a child of UIManager
         if (shopMenu == null)
             shopMenu = UnityEngine.Object.FindFirstObjectByType<Menu>(UnityEngine.FindObjectsInactive.Include);
 
@@ -195,7 +194,7 @@ public class UIManager : MonoBehaviour
 
     private void UpdateFragmentsUI(float newValue)
     {
-        fragmentsUI.text = $"F: {NumberManager.FormatLargeNumber(newValue)}";
+        fragmentsUI.text = $"{NumberManager.FormatLargeNumber(newValue)}";
     }
 
     private void UpdateGlobalCurrencyUI()

@@ -171,7 +171,7 @@ public class Tower : MonoBehaviour
 
     private void Shoot()
     {
-        if (bulletPrefab == null || firingPoint == null || target == null) return; // NEW guards
+        if (bulletPrefab == null || firingPoint == null || target == null) return; 
 
         GameObject bulletObj = Instantiate(bulletPrefab, firingPoint.position, Quaternion.identity);
         Bullet bulletScript = bulletObj.GetComponent<Bullet>();
@@ -225,7 +225,7 @@ public class Tower : MonoBehaviour
 
     private void DrawTargetingRange()
     {
-        // NEW: cache renderer/material; update only when range changes
+        // update only when range changes
         if (rangeRenderer == null)
         {
             rangeRenderer = GetComponent<LineRenderer>();
@@ -276,7 +276,7 @@ public class Tower : MonoBehaviour
         return currentHealth;
     }
 
-    // Healing coroutine simplified and robust
+    // Healing coroutine
     private IEnumerator HealCurrentHealth()
     {
         isHealing = true;
@@ -301,8 +301,6 @@ public class Tower : MonoBehaviour
     {
         if (!towerAlive) return;
         if (isHealing || healingCoroutine != null) return;
-
-        // start and keep reference
         healingCoroutine = StartCoroutine(HealCurrentHealth());
     }
 
@@ -342,7 +340,6 @@ public class Tower : MonoBehaviour
         enabled = false;      // stop Update loop
     }
 
-    // Modularize health management into a dedicated method
     private void ManageHealth()
     {
         if (currentHealth <= 0 && towerAlive)
@@ -357,7 +354,6 @@ public class Tower : MonoBehaviour
         }
     }
 
-    // Modularize shooting logic into a dedicated method
     private bool CanShoot()
     {
         float fireInterval = 1f / skillManager.GetSkillValue(skillManager.GetSkill("Attack Speed"));

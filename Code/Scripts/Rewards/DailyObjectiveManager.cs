@@ -354,6 +354,7 @@ public class DailyObjectiveManager : MonoBehaviour
 
     private void OnWaveCompleted(object data)
     {
+        Debug.Log($"Event Heard: Wave Completed");
         foreach (var rt in activeDaily)
         {
             var def = rt.definition;
@@ -374,7 +375,7 @@ public class DailyObjectiveManager : MonoBehaviour
         if (data is CurrencyEarnedEvent ce)
         {
             if (ce.fragments + ce.cores + ce.prisms + ce.loops <= 0f) return;
-            Debug.Log($"[DailyObjectiveManager] OnCurrencyEarned: F{ce.fragments} C{ce.cores} P{ce.prisms} L{ce.loops}");
+            //Debug.Log($"[DailyObjectiveManager] OnCurrencyEarned: F{ce.fragments} C{ce.cores} P{ce.prisms} L{ce.loops}");
 
             foreach (var rt in activeDaily)
             {

@@ -15,7 +15,7 @@ public class RoundHistoryRowUI : MonoBehaviour
         if (rec == null) return;
 
         var ended = TryParseUtc(rec.endedAtIsoUtc, out var dtUtc) ? dtUtc.ToLocalTime() : (DateTime?)null;
-        dateText?.SetText(ended.HasValue ? ended.Value.ToString("yyyy-MM-dd") : "—");
+        dateText?.SetText(ended.HasValue ? ended.Value.ToString("dd-MM-yyy") : "—");
         timeText?.SetText(ended.HasValue ? ended.Value.ToString("HH:mm") : "—");
 
         difficultyText?.SetText($"D{rec.difficulty}");

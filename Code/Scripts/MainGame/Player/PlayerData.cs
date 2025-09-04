@@ -34,6 +34,10 @@ public class ObjectiveProgressData
     public string assignedAtIsoUtc;
 }
 
+
+/// <summary>
+/// Stores all persistent player data, including currency, skills, progress, and history.
+/// </summary>
 [System.Serializable]
 public class PlayerData
 {
@@ -88,10 +92,12 @@ public class PlayerData
 
     // Timestamp controlling next auto‑slot fill (daily)
     public string lastDailyObjectiveAddIsoUtc = "";   
-    public string lastDailyObjectiveSlotKey = ""; // NEW: e.g. "20250828-12" (UTC date + slot hour)
+    public string lastDailyObjectiveSlotKey = ""; //e.g. "20250828-12" (UTC date + slot hour)
 
 
-    // Constructor to initialize a new player
+    /// <summary>
+    /// Constructor to initialize a new player.
+    /// </summary>
     public PlayerData()
     {
         UUID = Guid.NewGuid().ToString(); // Generate a new UUID

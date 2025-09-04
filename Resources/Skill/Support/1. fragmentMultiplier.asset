@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 738dc256e81ae64448448c3e3308ef42, type: 3}
   m_Name: 1. fragmentMultiplier
   m_EditorClassIdentifier: 
-  skillName: Fragements Modifier
-  description: Multiplies Fragements
+  skillName: Fragments Modifier
+  description: Multiplies Fragments
   baseValue: 1
   level: 1
   maxLevel: 99

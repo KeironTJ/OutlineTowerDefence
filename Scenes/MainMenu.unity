@@ -5633,14 +5633,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Prisms
       objectReference: {fileID: 0}
-    - target: {fileID: 0}
-      propertyPath: m_ChildControlWidth
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 0}
-      propertyPath: m_ChildControlHeight
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6364,7 +6356,7 @@ MonoBehaviour:
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 1
-  m_ActiveFontFeatures: 00000000
+  m_ActiveFontFeatures: 6e72656b
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
@@ -6561,22 +6553,6 @@ PrefabInstance:
     - target: {fileID: 7871660081031362295, guid: 8df7aeb9ad1f21d4fac369c809161a69, type: 3}
       propertyPath: m_Name
       value: Loops
-      objectReference: {fileID: 0}
-    - target: {fileID: 0}
-      propertyPath: m_ChildScaleWidth
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 0}
-      propertyPath: m_ChildScaleHeight
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 0}
-      propertyPath: m_ChildControlWidth
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 0}
-      propertyPath: m_ChildControlHeight
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9706,26 +9682,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Cores
       objectReference: {fileID: 0}
-    - target: {fileID: 0}
-      propertyPath: m_ChildScaleWidth
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 0}
-      propertyPath: m_ChildScaleHeight
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 0}
-      propertyPath: m_ChildControlWidth
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 0}
-      propertyPath: m_ChildControlHeight
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 0}
-      propertyPath: m_ChildForceExpandWidth
-      value: 1
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11878,7 +11834,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 0.015197277, g: 0, b: 0.75, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -13145,6 +13101,7 @@ GameObject:
   - component: {fileID: 1829961813}
   - component: {fileID: 1829961815}
   - component: {fileID: 1829961814}
+  - component: {fileID: 1829961816}
   m_Layer: 5
   m_Name: Panel
   m_TagString: Untagged
@@ -13186,7 +13143,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 0, g: 0, b: 0.5, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -13211,6 +13168,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1829961812}
   m_CullTransparentMesh: 1
+--- !u!114 &1829961816
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1829961812}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 0, g: 1, b: 1, a: 1}
+  m_EffectDistance: {x: 10, y: 10}
+  m_UseGraphicAlpha: 1
 --- !u!1 &1845363699
 GameObject:
   m_ObjectHideFlags: 0

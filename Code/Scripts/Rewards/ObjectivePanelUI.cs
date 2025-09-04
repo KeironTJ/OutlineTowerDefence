@@ -8,13 +8,13 @@ public class ObjectivePanelUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private TextMeshProUGUI descText;
     [SerializeField] private TextMeshProUGUI rewardText;
-    [SerializeField] private TextMeshProUGUI progressText;   // NEW (assign in prefab)
+    [SerializeField] private TextMeshProUGUI progressText;   // assign in prefab
     [SerializeField] private Slider progressSlider;
     [SerializeField] private Button claimButton;
     [SerializeField] private GameObject completionOverlay;   // shown when completed & NOT claimed (contains Claim button)
     [SerializeField] private TextMeshProUGUI completionText;
-    [SerializeField] private GameObject claimedOverlay;      // NEW: shown after claim
-    [SerializeField] private TextMeshProUGUI claimedText;    // optional label
+    [SerializeField] private GameObject claimedOverlay;      // shown after claim
+    [SerializeField] private TextMeshProUGUI claimedText;    
 
     private ObjectiveRuntime runtime;
 

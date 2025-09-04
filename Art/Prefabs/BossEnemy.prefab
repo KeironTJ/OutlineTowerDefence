@@ -52,6 +52,9 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -89,7 +92,7 @@ SpriteRenderer:
   m_SpriteSortPoint: 0
 --- !u!50 &7764929145050514648
 Rigidbody2D:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -100,8 +103,8 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 1
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDrag: 0
-  m_AngularDrag: 0.05
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
   m_GravityScale: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -122,6 +125,7 @@ PolygonCollider2D:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 913476891759774307}
   m_Enabled: 1
+  serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -145,7 +149,8 @@ PolygonCollider2D:
     m_Bits: 4294967295
   m_IsTrigger: 0
   m_UsedByEffector: 0
-  m_UsedByComposite: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
@@ -199,12 +204,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rb: {fileID: 7764929145050514648}
-  health: 10
-  moveSpeed: 1
-  attackDamage: 5
+  health: 40
+  moveSpeed: 0.75
+  attackDamage: 1
   damageInterval: 1
-  fragmentsWorth: 10
-  coresWorth: 5
-  prismsWorth: 0.1
+  fragments: 10
+  cores: 5
+  prisms: 0
+  loops: 0
   type: 2
   subtype: 0

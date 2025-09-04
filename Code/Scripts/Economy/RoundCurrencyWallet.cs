@@ -2,15 +2,23 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Manages round-based currency (fragments) and delegates other currencies to the player wallet.
+/// </summary>
 public class RoundCurrencyWallet : ICurrencyWallet
 {
     private float fragmentsBalance;
     private readonly ICurrencyWallet playerWallet;
-    private readonly Action<float> onFragmentsSpent; // NEW
+    private readonly Action<float> onFragmentsSpent;
 
+    /// <summary>
+    /// Fired when any currency balance changes.
+    /// </summary>
     public event Action<CurrencyType, float> BalanceChanged;
 
-    // NEW: accept a spend callback
+    /// <summary>
+    /// Creates a round wallet, wrapping the player wallet.
+    /// </summary>
     public RoundCurrencyWallet(ICurrencyWallet playerWallet, Action<float> onFragmentsSpent = null)
     {
         this.playerWallet = playerWallet;
@@ -25,11 +33,17 @@ public class RoundCurrencyWallet : ICurrencyWallet
         }
     }
 
+    /// <summary>
+    /// Gets the current balance for the given currency type.
+    /// </summary>
     public float Get(CurrencyType type)
     {
         return type == CurrencyType.Fragments ? fragmentsBalance : playerWallet?.Get(type) ?? 0f;
     }
 
+    /// <summary>
+    /// Sets the balance for the given currency type.
+    /// </summary>
     public void Set(CurrencyType type, float amount)
     {
         if (type == CurrencyType.Fragments)
@@ -43,6 +57,9 @@ public class RoundCurrencyWallet : ICurrencyWallet
         }
     }
 
+    /// <summary>
+    /// Adds the specified amount to the currency balance.
+    /// </summary>
     public void Add(CurrencyType type, float amount)
     {
         if (amount == 0f) return;
@@ -59,6 +76,10 @@ public class RoundCurrencyWallet : ICurrencyWallet
         }
     }
 
+    /// <summary>
+    /// Attempts to spend the specified amount of currency.
+    /// Returns true if successful, false if insufficient funds.
+    /// </summary>
     public bool TrySpend(CurrencyType type, float amount)
     {
         if (amount <= 0f) return true;
@@ -69,7 +90,7 @@ public class RoundCurrencyWallet : ICurrencyWallet
             {
                 fragmentsBalance -= amount;
                 BalanceChanged?.Invoke(CurrencyType.Fragments, fragmentsBalance);
-                onFragmentsSpent?.Invoke(amount); // NEW: record lifetime spent
+                onFragmentsSpent?.Invoke(amount);
                 return true;
             }
             return false;
@@ -77,6 +98,9 @@ public class RoundCurrencyWallet : ICurrencyWallet
         return playerWallet?.TrySpend(type, amount) ?? false;
     }
 
+    /// <summary>
+    /// Gets a read-only dictionary of all currency balances.
+    /// </summary>
     public IReadOnlyDictionary<CurrencyType, float> GetAll()
     {
         var map = playerWallet?.GetAll() is Dictionary<CurrencyType, float> d
@@ -87,6 +111,9 @@ public class RoundCurrencyWallet : ICurrencyWallet
         return map;
     }
 
+    /// <summary>
+    /// Clears the round-based fragments balance.
+    /// </summary>
     public void ClearRound()
     {
         Set(CurrencyType.Fragments, 0f);
