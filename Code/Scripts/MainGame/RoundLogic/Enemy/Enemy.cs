@@ -38,6 +38,8 @@ public class Enemy : MonoBehaviour
     [SerializeField] private EnemyType type; // Set in the prefab
     [SerializeField] private EnemySubtype subtype; // Set in the prefab
 
+    [SerializeField] private GameObject deathEffectPrefab; // Assign EnemyDeathEffect in Inspector
+
     public EnemyType Type => type; // Expose Type as a read-only property
     public EnemySubtype Subtype => subtype; // Expose Subtype as a read-only property
 
@@ -131,7 +133,59 @@ public class Enemy : MonoBehaviour
 
             EventManager.TriggerEvent(EventNames.EnemyDestroyed, enemyPayload);
             EventManager.TriggerEvent(EventNames.CurrencyEarned, currencyPayload);
-            Destroy(gameObject);
+            Die();
+        }
+    }
+
+    public void Die()
+    {
+        if (deathEffectPrefab != null)
+        {
+            GameObject effect = Instantiate(deathEffectPrefab, transform.position, Quaternion.identity);
+
+            var ps = effect.GetComponent<ParticleSystem>();
+            if (ps != null)
+            {
+                var main = ps.main;
+                main.startColor = Color.white; // fallback
+
+                // Emit for each currency type
+                EmitCurrencyParticles(ps, fragments, GetColorForCurrency(CurrencyType.Fragments));
+                EmitCurrencyParticles(ps, cores, GetColorForCurrency(CurrencyType.Cores));
+                EmitCurrencyParticles(ps, prisms, GetColorForCurrency(CurrencyType.Prisms));
+                EmitCurrencyParticles(ps, loops, GetColorForCurrency(CurrencyType.Loops));
+            }
+        }
+
+        Destroy(gameObject);
+    }
+
+    private void EmitCurrencyParticles(ParticleSystem ps, float amount, Color color)
+    {
+        if (amount > 0)
+        {
+            var emitParams = new ParticleSystem.EmitParams();
+            emitParams.startColor = color;
+            emitParams.startSize = 0.2f;
+
+            // Use logarithmic scaling and cap the max particles
+            int minParticles = 5;
+            int maxParticles = 30;
+            int particlesToEmit = Mathf.Clamp(Mathf.RoundToInt(Mathf.Log10(amount + 1) * 5), minParticles, maxParticles);
+
+            ps.Emit(emitParams, particlesToEmit);
+        }
+    }
+
+    private Color GetColorForCurrency(CurrencyType type)
+    {
+        switch (type)
+        {
+            case CurrencyType.Fragments: return Color.cyan;
+            case CurrencyType.Cores: return Color.yellow;
+            case CurrencyType.Prisms: return Color.magenta;
+            case CurrencyType.Loops: return Color.green;
+            default: return Color.white;
         }
     }
 

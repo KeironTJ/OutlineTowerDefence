@@ -11,12 +11,12 @@ GameObject:
   - component: {fileID: 6144321762093960639}
   - component: {fileID: 5298577608715944579}
   - component: {fileID: 7764929145050514648}
-  - component: {fileID: 6812287195921597885}
-  - component: {fileID: 6157140753299713342}
+  - component: {fileID: 5760449500963092330}
+  - component: {fileID: 4079095302408015799}
   m_Layer: 8
-  m_Name: BossEnemy
+  m_Name: SimpleEnemy
   m_TagString: Untagged
-  m_Icon: {fileID: -1412012063857583412, guid: 0000000000000000d000000000000000, type: 0}
+  m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -30,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 5.56, y: 5.84, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.4, y: 0.4, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -79,8 +79,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 2747690628134850419, guid: a9716c16a44a94eed9b5c90fbf4d9bdd, type: 3}
-  m_Color: {r: 0.6226415, g: 0, b: 0.549016, a: 1}
+  m_Sprite: {fileID: 7482667652216324306, guid: 75f5f34dc1b5347e0b8351032682f224, type: 3}
+  m_Color: {r: 1, g: 0, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -117,7 +117,7 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 0
---- !u!60 &6812287195921597885
+--- !u!60 &5760449500963092330
 PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -154,8 +154,8 @@ PolygonCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 0.8828125}
+    pivot: {x: 0.5, y: 0.28866667}
+    oldSize: {x: 1, y: 1}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -163,35 +163,11 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: 0.3671875, y: -0.26171875}
-      - {x: 0.39453125, y: -0.21484375}
-      - {x: 0.42578125, y: -0.16015625}
-      - {x: 0.484375, y: -0.05859375}
-      - {x: 0.5, y: -0.02734375}
-      - {x: 0.5, y: 0.03125}
-      - {x: 0.484375, y: 0.05859375}
-      - {x: 0.3671875, y: 0.26171875}
-      - {x: 0.265625, y: 0.4375}
-      - {x: 0.2578125, y: 0.44140625}
-      - {x: -0.2578125, y: 0.44140625}
-      - {x: -0.265625, y: 0.4375}
-      - {x: -0.29296875, y: 0.390625}
-      - {x: -0.30859375, y: 0.36328125}
-      - {x: -0.3671875, y: 0.26171875}
-      - {x: -0.39453125, y: 0.21484375}
-      - {x: -0.42578125, y: 0.16015625}
-      - {x: -0.5, y: 0.03125}
-      - {x: -0.5, y: -0.03125}
-      - {x: -0.484375, y: -0.05859375}
-      - {x: -0.41015625, y: -0.1875}
-      - {x: -0.265625, y: -0.4375}
-      - {x: -0.2578125, y: -0.44140625}
-      - {x: 0.2578125, y: -0.44140625}
-      - {x: 0.265625, y: -0.4375}
-      - {x: 0.29296875, y: -0.390625}
-      - {x: 0.30859375, y: -0.36328125}
+    - - {x: 0, y: 0.5773587}
+      - {x: -0.5, y: -0.28866667}
+      - {x: 0.5, y: -0.28866667}
   m_UseDelaunayMesh: 0
---- !u!114 &6157140753299713342
+--- !u!114 &4079095302408015799
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -204,13 +180,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rb: {fileID: 7764929145050514648}
-  health: 40
-  moveSpeed: 0.75
+  health: 2
+  moveSpeed: 1
   attackDamage: 1
   damageInterval: 1
-  fragments: 10
-  cores: 5
+  fragments: 1
+  cores: 0
   prisms: 0
   loops: 0
-  type: 2
+  type: 0
   subtype: 0
+  deathEffectPrefab: {fileID: 4495084802596646429, guid: 10fb575e932fcb54c8d75e89b9f916d4, type: 3}

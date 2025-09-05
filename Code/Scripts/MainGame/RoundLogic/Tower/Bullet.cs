@@ -7,34 +7,31 @@ public class Bullet : MonoBehaviour
     [Header("References")]
     [SerializeField] private Rigidbody2D rb; 
 
-    private Transform target;
+    private Vector2 moveDirection;
     private Tower tower;
-
     private float bulletSpeed;
     private float attackDamage;
 
-    public void SetTarget(Transform _target, Tower _tower) 
+    public void SetTarget(Transform target, Tower _tower) 
     {
-        target = _target;
         tower = _tower;
-    }
+        // Calculate direction once at spawn
+        moveDirection = (target.position - transform.position).normalized;
 
-    private void FixedUpdate()
-    {
-        if (!target)
-        {
-            Destroy(gameObject);
-            return;
-        }
+        // Set initial velocity
+        rb.linearVelocity = moveDirection * bulletSpeed;
 
-        Vector2 direction = (target.position - transform.position).normalized;
-
-        rb.linearVelocity = direction * bulletSpeed;
+        // Rotate bullet tip to face direction
+        float angle = Mathf.Atan2(moveDirection.y, moveDirection.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.AngleAxis(angle - 90f, Vector3.forward);
     }
 
     public void SetSpeed(float speed)
     {
         bulletSpeed = speed;
+        // If direction is already set, update velocity
+        if (moveDirection != Vector2.zero)
+            rb.linearVelocity = moveDirection * bulletSpeed;
     }
 
     public void SetDamage(float damage)
@@ -42,6 +39,18 @@ public class Bullet : MonoBehaviour
         attackDamage = damage;
     }
 
+    private void FixedUpdate()
+    {
+        rb.linearVelocity = moveDirection * bulletSpeed;
+
+        // Margin so the bullet is destroyed slightly outside the screen
+        float margin = 0.5f; 
+        Vector3 screenPos = Camera.main.WorldToViewportPoint(transform.position);
+        if (screenPos.x < -margin || screenPos.x > 1 + margin || screenPos.y < -margin || screenPos.y > 1 + margin)
+        {
+            Destroy(gameObject);
+        }
+    }
 
     private void OnCollisionEnter2D(Collision2D other)
     {
@@ -49,8 +58,8 @@ public class Bullet : MonoBehaviour
         if (enemy != null)
         {
             enemy.TakeDamage(attackDamage);
+            Destroy(gameObject);
         }
-        Destroy(gameObject);
     }
 
     private void OnBecameInvisible()

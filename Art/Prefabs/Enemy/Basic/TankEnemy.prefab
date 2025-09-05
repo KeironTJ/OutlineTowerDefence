@@ -186,3 +186,4 @@ MonoBehaviour:
   loops: 0
   type: 0
   subtype: 2
+  deathEffectPrefab: {fileID: 4495084802596646429, guid: 10fb575e932fcb54c8d75e89b9f916d4, type: 3}

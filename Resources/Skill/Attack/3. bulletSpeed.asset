@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Bullet Speed
   description: How quickly each bullet moves towards the enemy.
-  baseValue: 5
+  baseValue: 6
   level: 1
   maxLevel: 16
   upgradeModifier: 1
