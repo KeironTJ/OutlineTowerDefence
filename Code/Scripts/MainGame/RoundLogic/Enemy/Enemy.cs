@@ -147,7 +147,7 @@ public class Enemy : MonoBehaviour
             if (ps != null)
             {
                 var main = ps.main;
-                main.startColor = Color.white; // fallback
+                //main.startColor = Color.white; // fallback
 
                 // Emit for each currency type
                 EmitCurrencyParticles(ps, fragments, GetColorForCurrency(CurrencyType.Fragments));
@@ -165,8 +165,8 @@ public class Enemy : MonoBehaviour
         if (amount > 0)
         {
             var emitParams = new ParticleSystem.EmitParams();
-            emitParams.startColor = color;
-            emitParams.startSize = 0.2f;
+            emitParams.startSize = Random.Range(0.5f, 0.8f);
+            emitParams.startColor = new Color(color.r, color.g, color.b, Random.Range(0.7f, 1f));
 
             // Use logarithmic scaling and cap the max particles
             int minParticles = 5;

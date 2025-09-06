@@ -210,8 +210,8 @@ MonoBehaviour:
   damageInterval: 1
   fragments: 10
   cores: 5
-  prisms: 0
-  loops: 0
+  prisms: 2
+  loops: 0.5
   type: 2
   subtype: 0
   deathEffectPrefab: {fileID: 4495084802596646429, guid: 10fb575e932fcb54c8d75e89b9f916d4, type: 3}
