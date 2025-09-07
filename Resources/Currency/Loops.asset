@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Loops
   m_EditorClassIdentifier: 
   type: 3
-  icon: {fileID: -8835393102756497814, guid: bde3b8775e3f8e64eaf1d52b52a62ce6, type: 3}
+  icon: {fileID: 21300000, guid: bde3b8775e3f8e64eaf1d52b52a62ce6, type: 3}
   displayName: Loops

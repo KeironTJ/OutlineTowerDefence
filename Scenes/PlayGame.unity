@@ -168,12 +168,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
-    m_Left: 0
-    m_Right: 0
-    m_Top: 0
-    m_Bottom: 0
+    m_Left: 25
+    m_Right: 25
+    m_Top: 10
+    m_Bottom: 10
   m_ChildAlignment: 0
-  m_Spacing: 0
+  m_Spacing: 25
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
@@ -838,7 +838,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -869,7 +869,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 10, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -1648,7 +1648,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -1679,7 +1679,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 10, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -2140,12 +2140,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
-    m_Left: 0
-    m_Right: 0
-    m_Top: 0
-    m_Bottom: 0
+    m_Left: 25
+    m_Right: 25
+    m_Top: 10
+    m_Bottom: 10
   m_ChildAlignment: 0
-  m_Spacing: 0
+  m_Spacing: 25
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
@@ -2909,7 +2909,7 @@ PrefabInstance:
     - target: {fileID: 5025904462572561711, guid: 8df7aeb9ad1f21d4fac369c809161a69, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 7720221252521053381, guid: ff6d69b1a04317b4b92d6ab7513bf915, type: 3}
+      objectReference: {fileID: 21300000, guid: ff6d69b1a04317b4b92d6ab7513bf915, type: 3}
     - target: {fileID: 5553812899082549211, guid: 8df7aeb9ad1f21d4fac369c809161a69, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -3453,7 +3453,7 @@ PrefabInstance:
     - target: {fileID: 5025904462572561711, guid: 8df7aeb9ad1f21d4fac369c809161a69, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 2981842369143966943, guid: 1bfed32dbf94de44c89350203a6edbb4, type: 3}
+      objectReference: {fileID: 21300000, guid: 1bfed32dbf94de44c89350203a6edbb4, type: 3}
     - target: {fileID: 5553812899082549211, guid: 8df7aeb9ad1f21d4fac369c809161a69, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -3933,7 +3933,6 @@ GameObject:
   - component: {fileID: 1226402244}
   - component: {fileID: 1226402243}
   - component: {fileID: 1226402242}
-  - component: {fileID: 1226402241}
   m_Layer: 0
   m_Name: RoundManager
   m_TagString: Untagged
@@ -3941,22 +3940,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1226402241
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1226402240}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ae0de120a4e668444b118a1bed9b398a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  debugAttackSkills: []
-  debugDefenceSkills: []
-  debugSupportSkills: []
-  debugSpecialSkills: []
 --- !u!114 &1226402242
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4034,7 +4017,7 @@ MonoBehaviour:
   towerSpawner: {fileID: 1226402243}
   waveManager: {fileID: 1226402242}
   uiManager: {fileID: 1583948374}
-  skillManager: {fileID: 1226402241}
+  skillService: {fileID: 0}
   roundDifficulty: 0
   roundStartTime: 0
   roundEndTime: 0
@@ -4102,6 +4085,7 @@ MonoBehaviour:
   defenceToggleButton: {fileID: 923712757}
   supportToggleButton: {fileID: 415227136}
   specialToggleButton: {fileID: 2010419209}
+  skillService: {fileID: 0}
 --- !u!95 &1271751155
 Animator:
   serializedVersion: 7
@@ -4425,7 +4409,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -4456,7 +4440,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 10, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -4791,12 +4775,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
-    m_Left: 0
-    m_Right: 0
-    m_Top: 0
-    m_Bottom: 0
+    m_Left: 25
+    m_Right: 25
+    m_Top: 10
+    m_Bottom: 10
   m_ChildAlignment: 0
-  m_Spacing: 0
+  m_Spacing: 25
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
@@ -5468,8 +5452,8 @@ MonoBehaviour:
   sideMenu: {fileID: 1055747958}
   skillMenu: {fileID: 1271751153}
   roundManager: {fileID: 0}
-  skillManager: {fileID: 0}
   playerManager: {fileID: 0}
+  skillService: {fileID: 0}
   shopMenu: {fileID: 0}
   difficultyNumberUI: {fileID: 624772498}
   waveNumberUI: {fileID: 613151151}
@@ -5488,6 +5472,7 @@ MonoBehaviour:
   loopsUI: {fileID: 1973312435}
   hudRoundStatsView: {fileID: 602895493}
   roundStatsPanel: {fileID: 602895488}
+  attackDamageSkillId: Attack Damage
 --- !u!114 &1583948375
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7278,7 +7263,7 @@ PrefabInstance:
     - target: {fileID: 5025904462572561711, guid: 8df7aeb9ad1f21d4fac369c809161a69, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: -8835393102756497814, guid: bde3b8775e3f8e64eaf1d52b52a62ce6, type: 3}
+      objectReference: {fileID: 21300000, guid: bde3b8775e3f8e64eaf1d52b52a62ce6, type: 3}
     - target: {fileID: 5553812899082549211, guid: 8df7aeb9ad1f21d4fac369c809161a69, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -7742,12 +7727,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
-    m_Left: 0
-    m_Right: 0
-    m_Top: 0
-    m_Bottom: 0
-  m_ChildAlignment: 1
-  m_Spacing: 0
+    m_Left: 25
+    m_Right: 25
+    m_Top: 10
+    m_Bottom: 10
+  m_ChildAlignment: 0
+  m_Spacing: 25
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
@@ -7798,7 +7783,7 @@ PrefabInstance:
     - target: {fileID: 5025904462572561711, guid: 8df7aeb9ad1f21d4fac369c809161a69, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 2172539346515750764, guid: 65cfa864fbe8ebf4b82a0748d7ac3439, type: 3}
+      objectReference: {fileID: 21300000, guid: 65cfa864fbe8ebf4b82a0748d7ac3439, type: 3}
     - target: {fileID: 5553812899082549211, guid: 8df7aeb9ad1f21d4fac369c809161a69, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -8050,7 +8035,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -8081,7 +8066,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 10, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0

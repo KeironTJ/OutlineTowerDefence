@@ -1,7 +1,8 @@
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
+[RequireComponent(typeof(LineRenderer))]   // Ensure a LineRenderer is always present
 public class Tower : MonoBehaviour
 {
     [Header("References")]
@@ -16,6 +17,14 @@ public class Tower : MonoBehaviour
     [SerializeField] private bool isHealing = false;
     [SerializeField] private bool towerAlive = true;
 
+    [Header("Skill Ids")]
+    [SerializeField] private string healthSkillId = "Health";
+    [SerializeField] private string healSpeedSkillId = "Heal Speed";
+    [SerializeField] private string attackDamageSkillId = "Attack Damage";
+    [SerializeField] private string bulletSpeedSkillId = "Bullet Speed";
+    [SerializeField] private string targetingRangeSkillId = "Targeting Range";
+    [SerializeField] private string attackSpeedSkillId = "Attack Speed";
+
     // Events
     public event System.Action<float, float> HealthChanged; // (current,max)
     public event System.Action TowerDestroyed;
@@ -27,22 +36,53 @@ public class Tower : MonoBehaviour
     // Coroutines
     private Coroutine healingCoroutine;
 
-    // Managers
+    // Managers / Services
     private RoundManager roundManager;
     private EnemySpawner enemySpawner;
-    private SkillManager skillManager;
     private UIManager uiManager;
+    private SkillService skillService;
 
     // Cached visuals
-    private LineRenderer rangeRenderer; 
-    private Material rangeMaterial;    
-    private const int rangeSegments = 50;  
-    private float lastRange = -1f;    
+    private LineRenderer rangeRenderer;
+    private Material rangeMaterial;
+    private const int rangeSegments = 50;
+    private float lastRange = -1f;
 
     private float lastKnownMaxHealth = 0f;
 
-    
-    // GAME SEQUENCE
+    public float GetCurrentHealth() => currentHealth;
+    public float MaxHealth => GetMaxHealth();  
+    public void ForceHealthEvent() => InvokeHealthChanged();
+
+    private void Awake()
+    {
+        EnsureRangeRendererConfigured();
+    }
+
+    private void OnEnable()
+    {
+        if (SkillService.Instance != null)
+            SkillService.Instance.SkillUpgraded += OnSkillUpgraded;
+        EnsureRangeRendererConfigured();
+    }
+
+    private void OnDisable()
+    {
+        if (SkillService.Instance != null)
+            SkillService.Instance.SkillUpgraded -= OnSkillUpgraded;
+    }
+
+    public void Initialize(RoundManager roundManager, EnemySpawner enemySpawner, UIManager uiManager)
+    {
+        this.roundManager = roundManager;
+        this.enemySpawner = enemySpawner;
+        this.uiManager = uiManager;
+        skillService = SkillService.Instance;
+
+        lastKnownMaxHealth = GetMaxHealth();
+        currentHealth = lastKnownMaxHealth;
+        InvokeHealthChanged();
+    }
 
     private void Update()
     {
@@ -53,47 +93,18 @@ public class Tower : MonoBehaviour
         ManageHealth();
     }
 
-    private void OnEnable()
+    // --- Skill Helpers ---
+    private float GetSkillValue(string id)
     {
-        EventManager.StartListening(EventNames.SkillUpgraded, OnSkillUpgraded);
+        return (skillService != null) ? skillService.GetValue(id) : 0f;
     }
 
-    private void OnDisable()
-    {
-        EventManager.StopListening(EventNames.SkillUpgraded, OnSkillUpgraded);
-    }
-
-       
-
-    public void Initialize(RoundManager roundManager, EnemySpawner enemySpawner, SkillManager skillManager, UIManager uiManager)
-    {
-        this.roundManager = roundManager;
-        this.enemySpawner = enemySpawner;
-        this.skillManager = skillManager;
-        this.uiManager = uiManager;
-
-        if (skillManager != null)
-        {
-            lastKnownMaxHealth = GetMaxHealth();
-            currentHealth = lastKnownMaxHealth;
-            InvokeHealthChanged();
-        }
-        else
-        {
-            Debug.LogError("SkillManager not found during initialization!");
-        }
-    }
-
-    // Helper: single source of truth for max health
     private float GetMaxHealth()
     {
-        // prefer skillManager (should be set in Initialize)
-        if (skillManager != null)
-            return skillManager.GetSkillValue(skillManager.GetSkill("Health"));
-        return currentHealth;
+        return Mathf.Max(1f, GetSkillValue(healthSkillId));
     }
 
-    // Make intent explicit: this adds a delta to current health and clamps
+    // --- Health Management ---
     public void AddHealth(float delta)
     {
         float max = GetMaxHealth();
@@ -101,7 +112,6 @@ public class Tower : MonoBehaviour
         InvokeHealthChanged();
     }
 
-    // If you need an absolute setter, expose it explicitly
     public void SetHealthAbsolute(float value)
     {
         float max = GetMaxHealth();
@@ -109,217 +119,212 @@ public class Tower : MonoBehaviour
         InvokeHealthChanged();
     }
 
-    // Called when the maximum health value changes (e.g. upgrade)
-    // Preserve the current percentage of health by default.
     public void OnMaxHealthChanged()
     {
         float newMax = GetMaxHealth();
-
-        // If we never recorded a last known max, initialize and don't attempt to scale.
         if (lastKnownMaxHealth <= 0f)
         {
             lastKnownMaxHealth = newMax;
-            // Optionally, keep currentHealth as-is or set to full:
-            // currentHealth = newMax;
             InvokeHealthChanged();
             return;
         }
-
-        // Preserve current percentage relative to previous max
-        float pct = (lastKnownMaxHealth > 0f) ? currentHealth / lastKnownMaxHealth : 1f;
+        float pct = currentHealth / lastKnownMaxHealth;
         currentHealth = Mathf.Clamp(newMax * pct, 0f, newMax);
         lastKnownMaxHealth = newMax;
         InvokeHealthChanged();
     }
 
-    private void OnSkillUpgraded(object eventData)
+    private void OnSkillUpgraded(string skillId)
     {
-        // SkillManager currently sends the Skill instance as payload
-        var skill = eventData as Skill;
-        if (skill == null) return;
-
-        if (skill.skillName == "Health")
-        {
-            // Recompute max and preserve percentage
+        if (skillId == healthSkillId)
             OnMaxHealthChanged();
-        }
     }
 
+    private void InvokeHealthChanged()
+    {
+        float max = GetMaxHealth();
+        HealthChanged?.Invoke(currentHealth, max);
+    }
 
-    // Track last known max so upgrades can compute percentage
-
-
-    // Shooting / Targeting
-
+    // --- Shooting / Targeting ---
     public void ActivateShooting()
     {
-        HandleTargeting(); // Encapsulated targeting logic
-
-        if (target == null)
-        {
-            return; // Exit if no target is found
-        }
-
-        if (CanShoot())
-        {
-            Shoot();
-        }
+        HandleTargeting();
+        if (target == null) return;
+        if (CanShoot()) Shoot();
     }
 
-    // Tower Actions
+    private bool CanShoot()
+    {
+        float attackSpeed = Mathf.Max(0.0001f, GetSkillValue(attackSpeedSkillId));
+        float fireInterval = 1f / attackSpeed;
 
+        timeUntilFire += Time.deltaTime;
+        if (timeUntilFire >= fireInterval)
+        {
+            timeUntilFire -= fireInterval;
+            return true;
+        }
+        return false;
+    }
 
     private void Shoot()
     {
-        if (bulletPrefab == null || firingPoint == null || target == null) return; 
+        if (!bulletPrefab || !firingPoint || !target) return;
 
         GameObject bulletObj = Instantiate(bulletPrefab, firingPoint.position, Quaternion.identity);
         Bullet bulletScript = bulletObj.GetComponent<Bullet>();
-        bulletScript.SetTarget(target, this);
-        bulletScript.SetSpeed(skillManager.GetSkillValue(skillManager.GetSkill("Bullet Speed")));
-        bulletScript.SetDamage(skillManager.GetSkillValue(skillManager.GetSkill("Attack Damage")));
+        if (bulletScript)
+        {
+            bulletScript.SetTarget(target, this);
+            bulletScript.SetSpeed(GetSkillValue(bulletSpeedSkillId));
+            bulletScript.SetDamage(GetSkillValue(attackDamageSkillId));
+        }
 
         EventManager.TriggerEvent(EventNames.BulletFired, bulletScript);
     }
 
+    private void HandleTargeting()
+    {
+        FindTarget();
+        if (target == null || !CheckTargetIsInRange())
+        {
+            target = null;
+            return;
+        }
+        RotateTowardsTarget();
+    }
+
     private void FindTarget()
     {
-        RaycastHit2D[] hits = Physics2D.CircleCastAll(transform.position, skillManager.GetSkillValue(skillManager.GetSkill("Targeting Range")), Vector2.zero, 0f, enemyMask);
+        float range = GetSkillValue(targetingRangeSkillId);
+        if (range <= 0f) { target = null; return; }
 
-        float closestDistance = Mathf.Infinity;
-        Transform closestTarget = null;
+        RaycastHit2D[] hits = Physics2D.CircleCastAll(transform.position, range, Vector2.zero, 0f, enemyMask);
+        float closest = float.PositiveInfinity;
+        Transform best = null;
 
         foreach (var hit in hits)
         {
-            float distance = Vector2.Distance(hit.transform.position, transform.position);
-            if (distance < closestDistance)
+            float dist = Vector2.Distance(hit.transform.position, transform.position);
+            if (dist < closest)
             {
-                closestDistance = distance;
-                closestTarget = hit.transform;
+                closest = dist;
+                best = hit.transform;
             }
         }
 
-        if (closestTarget != null && closestDistance <= skillManager.GetSkillValue(skillManager.GetSkill("Targeting Range")))
-        {
-            target = closestTarget;
-        }
+        if (best != null && closest <= range)
+            target = best;
         else
-        {
             target = null;
-        }
     }
 
     private bool CheckTargetIsInRange()
     {
-        return target != null && Vector2.Distance(target.position, transform.position) <= skillManager.GetSkillValue(skillManager.GetSkill("Targeting Range"));
+        return target && Vector2.Distance(target.position, transform.position) <= GetSkillValue(targetingRangeSkillId);
     }
 
     private void RotateTowardsTarget()
     {
-        if (target == null) return;
+        if (!target) return;
+        float angle = Mathf.Atan2(target.position.y - transform.position.y,
+                                  target.position.x - transform.position.x) * Mathf.Rad2Deg - 90f;
+        Quaternion targetRot = Quaternion.Euler(0f, 0f, angle);
+        turretRotationPoint.rotation = Quaternion.RotateTowards(
+            turretRotationPoint.rotation, targetRot, baseRotationSpeed * Time.deltaTime);
+    }
 
-        float angle = Mathf.Atan2(target.position.y - transform.position.y, target.position.x - transform.position.x) * Mathf.Rad2Deg - 90f;
-        Quaternion targetRotation = Quaternion.Euler(new Vector3(0f, 0f, angle));
-        turretRotationPoint.rotation = Quaternion.RotateTowards(turretRotationPoint.rotation, targetRotation, baseRotationSpeed * Time.deltaTime);
+    // --- RANGE RENDERER SETUP ---
+    private void EnsureRangeRendererConfigured()
+    {
+        if (rangeRenderer == null)
+        {
+            if (!TryGetComponent(out rangeRenderer))
+                rangeRenderer = gameObject.AddComponent<LineRenderer>(); // fallback (should not happen due to RequireComponent)
+        }
+
+        // If somehow still missing, bail safely
+        if (rangeRenderer == null) return;
+
+        rangeRenderer.enabled = true;
+        rangeRenderer.loop = true;
+        rangeRenderer.useWorldSpace = false;
+        rangeRenderer.startWidth = 0.05f;
+        rangeRenderer.endWidth = 0.05f;
+        rangeRenderer.positionCount = rangeSegments;
+        rangeRenderer.startColor = rangeRenderer.endColor = Color.cyan;
+
+        if (rangeMaterial == null)
+            rangeMaterial = new Material(Shader.Find("Sprites/Default"));
+        rangeRenderer.material = rangeMaterial;
     }
 
     private void DrawTargetingRange()
     {
-        // update only when range changes
-        if (rangeRenderer == null)
-        {
-            rangeRenderer = GetComponent<LineRenderer>();
-            if (rangeRenderer == null)
-            {
-                rangeRenderer = gameObject.AddComponent<LineRenderer>();
-                rangeRenderer.startWidth = 0.05f;
-                rangeRenderer.endWidth = 0.05f;
-                rangeRenderer.positionCount = rangeSegments;
-                rangeRenderer.loop = true;
-                rangeRenderer.useWorldSpace = false;
-                rangeRenderer.startColor = Color.cyan;
-                rangeRenderer.endColor = Color.cyan;
-                // Cache material once
-                rangeMaterial = new Material(Shader.Find("Sprites/Default"));
-                rangeRenderer.material = rangeMaterial;
-            }
-        }
+        // Ensure configured (handles cases where component was removed at runtime)
+        EnsureRangeRendererConfigured();
+        if (rangeRenderer == null) return;
 
-        float range = skillManager != null ? skillManager.GetSkillValue(skillManager.GetSkill("Targeting Range")) : 0f;
-        if (Mathf.Approximately(range, lastRange)) return; // only recompute when changed
+        float range = GetSkillValue(targetingRangeSkillId);
+        if (Mathf.Approximately(range, lastRange)) return;
         lastRange = range;
 
-        float angle = 0f;
+        if (range <= 0f)
+        {
+            rangeRenderer.enabled = false;
+            return;
+        }
+
+        rangeRenderer.enabled = true;
         float step = 360f / rangeSegments;
         for (int i = 0; i < rangeSegments; i++)
         {
-            float rad = Mathf.Deg2Rad * angle;
-            float x = Mathf.Sin(rad) * range;
-            float y = Mathf.Cos(rad) * range;
-            rangeRenderer.SetPosition(i, new Vector3(x, y, 0));
-            angle += step;
+            float ang = Mathf.Deg2Rad * (i * step);
+            float x = Mathf.Sin(ang) * range;
+            float y = Mathf.Cos(ang) * range;
+            rangeRenderer.SetPosition(i, new Vector3(x, y, 0f));
         }
     }
 
-    // Health Management
-
-    private void InvokeHealthChanged()
-    {
-        float maxHealth = (skillManager != null)
-            ? skillManager.GetSkillValue(skillManager.GetSkill("Health"))
-            : currentHealth;
-        HealthChanged?.Invoke(currentHealth, maxHealth);
-    }
-
-    public float GetCurrentHealth()
-    {
-        return currentHealth;
-    }
-
-    // Healing coroutine
+    // --- Healing ---
     private IEnumerator HealCurrentHealth()
     {
         isHealing = true;
-        healingCoroutine = null; // will be set at start by caller
+        healingCoroutine = null;
 
         while (towerAlive && currentHealth < GetMaxHealth())
         {
-            float maxHealth = GetMaxHealth(); // recalc each frame
-            float healSpeed = skillManager != null ? skillManager.GetSkillValue(skillManager.GetSkill("Heal Speed")) : 0f;
-            float healAmount = healSpeed * Time.deltaTime;
-            currentHealth = Mathf.Min(currentHealth + healAmount, maxHealth);
+            float healSpeed = GetSkillValue(healSpeedSkillId);
+            if (healSpeed <= 0f) break;
+            currentHealth = Mathf.Min(currentHealth + healSpeed * Time.deltaTime, GetMaxHealth());
             InvokeHealthChanged();
             yield return null;
         }
 
-        // finished
         isHealing = false;
         healingCoroutine = null;
     }
 
-    void StartHealing()
+    private void StartHealing()
     {
-        if (!towerAlive) return;
-        if (isHealing || healingCoroutine != null) return;
+        if (!towerAlive || isHealing || healingCoroutine != null) return;
         healingCoroutine = StartCoroutine(HealCurrentHealth());
     }
 
     private void StopHealing()
     {
         if (healingCoroutine != null)
-        {
             StopCoroutine(healingCoroutine);
-            healingCoroutine = null;
-        }
+        healingCoroutine = null;
         isHealing = false;
     }
 
-    // TakeDamage uses AddHealth with negative delta and invokes change
-    public void TakeDamage(float attackDamage)
+    // --- Damage / Death ---
+    public void TakeDamage(float dmg)
     {
-        if (attackDamage <= 0f || !towerAlive) return;
-        AddHealth(-attackDamage);
-
+        if (dmg <= 0f || !towerAlive) return;
+        AddHealth(-dmg);
         if (currentHealth <= 0f)
         {
             currentHealth = 0f;
@@ -330,55 +335,24 @@ public class Tower : MonoBehaviour
 
     public void OnTowerDestroyed()
     {
-        if (!towerAlive) return;   
-
+        if (!towerAlive) return;
         towerAlive = false;
         StopHealing();
-        InvokeHealthChanged();      
+        InvokeHealthChanged();
         TowerDestroyed?.Invoke();
-
-        enabled = false;      // stop Update loop
+        enabled = false;
     }
 
     private void ManageHealth()
     {
-        if (currentHealth <= 0 && towerAlive)
+        if (currentHealth <= 0f && towerAlive)
         {
-            currentHealth = 0;
+            currentHealth = 0f;
             OnTowerDestroyed();
-        }
-
-        if (currentHealth < skillManager.GetSkillValue(skillManager.GetSkill("Health")) && towerAlive)
-        {
-            StartHealing();
-        }
-    }
-
-    private bool CanShoot()
-    {
-        float fireInterval = 1f / skillManager.GetSkillValue(skillManager.GetSkill("Attack Speed"));
-        timeUntilFire += Time.deltaTime;
-
-        if (timeUntilFire >= fireInterval)
-        {
-            timeUntilFire -= fireInterval; // Keeps ready to fire
-            return true;
-        }
-
-        return false;
-    }
-
-    private void HandleTargeting()
-    {
-        FindTarget(); // Find the closest target
-
-        if (target == null || !CheckTargetIsInRange())
-        {
-            target = null; // Clear target if not in range
             return;
         }
 
-        RotateTowardsTarget(); // Rotate towards the target
+        if (currentHealth < GetMaxHealth() && towerAlive)
+            StartHealing();
     }
-
 }

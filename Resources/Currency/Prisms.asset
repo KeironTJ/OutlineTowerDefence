@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Prisms
   m_EditorClassIdentifier: 
   type: 2
-  icon: {fileID: 2172539346515750764, guid: 65cfa864fbe8ebf4b82a0748d7ac3439, type: 3}
+  icon: {fileID: 21300000, guid: 65cfa864fbe8ebf4b82a0748d7ac3439, type: 3}
   displayName: Prisms

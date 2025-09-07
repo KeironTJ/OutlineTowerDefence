@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Cores
   m_EditorClassIdentifier: 
   type: 1
-  icon: {fileID: 7720221252521053381, guid: ff6d69b1a04317b4b92d6ab7513bf915, type: 3}
+  icon: {fileID: 21300000, guid: ff6d69b1a04317b4b92d6ab7513bf915, type: 3}
   displayName: Cores

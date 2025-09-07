@@ -1,14 +1,12 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
-using System;
 
 public class MainMenuUIManager : MonoBehaviour
 {
-
     [Header("Main Menu Header Reference")]
     [SerializeField] private CurrencyDisplayUI coresUI;
     [SerializeField] private CurrencyDisplayUI prismsUI;
@@ -17,14 +15,13 @@ public class MainMenuUIManager : MonoBehaviour
     [SerializeField] private CurrencyDefinition prismsDef;
     [SerializeField] private CurrencyDefinition loopsDef;
 
-
     [Header("Player Information")]
     [SerializeField] private TextMeshProUGUI playerUsernameText;
 
     [Header("Change Username Section")]
     [SerializeField] private GameObject changeUsernamePanel;
     [SerializeField] private TMP_InputField changeUsernameInputField;
-    [SerializeField] private TextMeshProUGUI changeUsernameErrorText; 
+    [SerializeField] private TextMeshProUGUI changeUsernameErrorText;
     [SerializeField] private Button changeUsernameButton;
 
     [Header("Difficulty")]
@@ -35,168 +32,147 @@ public class MainMenuUIManager : MonoBehaviour
     [SerializeField] private int chosenDifficulty = 1;
     [SerializeField] private int highestWave;
 
-    // Tower Visual Selection
     [Header("Tower Visual")]
     [SerializeField] private Image towerVisualImage;
 
-
-    [Header("Upgrade Screen References")]
-    // Screens
+    [Header("Upgrade Screen References (Category Roots)")]
     [SerializeField] private Transform attackUpgradesScreen;
     [SerializeField] private Transform DefenceUpgradesScreen;
     [SerializeField] private Transform SupportUpgradesScreen;
     [SerializeField] private Transform SpecialUpgradesScreen;
 
-    // Buttons
+    [Header("Category Buttons (Tabs)")]
     [SerializeField] private GameObject attackUpgradesButton;
     [SerializeField] private GameObject defenceUpgradesButton;
     [SerializeField] private GameObject supportUpgradesButton;
     [SerializeField] private GameObject specialUpgradesButton;
 
-    [SerializeField] private GameObject upgradeButtonPrefab;
+    [Header("Prefabs / UI")]
+    [SerializeField] private GameObject upgradeButtonPrefab; // must have / or will receive MenuSkill
 
-    [Header("Main Menu Footer")]
-    // SCREENS
+    [Header("Main Menu Footer Screens")]
     [SerializeField] private GameObject mainScreenUI;
     [SerializeField] private GameObject upgradeScreenUI;
     [SerializeField] private GameObject rewardScreenUI;
     [SerializeField] private GameObject researchScreenUI;
     [SerializeField] private GameObject settingsScreenUI;
 
-    // SCREEN BUTTONS
+    [Header("Main Menu Footer Buttons")]
     [SerializeField] private GameObject mainButton;
     [SerializeField] private GameObject upgradeButton;
     [SerializeField] private GameObject rewardButton;
     [SerializeField] private GameObject researchButton;
     [SerializeField] private GameObject settingsButton;
 
+    [Header("Services")]
+    [SerializeField] private SkillService skillService;
 
     private PlayerManager playerManager;
-
     private int minDifficultyLevel = 1;
     private int maxDifficultyLevel;
 
     private void Start()
     {
         playerManager = PlayerManager.main;
-        DisplayPlayerUsername();
+        if (!skillService) skillService = SkillService.Instance;
 
+        DisplayPlayerUsername();
         DisplayCurrency();
 
         if (playerManager?.Wallet != null)
-        {
             playerManager.Wallet.BalanceChanged += OnBalanceChanged;
-        }
+
+        // (MenuSkill instances will self-refresh on SkillUpgraded; we don't need to track entries)
+        SelectScreen(ScreenType.Main);
 
         SetPlayerMaxDifficulty(playerManager.GetMaxDifficulty());
-        SetPlayerDifficulty(1); // In future can customize this to suit player last chosen level
-        SelectScreen(ScreenType.Main);
-        InitializeShop();
+        SetPlayerDifficulty(1);
+        InitializeMetaUpgradeShop();
         TriggerDifficultyButtons();
         ToggleCategory(attackUpgradesScreen);
-        // Load and display the selected tower visual image
         SetTowerVisualImage();
-
     }
-
-    // Sets the tower image in the start menu to the selected tower visual
 
     private void OnDestroy()
     {
         if (playerManager?.Wallet != null)
-        {
             playerManager.Wallet.BalanceChanged -= OnBalanceChanged;
-        }
     }
 
-    // HEADER METHODS
-
+    // ================= CURRENCY / HEADER =================
     private void OnBalanceChanged(CurrencyType type, float _)
     {
         if (type == CurrencyType.Cores || type == CurrencyType.Prisms || type == CurrencyType.Loops)
-        {
             DisplayCurrency();
-        }
     }
 
     public void DisplayCurrency()
     {
+        if (playerManager?.Wallet == null) return;
         coresUI.SetCurrency(coresDef, playerManager.Wallet.Get(CurrencyType.Cores));
         prismsUI.SetCurrency(prismsDef, playerManager.Wallet.Get(CurrencyType.Prisms));
         loopsUI.SetCurrency(loopsDef, playerManager.Wallet.Get(CurrencyType.Loops));
     }
 
-    // PLAYER INFORMATION METHODS
+    // ================= PLAYER / USERNAME =================
     public void DisplayPlayerUsername()
     {
-        playerUsernameText.text = playerManager.playerData.Username;
+        if (playerUsernameText && playerManager?.playerData != null)
+            playerUsernameText.text = playerManager.playerData.Username;
     }
 
-    public void SetTowerVisualImage()
-    {
-        if (towerVisualImage == null) return;
-        var selectedId = playerManager.playerData.selectedTowerVisualId;
-        var visuals = TowerVisualManager.Instance.allVisuals;
-        foreach (var visual in visuals)
-        {
-            if (visual.id == selectedId)
-            {
-                towerVisualImage.sprite = visual.previewSprite;
-                break;
-            }
-        }
-    }
-
-    // Change Username Methods
     public void OpenChangeUsernamePanel()
     {
         changeUsernameInputField.text = playerManager.playerData.Username;
         changeUsernamePanel.SetActive(true);
     }
-
     public void CloseChangeUsernamePanel()
     {
         changeUsernamePanel.SetActive(false);
-        changeUsernameErrorText.text = ""; // Clear any previous error messages
-        changeUsernameInputField.text = ""; // Clear the input field
+        changeUsernameErrorText.text = "";
+        changeUsernameInputField.text = "";
     }
-
     public void ChangeUsername()
     {
         string newUsername = changeUsernameInputField.text.Trim();
-        if (!string.IsNullOrEmpty(newUsername))
-        {
-            if (playerManager.UpdateUsername(newUsername))
-            {
-                changeUsernameErrorText.text = ""; // Clear any previous error messages
-                DisplayPlayerUsername();
-                CloseChangeUsernamePanel();
-            }
-            else
-            {
-                changeUsernameErrorText.text = "Failed to update username. It may already be taken.";
-            }
-
-        }
-        else
+        if (string.IsNullOrEmpty(newUsername))
         {
             changeUsernameErrorText.text = "Username cannot be empty.";
+            return;
+        }
+        if (playerManager.UpdateUsername(newUsername))
+        {
+            changeUsernameErrorText.text = "";
+            DisplayPlayerUsername();
+            CloseChangeUsernamePanel();
+        }
+        else
+            changeUsernameErrorText.text = "Failed to update username.";
+    }
+
+    // ================= TOWER VISUAL =================
+    public void SetTowerVisualImage()
+    {
+        if (!towerVisualImage || playerManager?.playerData == null) return;
+        var selectedId = playerManager.playerData.selectedTowerVisualId;
+        var visuals = TowerVisualManager.Instance.allVisuals;
+        foreach (var v in visuals)
+        {
+            if (v.id == selectedId)
+            {
+                towerVisualImage.sprite = v.previewSprite;
+                break;
+            }
         }
     }
 
-    // PLAY SCREEN METHODS
-
-    public void DisplayDifficulty()
-    {
-        difficultySelectionUI.text = chosenDifficulty.ToString();
-    }
-
+    // ================= DIFFICULTY =================
+    public void DisplayDifficulty() => difficultySelectionUI.text = chosenDifficulty.ToString();
     public void DisplayHighestWave()
     {
         highestWave = playerManager.GetHighestWave(chosenDifficulty);
-        highestWaveUI.text = $"Best Wave: {highestWave.ToString()}";
+        highestWaveUI.text = $"Best Wave: {highestWave}";
     }
-
     public void TriggerDifficultyButtons()
     {
         lowerDifficultyButton.gameObject.SetActive(chosenDifficulty > minDifficultyLevel);
@@ -205,59 +181,39 @@ public class MainMenuUIManager : MonoBehaviour
         SetPlayerHighestWave(chosenDifficulty);
         DisplayDifficulty();
         DisplayHighestWave();
-        Debug.Log($"Difficulty set to: {chosenDifficulty}, Highest Wave: {highestWave}");
     }
-
     public void LowerPlayerDifficulty()
     {
-        if (chosenDifficulty > minDifficultyLevel)
-        {
-            chosenDifficulty--;
-            TriggerDifficultyButtons();
-        }
+        if (chosenDifficulty <= minDifficultyLevel) return;
+        chosenDifficulty--;
+        TriggerDifficultyButtons();
     }
-
-    public void SetPlayerDifficulty(int difficulty)
-    {
-        chosenDifficulty = difficulty;
-        playerManager.SetDifficulty(chosenDifficulty);
-    }
-
-    public void SetPlayerMaxDifficulty(int maxDifficulty)
-    {
-        maxDifficultyLevel = maxDifficulty;
-    }
-
-    public void SetPlayerHighestWave(int difficulty)
-    {
-        highestWave = playerManager.GetHighestWave(difficulty);
-    }
-
     public void IncreasePlayerDifficulty()
     {
-        if (chosenDifficulty < maxDifficultyLevel)
-        {
-            chosenDifficulty++;
-            TriggerDifficultyButtons();
-        }
+        if (chosenDifficulty >= maxDifficultyLevel) return;
+        chosenDifficulty++;
+        TriggerDifficultyButtons();
     }
-
-    // THIS METHOFS STARTS A NEW ROUND !!
-    public void ChooseScene(string sceneName)
+    public void SetPlayerDifficulty(int d)
     {
-        SaveManager.main?.QueueImmediateSave();
-        SceneManager.LoadScene(sceneName);
+        chosenDifficulty = d;
+        playerManager.SetDifficulty(chosenDifficulty);
     }
+    public void SetPlayerMaxDifficulty(int maxDifficulty) => maxDifficultyLevel = maxDifficulty;
+    public void SetPlayerHighestWave(int difficulty) => highestWave = playerManager.GetHighestWave(difficulty);
 
-
-    // UPGRADE SHOP MEHTODS
-
-    private void InitializeShop()
+    // ================= META UPGRADE SHOP (Cores) =================
+    private void InitializeMetaUpgradeShop()
     {
-        CreateSkillsButtons(playerManager.attackSkills, attackUpgradesScreen);
-        CreateSkillsButtons(playerManager.defenceSkills, DefenceUpgradesScreen);
-        CreateSkillsButtons(playerManager.supportSkills, SupportUpgradesScreen);
-        CreateSkillsButtons(playerManager.specialSkills, SpecialUpgradesScreen);
+        ClearGrid(attackUpgradesScreen);
+        ClearGrid(DefenceUpgradesScreen);
+        ClearGrid(SupportUpgradesScreen);
+        ClearGrid(SpecialUpgradesScreen);
+
+        BuildButtonsForCategory(SkillCategory.Attack, attackUpgradesScreen);
+        BuildButtonsForCategory(SkillCategory.Defence, DefenceUpgradesScreen);
+        BuildButtonsForCategory(SkillCategory.Support, SupportUpgradesScreen);
+        BuildButtonsForCategory(SkillCategory.Special, SpecialUpgradesScreen);
 
         attackUpgradesScreen.gameObject.SetActive(true);
         DefenceUpgradesScreen.gameObject.SetActive(false);
@@ -265,99 +221,79 @@ public class MainMenuUIManager : MonoBehaviour
         SpecialUpgradesScreen.gameObject.SetActive(false);
     }
 
-
-    private void CreateSkillsButtons(Dictionary<string, Skill> skills, Transform parent)
+    private void ClearGrid(Transform root)
     {
-        foreach (var skill in skills.Values)
-        {
-            if (skill.skillActive && skill.playerSkillUnlocked)
-            {
-                GameObject button = Instantiate(upgradeButtonPrefab, parent);
-                Button buttonComponent = button.GetComponent<Button>();
-                UpdateButtonText(skill, buttonComponent);
-
-                buttonComponent.onClick.AddListener(() => OnSkillButtonClicked(skill, buttonComponent));
-            }
-        }
+        if (!root) return;
+        for (int i = root.childCount - 1; i >= 0; i--)
+            Destroy(root.GetChild(i).gameObject);
     }
 
+    private int BuildButtonsForCategory(SkillCategory category, Transform root)
+    {
+        if (!root || !skillService || playerManager == null) return 0;
+        int built = 0;
+
+        foreach (var def in skillService.GetByCategory(category))
+        {
+            if (!def) continue;
+
+            var go = Instantiate(upgradeButtonPrefab, root);
+            if (!go) continue;
+
+            var btn = go.GetComponent<Button>();
+            if (!btn)
+            {
+                Debug.LogError("Upgrade button prefab missing Button component.");
+                Destroy(go);
+                continue;
+            }
+
+            // Attach / fetch MenuSkill (shared component with in-round menu)
+            var menuSkill = go.GetComponent<MenuSkill>() ?? go.AddComponent<MenuSkill>();
+            // inRound = false => uses cores, meta progression
+            menuSkill.Bind(def.id, playerManager.Wallet, false);
+
+            // Button wiring: just forward to MenuSkill (it handles TryUpgradePersistent internally)
+            btn.onClick.RemoveAllListeners();
+            btn.onClick.AddListener(menuSkill.OnClickUpgrade);
+
+            built++;
+        }
+
+        return built;
+    }
+
+    // ================= CATEGORY TOGGLING =================
     public void ToggleCategory(Transform categoryParent)
     {
-        // FIRST HIDE ALL SCREENS (Reset)
         attackUpgradesScreen.gameObject.SetActive(false);
         DefenceUpgradesScreen.gameObject.SetActive(false);
         SupportUpgradesScreen.gameObject.SetActive(false);
         SpecialUpgradesScreen.gameObject.SetActive(false);
 
-        // SHOW THE REQUIRED SCREEN ONLY
         categoryParent.gameObject.SetActive(true);
         SetCategoryButtonColours(categoryParent);
-
     }
 
     public void SetCategoryButtonColours(Transform categoryParent)
     {
-        ChangeButtonColor(attackUpgradesButton, new Color(0, 0, 0.5f, 1f)); // Blue with 50% opacity
-        ChangeButtonColor(defenceUpgradesButton, new Color(0, 0, 0.5f, 1f)); // Blue with 50% opacity
-        ChangeButtonColor(supportUpgradesButton, new Color(0, 0, 0.5f, 1f)); // Blue with 50% opacity
-        ChangeButtonColor(specialUpgradesButton, new Color(0, 0, 0.5f, 1f)); // Blue with 50% opacity
+        ChangeButtonColor(attackUpgradesButton, new Color(0, 0, 0.5f, 1f));
+        ChangeButtonColor(defenceUpgradesButton, new Color(0, 0, 0.5f, 1f));
+        ChangeButtonColor(supportUpgradesButton, new Color(0, 0, 0.5f, 1f));
+        ChangeButtonColor(specialUpgradesButton, new Color(0, 0, 0.5f, 1f));
 
-        if (categoryParent.name == "AttackUpgradesParent")
-        {
-            ChangeButtonColor(attackUpgradesButton, new Color(0, 0, 1, 1f)); // Blue with 100% opacity
-        }
-        else if (categoryParent.name == "DefenceUpgradesParent")
-        {
-            ChangeButtonColor(defenceUpgradesButton, new Color(0, 0, 1, 1f)); // Blue with 100% opacity
-        }
-        else if (categoryParent.name == "SupportUpgradesParent")
-        {
-            ChangeButtonColor(supportUpgradesButton, new Color(0, 0, 1, 1f)); // Blue with 100% opacity
-        }
-        else if (categoryParent.name == "SpecialUpgradesParent")
-        {
-            ChangeButtonColor(specialUpgradesButton, new Color(0, 0, 1, 1f)); // Blue with 100% opacity
-        }
+        if (categoryParent == attackUpgradesScreen)
+            ChangeButtonColor(attackUpgradesButton, Color.blue);
+        else if (categoryParent == DefenceUpgradesScreen)
+            ChangeButtonColor(defenceUpgradesButton, Color.blue);
+        else if (categoryParent == SupportUpgradesScreen)
+            ChangeButtonColor(supportUpgradesButton, Color.blue);
+        else if (categoryParent == SpecialUpgradesScreen)
+            ChangeButtonColor(specialUpgradesButton, Color.blue);
     }
 
-
-
-
-    // Upgrades the skill associated with the button. 
-    private void OnSkillButtonClicked(Skill skill, Button button)
-    {
-        Debug.Log($"Attempting to upgrade skill: {skill.skillName}");
-        if (playerManager.TrySpendCurrency(playerManager.GetSkillCost(skill)))
-        {
-            Debug.Log($"Successfully upgraded skill: {skill.skillName} at cost {playerManager.GetSkillCost(skill)}");
-            playerManager.UpgradeSkill(skill, 1);
-            UpdateButtonText(skill, button);
-        }
-    }
-
-    // UPDATE THE BUTTON TEXT UI
-    private void UpdateButtonText(Skill skill, Button button)
-    {
-        TextMeshProUGUI[] textFields = button.GetComponentsInChildren<TextMeshProUGUI>();
-        if (textFields.Length >= 3)
-        {
-            textFields[0].text = skill.skillName;
-            textFields[1].text = "C: " + NumberManager.FormatLargeNumber(playerManager.GetSkillCost(skill));
-            textFields[2].text = NumberManager.FormatLargeNumber(playerManager.GetSkillValue(skill));
-        }
-    }
-
-
-    // FOOTER METHODS
-
-    public enum ScreenType
-    {
-        Main,
-        Upgrade,
-        Reward,
-        Research,
-        Settings
-    }
+    // ================= FOOTER NAV =================
+    public enum ScreenType { Main, Upgrade, Reward, Research, Settings }
 
     public void SelectScreen(ScreenType screenType)
     {
@@ -367,27 +303,14 @@ public class MainMenuUIManager : MonoBehaviour
         researchScreenUI.SetActive(screenType == ScreenType.Research);
         settingsScreenUI.SetActive(screenType == ScreenType.Settings);
 
-        // Reset all button colors to default
         ResetScreenButtonColors();
-
-        // Change the color of the selected button
         switch (screenType)
         {
-            case ScreenType.Main:
-                ChangeButtonColor(mainButton, Color.black);
-                break;
-            case ScreenType.Upgrade:
-                ChangeButtonColor(upgradeButton, Color.black);
-                break;
-            case ScreenType.Reward:
-                ChangeButtonColor(rewardButton, Color.black);
-                break;
-            case ScreenType.Research:
-                ChangeButtonColor(researchButton, Color.black);
-                break;
-            case ScreenType.Settings:
-                ChangeButtonColor(settingsButton, Color.black);
-                break;
+            case ScreenType.Main:      ChangeButtonColor(mainButton, Color.black); break;
+            case ScreenType.Upgrade:   ChangeButtonColor(upgradeButton, Color.black); break;
+            case ScreenType.Reward:    ChangeButtonColor(rewardButton, Color.black); break;
+            case ScreenType.Research:  ChangeButtonColor(researchButton, Color.black); break;
+            case ScreenType.Settings:  ChangeButtonColor(settingsButton, Color.black); break;
         }
     }
 
@@ -400,44 +323,25 @@ public class MainMenuUIManager : MonoBehaviour
         ChangeButtonColor(settingsButton, Color.blue);
     }
 
-    public void SelectMainScreen()
+    public void SelectMainScreen()     => SelectScreen(ScreenType.Main);
+    public void SelectUpgradeScreen()  => SelectScreen(ScreenType.Upgrade);
+    public void SelectRewardScreen()   => SelectScreen(ScreenType.Reward);
+    public void SelectResearchScreen() => SelectScreen(ScreenType.Research);
+    public void SelectSettingsScreen() => SelectScreen(ScreenType.Settings);
+
+    // ================= SCENE / QUIT =================
+    public void ChooseScene(string sceneName)
     {
-        SelectScreen(ScreenType.Main);
+        SaveManager.main?.QueueImmediateSave();
+        SceneManager.LoadScene(sceneName);
     }
+    public void QuitGame() => Application.Quit();
 
-    public void SelectUpgradeScreen()
-    {
-        SelectScreen(ScreenType.Upgrade);
-    }
-
-    public void SelectRewardScreen()
-    {
-        SelectScreen(ScreenType.Reward);
-    }
-
-    public void SelectResearchScreen()
-    {
-        SelectScreen(ScreenType.Research);
-    }
-
-    public void SelectSettingsScreen()
-    {
-        SelectScreen(ScreenType.Settings);
-    }
-
-    public void QuitGame()
-    {
-        Application.Quit();
-    }
-
-
-    // SUPPORTING METHODS
+    // ================= UTIL =================
     public void ChangeButtonColor(GameObject button, Color color)
     {
-        var buttonImage = button.GetComponent<UnityEngine.UI.Image>();
-        if (buttonImage != null)
-        {
-            buttonImage.color = color;
-        }
+        if (!button) return;
+        var img = button.GetComponent<Image>();
+        if (img) img.color = color;
     }
 }

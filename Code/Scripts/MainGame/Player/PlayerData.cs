@@ -55,6 +55,8 @@ public class PlayerData
     public List<SkillData> supportSkills = new List<SkillData>();
     public List<SkillData> specialSkills = new List<SkillData>();
 
+    public List<PersistentSkillState> skillStates = new List<PersistentSkillState>();
+
     [Header("Currency Information")]
     // Currency Balances
     public float cores;

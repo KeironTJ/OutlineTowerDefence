@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
+using UnityEngine.Serialization;   // NEW
 
 
 public class UIManager : MonoBehaviour
@@ -14,12 +15,13 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject sideMenu;
     [SerializeField] private GameObject skillMenu;
     [SerializeField] private RoundManager roundManager;
-    [SerializeField] private SkillManager skillManager;
     [SerializeField] private PlayerManager playerManager;
 
-    [Header("Shop Menu")]
-    [SerializeField] private Menu shopMenu;          // assign the Menu component under Canvas in Inspector
+    [Header("Services")]
+    [SerializeField] private SkillService skillService;          // NEW: ensure assigned (or auto-find)
 
+    [Header("Shop Menu")]
+    [SerializeField] private Menu shopMenu;
 
     // Wave Info
     [Header("Wave Information")]
@@ -33,7 +35,8 @@ public class UIManager : MonoBehaviour
 
     // Tower Info
     [Header("Tower Information")]
-    [SerializeField] private TextMeshProUGUI health;
+    [FormerlySerializedAs("health")]            // preserves old inspector reference
+    [SerializeField] private TextMeshProUGUI towerHealth;
     [SerializeField] private Slider healthProgressBar;
     [SerializeField] private Image healthBardImage;
     [SerializeField] private TextMeshProUGUI towerAttackDamage;
@@ -48,30 +51,34 @@ public class UIManager : MonoBehaviour
     [SerializeField] private RoundStatsView hudRoundStatsView;
 
     [Header("Round Stats Panel")]
-    [SerializeField] private GameObject roundStatsPanel; // parent panel that contains the RoundStatsView
+    [SerializeField] private GameObject roundStatsPanel;
 
+    [Header("Skill Ids (match SkillDefinition ids)")]
 
+    [SerializeField] private string healthSkillId       = "Health";
+    [SerializeField] private string attackDamageSkillId = "Attack Damage";
 
     private Tower tower;
     private ICurrencyWallet roundWallet;
     private float waveEndTime;
 
-
     private void Awake()
     {
-        // Ensure the game over panel is hidden at the start
         gameOverPanel.SetActive(false);
         if (roundStatsPanel != null) roundStatsPanel.SetActive(false);
+        if (!skillService) skillService = SkillService.Instance;
     }
 
-    public void Initialize(RoundManager roundManager, WaveManager waveManager, Tower tower, SkillManager skillManager, PlayerManager playerManager)
+    // OLD SIGNATURE (removed SkillManager)
+    public void Initialize(RoundManager roundManager, WaveManager waveManager, Tower tower, PlayerManager playerManager)
     {
         this.roundManager = roundManager;
         this.waveManager = waveManager;
         this.tower = tower;
-        this.skillManager = skillManager;
         this.playerManager = playerManager;
-        this.roundWallet = roundManager.GetRoundWallet();
+        this.roundWallet = roundManager != null ? roundManager.RoundWallet : null;
+
+        if (!skillService) skillService = SkillService.Instance;
 
         if (hudRoundStatsView != null && this.roundManager != null)
             hudRoundStatsView.BindLive(this.roundManager);
@@ -81,7 +88,8 @@ public class UIManager : MonoBehaviour
 
         if (shopMenu != null)
         {
-            shopMenu.Initialize(roundManager, waveManager, tower, skillManager);
+            // Ensure your Menu script was updated to rely on SkillService (not SkillManager)
+            shopMenu.Initialize(roundManager, waveManager, tower, roundWallet);
         }
         else
         {
@@ -94,26 +102,12 @@ public class UIManager : MonoBehaviour
 
         UpdateAllCurrencyUI();
 
-        // REMOVE (no longer a child): GetComponentInChildren<Menu>()
-        // Menu menu = GetComponentInChildren<Menu>();
-        // if (menu != null) { menu.Initialize(roundManager, waveManager, tower, skillManager); }
-
-        if (tower != null) tower.TowerDestroyed += OnTowerDestroyedHandler;
-        else Debug.LogError("Tower reference is not set in UIManager.");
-    }
-
-    // Optional helper for your button
-    public void ToggleShopMenu()
-    {
-        if (shopMenu != null) shopMenu.ToggleMenu();      // if your Menu has this
-        else Debug.LogWarning("UIManager: shopMenu not assigned.");
-    }
-
-    public void OnRoundStart(RoundManager rm)
-    {
-        if (hudRoundStatsView != null)
+        if (tower != null)
         {
-            hudRoundStatsView.BindLive(rm);
+            tower.TowerDestroyed += OnTowerDestroyedHandler;
+            tower.HealthChanged += OnTowerHealthChanged;
+            // We missed the initial event fired inside Tower.Initialize, so force a manual refresh:
+            OnTowerHealthChanged(tower.GetCurrentHealth(), tower.MaxHealth);   // NEW
         }
     }
 
@@ -122,68 +116,62 @@ public class UIManager : MonoBehaviour
         if (tower != null)
         {
             tower.TowerDestroyed -= OnTowerDestroyedHandler;
+            tower.HealthChanged -= OnTowerHealthChanged;
         }
         if (roundWallet != null)
-        {
-            roundWallet.BalanceChanged -= OnBalanceChanged; // prevent duplicate subs on re-enable
-        }
+            roundWallet.BalanceChanged -= OnBalanceChanged;
         if (playerManager?.Wallet != null)
-        {
             playerManager.Wallet.BalanceChanged -= OnBalanceChanged;
-        }
     }
 
     private void OnDestroy()
     {
         if (roundWallet != null)
-        {
-            roundWallet.BalanceChanged -= OnBalanceChanged; // Unsubscribe from balance changes
-        }
+            roundWallet.BalanceChanged -= OnBalanceChanged;
         if (playerManager?.Wallet != null)
-        {
-            playerManager.Wallet.BalanceChanged -= OnBalanceChanged; // Unsubscribe from player wallet balance changes
-        }
-    }
-
-    private void OnTowerDestroyedHandler()
-    {
-        ShowGameOverPanel();
+            playerManager.Wallet.BalanceChanged -= OnBalanceChanged;
+        if (tower != null)
+            tower.HealthChanged -= OnTowerHealthChanged;
     }
 
     private void Update()
     {
         UpdateWaveUI();
-        UpdateTowerUI();
+        // Fallback update (still polling for attack damage changes if skill upgraded)
+        UpdateTowerAttackDamage();
     }
 
+    private void OnTowerHealthChanged(float current, float max)
+    {
+        if (towerHealth)
+            towerHealth.text = $"{NumberManager.FormatLargeNumber(current)} / {NumberManager.FormatLargeNumber(max)}";
+        if (healthProgressBar)
+            healthProgressBar.value = max > 0f ? current / max : 0f;
+    }
+
+    private void UpdateTowerAttackDamage()
+    {
+        if (!towerAttackDamage) return;
+        float dmg = skillService ? skillService.GetValue(attackDamageSkillId) : 0f;
+        towerAttackDamage.text = $"Attack: {NumberManager.FormatLargeNumber(dmg)}";
+    }
+
+    // Removed UpdateTowerHealth method as it's no longer needed
+
+    // Removed old UpdateTowerUI body relying on SkillManager; now split:
     public void UpdateTowerUI()
     {
-        if (tower != null)
-        {
-            // Update health text
-            health.text = $"{NumberManager.FormatLargeNumber(tower.GetCurrentHealth())} / {NumberManager.FormatLargeNumber(skillManager.GetSkillValue(skillManager.GetSkill("Health")))}";
-
-            // Update health bar
-            float currentHealth = tower.GetCurrentHealth();
-            float maxHealth = skillManager.GetSkillValue(skillManager.GetSkill("Health"));
-            healthProgressBar.value = currentHealth / maxHealth;
-
-            // Update attack damage text
-            towerAttackDamage.text = $"Attack: {NumberManager.FormatLargeNumber(skillManager.GetSkillValue(skillManager.GetSkill("Attack Damage")))}";
-        }
+        if (!tower) return;
+        // Health is event-driven; ensure attack damage stays fresh:
+        UpdateTowerAttackDamage();
     }
 
     private void OnBalanceChanged(CurrencyType type, float newValue)
     {
-        // Update only what changed
         if (type == CurrencyType.Fragments)
-        {
             UpdateFragmentsUI(newValue);
-        }
         else
-        {
-            UpdateGlobalCurrencyUI(); // read from PlayerManager.Wallet
-        }
+            UpdateGlobalCurrencyUI();
     }
 
     private void UpdateAllCurrencyUI()
@@ -194,105 +182,75 @@ public class UIManager : MonoBehaviour
 
     private void UpdateFragmentsUI(float newValue)
     {
-        fragmentsUI.text = $"{NumberManager.FormatLargeNumber(newValue)}";
+        if (fragmentsUI)
+            fragmentsUI.text = NumberManager.FormatLargeNumber(newValue);
     }
 
     private void UpdateGlobalCurrencyUI()
     {
-        if (playerManager?.Wallet != null)
-        {
-            coresUI.text = $"{NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Cores))}";
-            prismsUI.text = $"{NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Prisms))}";
-            loopsUI.text = $"{NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Loops))}";
-        }
-        else
-        {
-            Debug.LogError("Player Wallet is not set in UIManager.");
-        }
+        if (playerManager?.Wallet == null) return;
+        if (coresUI)  coresUI.text  = NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Cores));
+        if (prismsUI) prismsUI.text = NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Prisms));
+        if (loopsUI)  loopsUI.text  = NumberManager.FormatLargeNumber(playerManager.Wallet.Get(CurrencyType.Loops));
     }
 
     public void UpdateWaveUI()
     {
-        if (!isGameOver && waveManager != null)
+        if (isGameOver || waveManager == null || roundManager == null) return;
+
+        if (difficultyNumberUI)
+            difficultyNumberUI.text = $"Difficulty: {roundManager.GetRoundDifficulty()}";
+        if (waveNumberUI)
+            waveNumberUI.text = $"Wave: {waveManager.GetCurrentWave()}";
+        if (loseScreenWaveNumberUI)
+            loseScreenWaveNumberUI.text = waveManager.GetCurrentWave().ToString();
+
+        if (waveManager.IsBetweenWaves())
         {
-            difficultyNumberUI.text = $"Difficulty: {roundManager.GetRoundDifficulty().ToString()}";
-            waveNumberUI.text = $"Wave: {waveManager.GetCurrentWave().ToString()}";
-            loseScreenWaveNumberUI.text = $"{waveManager.GetCurrentWave().ToString()}";
-            if (waveManager.IsBetweenWaves())
-            {
-                float timeRemaining = waveManager.GetTimeBetweenWavesRemaining();
-                waveTimeRemainingUI.text = $"{timeRemaining:F1}s";
-                waveProgressBar.value = 1 - (timeRemaining / waveManager.timeBetweenWaves); // Updated logic
-                fillAreaImage.color = Color.red;
-            }
-            else
-            {
-                float timeRemaining = waveManager.GetWaveTimeRemaining();
-                waveTimeRemainingUI.text = $"Time Left: {timeRemaining:F1}s";
-                waveProgressBar.value = 1 - (timeRemaining / waveManager.timePerWave); // Updated logic
-                fillAreaImage.color = Color.cyan;
-            }
+            float timeRemaining = waveManager.GetTimeBetweenWavesRemaining();
+            if (waveTimeRemainingUI) waveTimeRemainingUI.text = $"{timeRemaining:F1}s";
+            if (waveProgressBar) waveProgressBar.value = 1 - (timeRemaining / waveManager.timeBetweenWaves);
+            if (fillAreaImage) fillAreaImage.color = Color.red;
         }
         else
         {
-            waveProgressBar.value = waveProgressBar.value;
-            waveNumberUI.text = $"{waveManager.GetCurrentWave().ToString()}";
+            float timeRemaining = waveManager.GetWaveTimeRemaining();
+            if (waveTimeRemainingUI) waveTimeRemainingUI.text = $"Time Left: {timeRemaining:F1}s";
+            if (waveProgressBar) waveProgressBar.value = 1 - (timeRemaining / waveManager.timePerWave);
+            if (fillAreaImage) fillAreaImage.color = Color.cyan;
         }
     }
 
-    public void SetWaveEndTime(float endTime)
+    public void ToggleShopMenu()
     {
-        waveEndTime = endTime;
+        if (shopMenu != null) shopMenu.ToggleMenu();
     }
+
+    private void OnTowerDestroyedHandler() => ShowGameOverPanel();
 
     public void ShowGameOverPanel()
     {
-        gameOverPanel.SetActive(true); // Stop the wave progress bar updates 
-        sideMenu.SetActive(false); // Hide the side menu
-        skillMenu.SetActive(false); // Hide the skill menu
+        if (gameOverPanel) gameOverPanel.SetActive(true);
+        if (sideMenu) sideMenu.SetActive(false);
+        if (skillMenu) skillMenu.SetActive(false);
         isGameOver = true;
-    }
-
-    public void ReturnToMenu()
-    {
-        // Find and destroy the Tower instance
-        Tower tower = UnityEngine.Object.FindFirstObjectByType<Tower>();
-        if (tower != null)
-        {
-            Destroy(tower.gameObject);
-        }
-
-
-
-        // Destroy the UIManager instance
-        Destroy(gameObject);
-
-        // Load the MainMenu scene
-        SceneManager.LoadScene("MainMenu");
     }
 
     public void ViewStats()
     {
-        if (roundStatsPanel == null)
-        {
-            Debug.LogWarning("RoundStats panel is not assigned on UIManager.");
-            return;
-        }
-
+        if (!roundStatsPanel) { Debug.LogWarning("RoundStats panel not assigned."); return; }
         bool show = !roundStatsPanel.activeSelf;
         roundStatsPanel.SetActive(show);
 
-        if (show && roundManager != null)
-        {
-            // Ensure the view is listening again and refresh immediately
-            if (hudRoundStatsView != null)
-                hudRoundStatsView.BindLive(roundManager);
-            else
-                Debug.LogWarning("hudRoundStatsView is not assigned.");
-
-            // Optional: also push an update event
-            EventManager.TriggerEvent(EventNames.RoundStatsUpdated, roundManager.GetCurrentRoundSummary());
-        }
+        if (show && roundManager != null && hudRoundStatsView != null)
+            hudRoundStatsView.BindLive(roundManager);
     }
 
+    public void ReturnToMenu()
+    {
+        var t = UnityEngine.Object.FindFirstObjectByType<Tower>();
+        if (t) Destroy(t.gameObject);
+        Destroy(gameObject);
+        SceneManager.LoadScene("MainMenu");
+    }
 }

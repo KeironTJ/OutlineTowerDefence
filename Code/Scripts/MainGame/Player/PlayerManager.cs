@@ -1,71 +1,77 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
 
 public class PlayerManager : MonoBehaviour
 {
     public static PlayerManager main;
 
-    public ICurrencyWallet Wallet { get; private set; }
-    public int difficultySelected;
+    [Header("Services")]
+    [SerializeField] private SkillService skillService;      // Assign in scene (or auto‑find)
+    [SerializeField] private SaveManager saveManager;        // Optional explicit reference
 
-    [Header("Skills")]
-    public Dictionary<string, Skill> attackSkills = new Dictionary<string, Skill>();
-    public Dictionary<string, Skill> defenceSkills = new Dictionary<string, Skill>();
-    public Dictionary<string, Skill> supportSkills = new Dictionary<string, Skill>();
-    public Dictionary<string, Skill> specialSkills = new Dictionary<string, Skill>();
-
+    [Header("Runtime State")]
     public PlayerData playerData;
 
-    private Dictionary<string, int> enemyDestructionCounts = new Dictionary<string, int>();
-    private bool initializedFromSave;
+    public ICurrencyWallet Wallet { get; private set; }      // Persistent wallet (cores / prisms / loops / total fragments KPI)
+    public int difficultySelected;
 
-    public bool IsInitialized => initializedFromSave;
+    private bool initialized;
+    private readonly Dictionary<string,int> enemyDestructionCounts = new();
 
+    public bool IsInitialized => initialized;
+
+    // ---------------- LIFECYCLE ----------------
     private void Awake()
     {
-        if (main != null && main != this) { Destroy(gameObject); return; }
+        if (main != this && main != null) { Destroy(gameObject); return; }
         main = this;
         DontDestroyOnLoad(gameObject);
-        if (SaveManager.main != null)
-            SaveManager.main.OnAfterLoad += OnSaveLoaded;
+
+        if (!skillService) skillService = SkillService.Instance;
+        if (!saveManager) saveManager = SaveManager.main;
+
+        if (saveManager) saveManager.OnAfterLoad += OnSaveLoaded;
     }
 
     private void OnDestroy()
     {
-        if (SaveManager.main != null)
-            SaveManager.main.OnAfterLoad -= OnSaveLoaded;
+        if (saveManager) saveManager.OnAfterLoad -= OnSaveLoaded;
     }
 
     private void Start()
     {
-        // If SaveManager already has data (because it loaded in Awake) initialize now
-        if (!initializedFromSave && SaveManager.main != null && SaveManager.main.Current != null)
-            OnSaveLoaded(SaveManager.main.Current);
-
-        if (playerData.totalRoundsCompleted == 0 && playerData.RoundHistory != null && playerData.RoundHistory.Count > 0)
-        {
-            BackfillPlayerStats(playerData);
-            SavePlayerData();
-        }
+        // In case save already loaded before Start.
+        if (!initialized && saveManager && saveManager.Current != null)
+            OnSaveLoaded(saveManager.Current);
     }
 
+    // ---------------- SAVE / LOAD ----------------
     private void OnSaveLoaded(PlayerSavePayload payload)
     {
-        if (initializedFromSave) return; // only load once per session
-        if (payload == null) return;
+        if (initialized) return;
 
         playerData = payload.player ?? (payload.player = new PlayerData());
         ValidatePlayerData();
 
-        LoadSkillAssetsIntoDictionaries();               // fill dictionaries
-        LogSkillCounts("After Resources.LoadAll");
-        EnsurePlayerDataSkillListsFromDictionaries();    // push dict -> lists (creates entries)
-        LoadSkills();                                    // pull list -> dict values (levels, flags)
+        // Ensure list exists (first session)
+        if (playerData.skillStates == null)
+            playerData.skillStates = new List<PersistentSkillState>();
 
+        // Initialize SkillService persistent layer
+        if (!skillService) skillService = SkillService.Instance;
+        if (!skillService)
+        {
+            Debug.LogError("SkillService missing in scene.");
+            return;
+        }
+        skillService.LoadPersistentStates(playerData.skillStates);
+        // (Round layer is built by RoundManager at round start; can pre-build if needed)
+        // skillService.BuildRoundStates();
+
+        // Init wallet AFTER we have playerData (implement PlayerCurrencyWallet yourself)
         Wallet = new PlayerCurrencyWallet(playerData, QueueSave);
-        initializedFromSave = true;
+        initialized = true;
 
         // Persist the populated lists (was empty at first load)
         SavePlayerData();
@@ -73,7 +79,6 @@ public class PlayerManager : MonoBehaviour
 
     private void OnEnable()
     {
-        // Subscribe to Events
         EventManager.StartListening(EventNames.EnemyDestroyed, new Action<object>(OnEnemyDestroyed));
         EventManager.StartListening(EventNames.RoundRecordCreated, new Action<object>(OnRoundRecordUpdated));
         EventManager.StartListening(EventNames.WaveCompleted, new Action<object>(OnWaveCompleted));
@@ -82,7 +87,7 @@ public class PlayerManager : MonoBehaviour
     }
 
     private void OnDisable()
-    {
+        {
         // Unsubscribe from the EnemyDestroyed event via EventManager
         EventManager.StopListening(EventNames.EnemyDestroyed, new Action<object>(OnEnemyDestroyed));
         EventManager.StopListening(EventNames.RoundRecordCreated, new Action<object>(OnRoundRecordUpdated));
@@ -91,126 +96,41 @@ public class PlayerManager : MonoBehaviour
 
     }
 
-    private void LogSkillCounts(string label)
-    {
-        Debug.Log($"PlayerManager {label}: atk={attackSkills.Count} def={defenceSkills.Count} sup={supportSkills.Count} spc={specialSkills.Count} listAtk={playerData.attackSkills.Count}");
-    }
+    private void QueueSave() => SaveManager.main?.QueueImmediateSave();
 
-    public void ValidatePlayerData()
+    private void ValidatePlayerData()
     {
-        if (playerData == null) playerData = new PlayerData();
-
         if (string.IsNullOrEmpty(playerData.UUID))
             playerData.UUID = Guid.NewGuid().ToString();
 
         if (string.IsNullOrEmpty(playerData.Username))
-            playerData.Username = "Player_" + playerData.UUID.Substring(0, 8);
+            playerData.Username = "Player_" + playerData.UUID[..8];
     }
 
-    private void QueueSave() => SaveManager.main?.QueueImmediateSave();
-
-    // ===== Skills (unchanged logic) =====
-
-    public static T CloneScriptableObject<T>(T original) where T : ScriptableObject =>
-        ScriptableObject.Instantiate(original);
-
-    private void LoadSkillAssetsIntoDictionaries()
+    // ---------------- SKILL API (Persistent / Meta) ----------------
+    // Meta upgrade using persistent currency (e.g. cores)
+    public bool TryMetaUpgradeSkill(string skillId, CurrencyType currency = CurrencyType.Cores)
     {
-        attackSkills.Clear(); defenceSkills.Clear(); supportSkills.Clear(); specialSkills.Clear();
-        LoadSkillsFromResources("Skill/Attack", attackSkills);
-        LoadSkillsFromResources("Skill/Defence", defenceSkills);
-        LoadSkillsFromResources("Skill/Support", supportSkills);
-        LoadSkillsFromResources("Skill/Special", specialSkills);
+        if (!initialized || skillService == null || Wallet == null) return false;
+        bool ok = skillService.TryUpgradePersistent(skillId, currency, Wallet);
+        if (ok) SavePlayerData();
+        return ok;
     }
 
-    private void EnsurePlayerDataSkillListsFromDictionaries()
+    public void SavePlayerData()
     {
-        EnsureListEntries(playerData.attackSkills, attackSkills);
-        EnsureListEntries(playerData.defenceSkills, defenceSkills);
-        EnsureListEntries(playerData.supportSkills, supportSkills);
-        EnsureListEntries(playerData.specialSkills, specialSkills);
-    }
+        if (!initialized || playerData == null) return;
 
-    private static void EnsureListEntries(List<SkillData> list, Dictionary<string, Skill> dict)
-    {
-        if (list == null) return;
-        foreach (var kv in dict)
+        // Pull fresh persistent states out of SkillService (levels may have changed)
+        if (skillService)
         {
-            if (list.Exists(s => s.skillName == kv.Key)) continue;
-            list.Add(new SkillData
-            {
-                skillName = kv.Key,
-                level = kv.Value.level,
-                researchLevel = kv.Value.researchLevel,
-                skillActive = kv.Value.skillActive,
-                playerSkillUnlocked = kv.Value.playerSkillUnlocked,
-                roundSkillUnlocked = kv.Value.roundSkillUnlocked
-            });
+            playerData.skillStates = new List<PersistentSkillState>(skillService.GetPersistentStates());
         }
-    }
 
-    private void LoadSkillsFromResources(string path, Dictionary<string, Skill> dict)
-    {
-        var skills = Resources.LoadAll<Skill>(path);
-        Debug.Log($"LoadSkillsFromResources path={path} count={skills.Length}");
-        foreach (var s in skills)
-        {
-            var clone = CloneScriptableObject(s);
-            if (!dict.ContainsKey(clone.skillName))
-                dict.Add(clone.skillName, clone);
-        }
-    }
-
-    private void LoadSkills()
-    {
-        LoadSkillData(playerData.attackSkills, attackSkills);
-        LoadSkillData(playerData.defenceSkills, defenceSkills);
-        LoadSkillData(playerData.supportSkills, supportSkills);
-        LoadSkillData(playerData.specialSkills, specialSkills);
-    }
-
-    private void LoadSkillData(List<SkillData> list, Dictionary<string, Skill> dict)
-    {
-        foreach (var sd in list)
-        {
-            if (dict.TryGetValue(sd.skillName, out var skill))
-            {
-                skill.level = sd.level;
-                skill.researchLevel = sd.researchLevel;
-                skill.skillActive = sd.skillActive;
-                skill.playerSkillUnlocked = sd.playerSkillUnlocked;
-                skill.roundSkillUnlocked = sd.roundSkillUnlocked;
-            }
-        }
-    }
-
-    private void SavePlayerData()
-    {
-        if (playerData == null) return;
-        UpdateSkillData(playerData.attackSkills, attackSkills);
-        UpdateSkillData(playerData.defenceSkills, defenceSkills);
-        UpdateSkillData(playerData.supportSkills, supportSkills);
-        UpdateSkillData(playerData.specialSkills, specialSkills);
         QueueSave();
     }
 
-    private void UpdateSkillData(List<SkillData> list, Dictionary<string, Skill> dict)
-    {
-        foreach (var kv in dict)
-        {
-            var sd = list.Find(s => s.skillName == kv.Key);
-            if (sd == null)
-            {
-                sd = new SkillData { skillName = kv.Key };
-                list.Add(sd);
-            }
-            sd.level = kv.Value.level;
-            sd.researchLevel = kv.Value.researchLevel;
-            sd.skillActive = kv.Value.skillActive;
-            sd.playerSkillUnlocked = kv.Value.playerSkillUnlocked;
-            sd.roundSkillUnlocked = kv.Value.roundSkillUnlocked;
-        }
-    }
+
 
     // ===== Tower Visuals =====
     public void UnlockTowerVisual(string id)
@@ -230,30 +150,15 @@ public class PlayerManager : MonoBehaviour
         return true;
     }
 
-    // ===== Skill queries =====
-    public Skill GetSkill(string name)
-    {
-        if (attackSkills.TryGetValue(name, out var s1)) return s1;
-        if (defenceSkills.TryGetValue(name, out var s2)) return s2;
-        if (supportSkills.TryGetValue(name, out var s3)) return s3;
-        if (specialSkills.TryGetValue(name, out var s4)) return s4;
-        return null;
-    }
-
-    public float GetSkillValue(Skill s) =>
-        s == null ? 0f : s.baseValue * Mathf.Pow(s.level, s.upgradeModifier + (s.researchLevel * s.researchModifier));
-
-    public float GetSkillCost(Skill s) =>
-        s == null ? 0f : Mathf.Round(s.coresCost * (float)Math.Pow(s.level, s.coresCostModifier));
-
-    public float GetSkillLevel(Skill s) => s?.level ?? 0f;
-
     // ===== Currency =====
     public float GetCores() => Wallet?.Get(CurrencyType.Cores) ?? 0f;
     public float GetPrisms() => Wallet?.Get(CurrencyType.Prisms) ?? 0f;
-    public float GetLoops() => Wallet?.Get(CurrencyType.Loops) ?? 0f;
+    public float GetLoops()  => Wallet?.Get(CurrencyType.Loops)  ?? 0f;
 
-    public void AddCurrency(float fragments = 0, float cores = 0, float prisms = 0, float loops = 0)
+    public bool TrySpend(CurrencyType type, float amount) =>
+        amount <= 0f || (Wallet != null && Wallet.TrySpend(type, amount));
+
+    public void AddCurrency(float fragments=0, float cores=0, float prisms=0, float loops=0)
     {
         Wallet?.Add(CurrencyType.Fragments, fragments);
         Wallet?.Add(CurrencyType.Cores, cores);
@@ -283,20 +188,21 @@ public class PlayerManager : MonoBehaviour
         SavePlayerData();
     }
 
-    // ===== Difficulty =====
-    public int GetMaxDifficulty() => playerData.maxDifficultyAchieved;
-
+    // ---------------- DIFFICULTY ----------------
+    public int  GetMaxDifficulty() => playerData.maxDifficultyAchieved;
     public void SetDifficulty(int d) => difficultySelected = d;
-    public int GetDifficulty() => difficultySelected;
+    public int  GetDifficulty() => difficultySelected;
 
     public void IncreaseMaxDifficulty()
     {
-        playerData.maxDifficultyAchieved += 1;
+        playerData.maxDifficultyAchieved++;
         SavePlayerData();
     }
 
     public void SetMaxWaveAchieved(int difficulty, int wave)
     {
+        if (difficulty < 0) return;
+        if (difficulty >= playerData.difficultyMaxWaveAchieved.Length) return;
         if (wave > playerData.difficultyMaxWaveAchieved[difficulty])
         {
             playerData.difficultyMaxWaveAchieved[difficulty] = wave;
@@ -307,12 +213,6 @@ public class PlayerManager : MonoBehaviour
     public int GetHighestWave(int difficulty) =>
         playerData.difficultyMaxWaveAchieved[difficulty];
 
-    public void UpgradeSkill(Skill skill, int levelIncrease)
-    {
-        if (skill == null) return;
-        skill.level += levelIncrease;
-        SavePlayerData();
-    }
 
     public bool UpdateUsername(string newUsername)
     {
@@ -368,12 +268,11 @@ public class PlayerManager : MonoBehaviour
         if (payload == null) return;
         // Re-run the same path used when a save is first loaded/adopted.
         OnSaveLoaded(payload);
-        LogSkillCounts("After Cloud Adopt Resync");
     }
 
     public void BackfillPlayerStats(PlayerData data)
     {
-        data.totalRoundsCompleted = data.RoundHistory != null ? data.RoundHistory.Count : 0;
+        data.totalRoundsCompleted = data.RoundHistory?.Count ?? 0;
         data.totalWavesCompleted = 0;
         if (data.RoundHistory != null)
         {
@@ -388,6 +287,12 @@ public class PlayerManager : MonoBehaviour
     {
         playerData.totalWavesCompleted++;
         SavePlayerData();
+    }
+
+    public void OnRoundStarted()
+    {
+        if (skillService != null)
+            skillService.BuildRoundStates(); // clones persistent levels into round layer
     }
 
     private void OnRoundEnded(object eventData)

@@ -6,20 +6,33 @@ using UnityEngine;
 public class RoundManager : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private EnemySpawner enemySpawner; // Serialized field for EnemySpawner
-    [SerializeField] private TowerSpawner towerSpawner; // Serialized field for TowerSpawner
-    [SerializeField] private WaveManager waveManager; // Serialized field for WaveManager
-    [SerializeField] private UIManager uiManager; // Serialized field for UIManager
-    PlayerManager playerManager;
+    [SerializeField] private EnemySpawner enemySpawner;
+    [SerializeField] private TowerSpawner towerSpawner;
+    [SerializeField] private WaveManager waveManager;
+    [SerializeField] private UIManager uiManager;
+
+    private PlayerManager playerManager;
     private Tower tower;
 
-    [Header("Managers")]
-    [SerializeField] private SkillManager skillManager; // Reference to SkillManager
+    [Header("Services")]
+    [SerializeField] private SkillService skillService;          // NEW: replace SkillManager
 
-    public ICurrencyWallet GetRoundWallet() => roundWallet;
+    // Removed: [SerializeField] private SkillManager skillManager;
 
     [Header("Round Wallet")]
     private RoundCurrencyWallet roundWallet;
+    public ICurrencyWallet RoundWallet => roundWallet;
+    public ICurrencyWallet GetRoundWallet() => roundWallet;      // (kept for existing callers)
+
+    // --- Skill Id Constants (match your SkillDefinition ids / names) ---
+    private const string StartFragmentsSkillId   = "Start Fragments";
+    private const string FragmentsModifierSkillId = "Fragments Modifier";
+
+    [Header("Fragment Gain Settings")]
+    [SerializeField] private bool applyModifierToStartingFragments = true;
+
+    // Event UI can subscribe to after wallet & round skill layer ready
+    public event Action RoundInitialized;
 
     // Stats Tracking
     [Header("Stats Tracking")]
@@ -97,10 +110,11 @@ public class RoundManager : MonoBehaviour
 
     private void Start()
     {
+        if (!skillService) skillService = SkillService.Instance;
         if (tower == null)
         {
             StartNewRound();
-            SpawnTower(); // Use TowerSpawner to spawn the Tower
+            SpawnTower();
         }
     }
 
@@ -129,19 +143,20 @@ public class RoundManager : MonoBehaviour
     // TOWER MANAGEMENT
     private void SpawnTower()
     {
-        if (towerSpawner == null)
+        if (!towerSpawner)
         {
             Debug.LogError("TowerSpawner is not assigned to RoundManager.");
             return;
         }
 
-        tower = towerSpawner.SpawnTower(); // Spawn the Tower and store the reference
+        tower = towerSpawner.SpawnTower();
         if (tower != null)
         {
-            tower.Initialize(this, enemySpawner, skillManager, uiManager); // Initialize the Tower with SkillManager
-            tower.TowerDestroyed += EndRound; // Subscribe to the TowerDestroyed event
-            waveManager.StartWave(enemySpawner, tower); // Start the wave using WaveManager
-            uiManager.Initialize(this, waveManager, tower, skillManager, playerManager); // Initialize UIManager with necessary references
+            // Update Tower.Initialize signature to drop skillManager param.
+            tower.Initialize(this, enemySpawner, uiManager); 
+            tower.TowerDestroyed += EndRound;
+            waveManager.StartWave(enemySpawner, tower);
+            uiManager.Initialize(this, waveManager, tower, playerManager); // drop skillManager param
         }
         else
         {
@@ -163,49 +178,39 @@ public class RoundManager : MonoBehaviour
     private void StartNewRound()
     {
         playerManager = PlayerManager.main;
+        if (!playerManager)
+        {
+            Debug.LogError("PlayerManager not found!");
+            return;
+        }
+
+        if (!skillService) skillService = SkillService.Instance;
 
         ResetRoundStats();
         roundStartTime = Time.time;
         roundEndTime = 0f;
 
-        if (playerManager != null)
-        {
-            roundWallet = new RoundCurrencyWallet(
-                playerManager.Wallet,
-                amount =>
-                {
-                    playerManager.RecordFragmentsSpent(amount);
-                }
-            );
+        // Build round skill layer (copies persistent into round state)
+        playerManager.OnRoundStarted(); // calls skillService.BuildRoundStates()
 
-            InitializeRound(playerManager);
-            roundDifficulty = playerManager.GetDifficulty();
+        // Create round wallet wrapping persistent wallet
+        roundWallet = new RoundCurrencyWallet(
+            playerManager.Wallet,
+            spent => playerManager.RecordFragmentsSpent(spent)
+        );
 
-        }
-        else
-        {
-            Debug.LogError("PlayerManager not found!");
-        }
+        roundDifficulty = playerManager.GetDifficulty();
+
+        // Apply starting fragments / bonuses
+        ApplyRoundStartBonuses();
 
         EventManager.TriggerEvent(EventNames.RoundStarted);
+        RoundInitialized?.Invoke(); // UI hook point
     }
 
-    public void InitializeRound(PlayerManager playerManager)
+    private void ApplyRoundStartBonuses()
     {
-        InitializeRoundSkills(playerManager);
-    }
-
-    private void InitializeRoundSkills(PlayerManager playerManager)
-    {
-        if (skillManager == null)
-        {
-            Debug.LogError("SkillManager is not assigned to RoundManager.");
-            return;
-        }
-
-        skillManager.InitializeSkills(playerManager.attackSkills, playerManager.defenceSkills, playerManager.supportSkills, playerManager.specialSkills);
-
-        SetStartFragments();
+        SetStartFragments(); // starting fragments
     }
 
     public void EndRound()
@@ -397,7 +402,7 @@ public class RoundManager : MonoBehaviour
     {
         if (eventData is CurrencyEarnedEvent currencyEarned)
         {
-            IncreaseFragments(currencyEarned.fragments);
+            AddFragmentsWithModifiers(currencyEarned.fragments);
             playerManager.Wallet.Add(CurrencyType.Cores, currencyEarned.cores);
             playerManager.Wallet.Add(CurrencyType.Prisms, currencyEarned.prisms);
             playerManager.Wallet.Add(CurrencyType.Loops, currencyEarned.loops);
@@ -412,18 +417,54 @@ public class RoundManager : MonoBehaviour
 
     private void SetStartFragments()
     {
-        float startingFragments = skillManager.GetSkillValue(skillManager.GetSkill("Start Fragments"));
-        IncreaseFragments(startingFragments);
+        float startingFragmentsBase = GetSkillValueSafe(StartFragmentsSkillId);
+        if (startingFragmentsBase > 0f)
+        {
+            if (applyModifierToStartingFragments)
+                AddFragmentsWithModifiers(startingFragmentsBase);
+            else
+                AddRawFragments(startingFragmentsBase);
+        }
     }
 
     public void IncreaseFragments(float amount)
     {
-        if (amount == 0f) return;
+        // KEEP for backward compatibility; assume caller passes BASE amount
+        AddFragmentsWithModifiers(amount);
+    }
 
-        // Treat skill as a bonus (0 => x1.0, 0.25 => x1.25)
-        float bonus = skillManager.GetSkillValue(skillManager.GetSkill("Fragments Modifier"));
-        float multiplier = Mathf.Max(0f, 1f + bonus);
-        roundWallet?.Add(CurrencyType.Fragments, amount * multiplier);
+    // Central point: apply all fragment gain modifiers here (skills, difficulty, temporary buffs)
+    private void AddFragmentsWithModifiers(float baseAmount)
+    {
+        if (baseAmount <= 0f) return;
+
+        float final = ComputeFinalFragments(baseAmount);
+
+        AddRawFragments(final);
+
+        // Track earned (final credited amount)
+        currencyEarnedThisRound[CurrencyType.Fragments] += final;
+    }
+
+    private void AddRawFragments(float amount)
+    {
+        if (amount <= 0f) return;
+        roundWallet?.Add(CurrencyType.Fragments, amount);
+    }
+
+    private float ComputeFinalFragments(float baseAmount)
+    {
+        // Skill: additive percent (e.g. 0.25 => +25%)
+        float additivePercent = Mathf.Max(0f, GetSkillValueSafe(FragmentsModifierSkillId));
+
+        // Difficulty multiplier (1 = no change)
+        float difficultyMult = 1f * roundDifficulty; 
+
+        // Temporary round buff multiplier
+        float tempBuffMult = 1f;   // replace if you add timed boosts
+
+        // Order: base * (1 + additive) * difficulty * temp
+        return baseAmount * (1f + additivePercent) * difficultyMult * tempBuffMult;
     }
 
     public bool SpendFragments(float amount)
@@ -437,4 +478,9 @@ public class RoundManager : MonoBehaviour
     }
 
 
+    private float GetSkillValueSafe(string skillId)
+    {
+        if (skillService == null) return 0f;
+        return skillService.GetValue(skillId);
+    }
 }

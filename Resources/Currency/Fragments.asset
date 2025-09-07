@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Fragments
   m_EditorClassIdentifier: 
   type: 0
-  icon: {fileID: 2981842369143966943, guid: 1bfed32dbf94de44c89350203a6edbb4, type: 3}
+  icon: {fileID: 21300000, guid: 1bfed32dbf94de44c89350203a6edbb4, type: 3}
   displayName: Fragments

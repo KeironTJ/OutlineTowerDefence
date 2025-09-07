@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Collections;
 using System.Collections.Generic;
 
 public class Menu : MonoBehaviour
@@ -9,176 +8,125 @@ public class Menu : MonoBehaviour
     [Header("References")]
     [SerializeField] private Animator anim;
 
-    [SerializeField] private GameObject buttonPrefab; // Reference to the button prefab
+    [SerializeField] private GameObject buttonPrefab;
+    private ICurrencyWallet roundWallet;
 
+    [Header("Category Parents (Panels)")]
     [SerializeField] private Transform attackCategoryParent;
     [SerializeField] private Transform defenceCategoryParent;
     [SerializeField] private Transform supportCategoryParent;
     [SerializeField] private Transform specialCategoryParent;
 
+    [Header("Button Grids (Content Roots)")]
     [SerializeField] private Transform attackCategoryButtonGrid;
     [SerializeField] private Transform defenceCategoryButtonGrid;
     [SerializeField] private Transform supportCategoryButtonGrid;
     [SerializeField] private Transform specialCategoryButtonGrid;
 
+    [Header("Category Toggle Buttons")]
     [SerializeField] private Button attackToggleButton;
     [SerializeField] private Button defenceToggleButton;
     [SerializeField] private Button supportToggleButton;
     [SerializeField] private Button specialToggleButton;
 
+    [Header("Services")]
+    [SerializeField] private SkillService skillService;
+
     private bool isMenuOpen = true;
     private Tower tower;
-    private PlayerManager playerManager = PlayerManager.main;
+    private PlayerManager playerManager;
     private RoundManager roundManager;
-    private SkillManager skillManager;
 
-    private void Start()
-    {
-    }
+    private bool inRound = true;
 
-    public void Initialize(RoundManager roundManager, WaveManager waveManager, Tower tower, SkillManager skillManager)
+    // ---------------- INITIALIZE ----------------
+    public void Initialize(RoundManager roundManager, WaveManager waveManager, Tower tower, ICurrencyWallet roundWallet, bool inRound = true)
     {
         this.roundManager = roundManager;
         this.tower = tower;
-        this.skillManager = skillManager;
-        
-        // Ensure PlayerManager is initialized
+        this.roundWallet = roundWallet;
+        this.inRound = inRound;
+
+        if (!skillService) skillService = SkillService.Instance;
         playerManager = PlayerManager.main;
 
-        if (playerManager == null)
+        if (!skillService)
         {
-            Debug.LogError("PlayerManager is not initialized.");
-        }
-
-        // Start the coroutine to initialize the shop if all dependencies are ready
-        if (roundManager != null && skillManager != null)
-        {
-            StartCoroutine(WaitForSkillsToInitialize());
-        }
-    }
-
-    private IEnumerator WaitForSkillsToInitialize()
-    {
-        WaitForSeconds wait = new WaitForSeconds(0.5f);
-        while (skillManager.GetSkillsByCategory("Attack").Count == 0 ||
-               skillManager.GetSkillsByCategory("Defence").Count == 0 ||
-               skillManager.GetSkillsByCategory("Support").Count == 0 ||
-               skillManager.GetSkillsByCategory("Special").Count == 0)
-        {
-            yield return wait;
-        }
-
-        InitializeShop();
-    }
-
-    private void InitializeShop()
-    {
-        Debug.Log("Initializing Shop Categories");
-
-        if (skillManager.GetSkillsByCategory("Attack").Count == 0 ||
-            skillManager.GetSkillsByCategory("Defence").Count == 0 ||
-            skillManager.GetSkillsByCategory("Support").Count == 0 ||
-            skillManager.GetSkillsByCategory("Special").Count == 0)
-        {
-            Debug.LogWarning("One or more skill categories are empty. Delaying shop initialization.");
+            Debug.LogError("Menu: SkillService missing.");
             return;
         }
 
-        CreateButtonsForCategory(skillManager.GetSkillsByCategory("Attack"), attackCategoryButtonGrid);
-        CreateButtonsForCategory(skillManager.GetSkillsByCategory("Defence"), defenceCategoryButtonGrid);
-        CreateButtonsForCategory(skillManager.GetSkillsByCategory("Support"), supportCategoryButtonGrid);
-        CreateButtonsForCategory(skillManager.GetSkillsByCategory("Special"), specialCategoryButtonGrid);
+        if (roundWallet == null)
+        {
+            Debug.LogWarning("Menu: Round wallet not provided (buttons will be non‑interactive).");
+        }
 
-        attackCategoryParent.gameObject.SetActive(true);
+        BuildShop();
+    }
+
+    // ---------------- BUILD SHOP ----------------
+    private void BuildShop()
+    {
+        ClearGrid(attackCategoryButtonGrid);
+        ClearGrid(defenceCategoryButtonGrid);
+        ClearGrid(supportCategoryButtonGrid);
+        ClearGrid(specialCategoryButtonGrid);
+
+        int attackCount  = BuildButtonsForCategory(SkillCategory.Attack,  attackCategoryButtonGrid);
+        int defenceCount = BuildButtonsForCategory(SkillCategory.Defence, defenceCategoryButtonGrid);
+        int supportCount = BuildButtonsForCategory(SkillCategory.Support, supportCategoryButtonGrid);
+        int specialCount = BuildButtonsForCategory(SkillCategory.Special, specialCategoryButtonGrid);
+
+        attackCategoryParent.gameObject.SetActive(attackCount  > 0);
         defenceCategoryParent.gameObject.SetActive(false);
         supportCategoryParent.gameObject.SetActive(false);
         specialCategoryParent.gameObject.SetActive(false);
     }
 
-    private void CreateButtonsForCategory(Dictionary<string, Skill> skills, Transform parent)
+    private void ClearGrid(Transform grid)
     {
-        //Debug.Log($"Creating buttons for category: {parent.name}");
-        //Debug.Log($"Number of skills in category: {skills.Count}");
+        if (!grid) return;
+        for (int i = grid.childCount - 1; i >= 0; i--)
+            Destroy(grid.GetChild(i).gameObject);
+    }
 
-        foreach (var skill in skills.Values)
+    private int BuildButtonsForCategory(SkillCategory category, Transform grid)
+    {
+        if (!grid) return 0;
+        int built = 0;
+
+        foreach (var def in skillService.GetByCategory(category))
         {
-            //Debug.Log($"Skill Details - Name: {skill.skillName}, Active: {skill.skillActive}, Unlocked: {skill.roundSkillUnlocked}, Base Value: {skill.baseValue}, Level: {skill.level}, Max Level: {skill.maxLevel}");
+            // If you later add unlock flags, filter here (e.g., if (!skillService.IsUnlocked(def.id)) continue;)
 
-            if (skill.skillActive && skill.roundSkillUnlocked)
+            GameObject go = Instantiate(buttonPrefab, grid);
+            if (!go) continue;
+
+            var btn = go.GetComponent<Button>();
+            if (!btn)
             {
-                //Debug.Log($"Skill passed filtering: {skill.skillName}");
-                GameObject button = Instantiate(buttonPrefab, parent);
-                if (button == null)
-                {
-                    Debug.LogError("Button prefab instantiation failed.");
-                    continue;
-                }
-
-                Button buttonComponent = button.GetComponent<Button>();
-                if (buttonComponent == null)
-                {
-                    Debug.LogError("Button component is missing on the prefab.");
-                    continue;
-                }
-
-                TextMeshProUGUI[] textFields = button.GetComponentsInChildren<TextMeshProUGUI>();
-                //Debug.Log($"Text fields found: {textFields.Length}");
-
-                if (textFields.Length >= 3)
-                {
-                    textFields[0].text = skill.skillName; // Assign the skill name to the first text field
-                    textFields[1].text = NumberManager.FormatLargeNumber(skillManager.GetSkillCost(skill)); // Assign the cost to the second text field
-                    textFields[2].text = NumberManager.FormatLargeNumber(skillManager.GetSkillValue(skill)); // Assign the Value to the third text field
-                    //Debug.Log($"Button text set for skill: {skill.skillName}");
-                }
-                else
-                {
-                    Debug.LogError("Not enough text fields on the button prefab.");
-                }
-
-                buttonComponent.onClick.AddListener(() => OnSkillButtonClicked(skill, buttonComponent));
-                //Debug.Log($"Button created and listener added for skill: {skill.skillName}");
+                Debug.LogError("Menu: Button prefab missing Button component.");
+                Destroy(go);
+                continue;
             }
-            else
-            {
-                Debug.Log($"Skill did not pass filtering: {skill.skillName}");
-            }
+
+            var menuSkill = go.GetComponent<MenuSkill>() ?? go.AddComponent<MenuSkill>();
+            menuSkill.Bind(def.id, inRound ? roundWallet : playerManager.Wallet, inRound);
+
+            btn.onClick.RemoveAllListeners();
+            btn.onClick.AddListener(menuSkill.OnClickUpgrade);
+
+            built++;
         }
+
+        return built;
     }
 
-
-    private void OnSkillButtonClicked(Skill skill, Button button)
-    {
-        if (roundManager.SpendFragments(skillManager.GetSkillCost(skill)))
-        {
-            skillManager.UpgradeSkill(skill, 1);
-            UpdateButtonText(skill, button);
-        }
-    }
-
-    private void UpdateButtonText(Skill skill, Button button)
-    {
-        TextMeshProUGUI[] textFields = button.GetComponentsInChildren<TextMeshProUGUI>();
-        if (textFields.Length >= 3)
-        {
-            textFields[0].text = skill.skillName;
-            textFields[1].text = NumberManager.FormatLargeNumber(skillManager.GetSkillCost(skill));
-            textFields[2].text = NumberManager.FormatLargeNumber(skillManager.GetSkillValue(skill));
-        }
-    }
-
+    // ---------------- UI TOGGLING ----------------
     public void ToggleMenu()
     {
         isMenuOpen = !isMenuOpen;
         anim.SetBool("MenuOpen", isMenuOpen);
-    }
-
-    private void OnGUI()
-    {
-        if (tower == null || roundManager == null)
-        {
-            return;
-        }
     }
 
     public void ToggleCategory(Transform categoryParent)
@@ -188,7 +136,7 @@ public class Menu : MonoBehaviour
             ToggleMenu();
         }
 
-        if(categoryParent.gameObject.activeSelf)
+        if (categoryParent.gameObject.activeSelf)
         {
             ToggleMenu();
             attackCategoryParent.gameObject.SetActive(false);
@@ -202,8 +150,14 @@ public class Menu : MonoBehaviour
             defenceCategoryParent.gameObject.SetActive(false);
             supportCategoryParent.gameObject.SetActive(false);
             specialCategoryParent.gameObject.SetActive(false);
-
+            
             categoryParent.gameObject.SetActive(true);
         }
+    }
+
+    private void OnGUI()
+    {
+        if (tower == null || roundManager == null)
+            return;
     }
 }
