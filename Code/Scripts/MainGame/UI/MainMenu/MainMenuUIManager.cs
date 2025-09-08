@@ -35,21 +35,6 @@ public class MainMenuUIManager : MonoBehaviour
     [Header("Tower Visual")]
     [SerializeField] private Image towerVisualImage;
 
-    [Header("Upgrade Screen References (Category Roots)")]
-    [SerializeField] private Transform attackUpgradesScreen;
-    [SerializeField] private Transform DefenceUpgradesScreen;
-    [SerializeField] private Transform SupportUpgradesScreen;
-    [SerializeField] private Transform SpecialUpgradesScreen;
-
-    [Header("Category Buttons (Tabs)")]
-    [SerializeField] private GameObject attackUpgradesButton;
-    [SerializeField] private GameObject defenceUpgradesButton;
-    [SerializeField] private GameObject supportUpgradesButton;
-    [SerializeField] private GameObject specialUpgradesButton;
-
-    [Header("Prefabs / UI")]
-    [SerializeField] private GameObject upgradeButtonPrefab; // must have / or will receive MenuSkill
-
     [Header("Main Menu Footer Screens")]
     [SerializeField] private GameObject mainScreenUI;
     [SerializeField] private GameObject upgradeScreenUI;
@@ -87,9 +72,8 @@ public class MainMenuUIManager : MonoBehaviour
 
         SetPlayerMaxDifficulty(playerManager.GetMaxDifficulty());
         SetPlayerDifficulty(1);
-        InitializeMetaUpgradeShop();
         TriggerDifficultyButtons();
-        ToggleCategory(attackUpgradesScreen);
+
         SetTowerVisualImage();
     }
 
@@ -202,95 +186,7 @@ public class MainMenuUIManager : MonoBehaviour
     public void SetPlayerMaxDifficulty(int maxDifficulty) => maxDifficultyLevel = maxDifficulty;
     public void SetPlayerHighestWave(int difficulty) => highestWave = playerManager.GetHighestWave(difficulty);
 
-    // ================= META UPGRADE SHOP (Cores) =================
-    private void InitializeMetaUpgradeShop()
-    {
-        ClearGrid(attackUpgradesScreen);
-        ClearGrid(DefenceUpgradesScreen);
-        ClearGrid(SupportUpgradesScreen);
-        ClearGrid(SpecialUpgradesScreen);
 
-        BuildButtonsForCategory(SkillCategory.Attack, attackUpgradesScreen);
-        BuildButtonsForCategory(SkillCategory.Defence, DefenceUpgradesScreen);
-        BuildButtonsForCategory(SkillCategory.Support, SupportUpgradesScreen);
-        BuildButtonsForCategory(SkillCategory.Special, SpecialUpgradesScreen);
-
-        attackUpgradesScreen.gameObject.SetActive(true);
-        DefenceUpgradesScreen.gameObject.SetActive(false);
-        SupportUpgradesScreen.gameObject.SetActive(false);
-        SpecialUpgradesScreen.gameObject.SetActive(false);
-    }
-
-    private void ClearGrid(Transform root)
-    {
-        if (!root) return;
-        for (int i = root.childCount - 1; i >= 0; i--)
-            Destroy(root.GetChild(i).gameObject);
-    }
-
-    private int BuildButtonsForCategory(SkillCategory category, Transform root)
-    {
-        if (!root || !skillService || playerManager == null) return 0;
-        int built = 0;
-
-        foreach (var def in skillService.GetByCategory(category))
-        {
-            if (!def) continue;
-
-            var go = Instantiate(upgradeButtonPrefab, root);
-            if (!go) continue;
-
-            var btn = go.GetComponent<Button>();
-            if (!btn)
-            {
-                Debug.LogError("Upgrade button prefab missing Button component.");
-                Destroy(go);
-                continue;
-            }
-
-            // Attach / fetch MenuSkill (shared component with in-round menu)
-            var menuSkill = go.GetComponent<MenuSkill>() ?? go.AddComponent<MenuSkill>();
-            // inRound = false => uses cores, meta progression
-            menuSkill.Bind(def.id, playerManager.Wallet, false);
-
-            // Button wiring: just forward to MenuSkill (it handles TryUpgradePersistent internally)
-            btn.onClick.RemoveAllListeners();
-            btn.onClick.AddListener(menuSkill.OnClickUpgrade);
-
-            built++;
-        }
-
-        return built;
-    }
-
-    // ================= CATEGORY TOGGLING =================
-    public void ToggleCategory(Transform categoryParent)
-    {
-        attackUpgradesScreen.gameObject.SetActive(false);
-        DefenceUpgradesScreen.gameObject.SetActive(false);
-        SupportUpgradesScreen.gameObject.SetActive(false);
-        SpecialUpgradesScreen.gameObject.SetActive(false);
-
-        categoryParent.gameObject.SetActive(true);
-        SetCategoryButtonColours(categoryParent);
-    }
-
-    public void SetCategoryButtonColours(Transform categoryParent)
-    {
-        ChangeButtonColor(attackUpgradesButton, new Color(0, 0, 0.5f, 1f));
-        ChangeButtonColor(defenceUpgradesButton, new Color(0, 0, 0.5f, 1f));
-        ChangeButtonColor(supportUpgradesButton, new Color(0, 0, 0.5f, 1f));
-        ChangeButtonColor(specialUpgradesButton, new Color(0, 0, 0.5f, 1f));
-
-        if (categoryParent == attackUpgradesScreen)
-            ChangeButtonColor(attackUpgradesButton, Color.blue);
-        else if (categoryParent == DefenceUpgradesScreen)
-            ChangeButtonColor(defenceUpgradesButton, Color.blue);
-        else if (categoryParent == SupportUpgradesScreen)
-            ChangeButtonColor(supportUpgradesButton, Color.blue);
-        else if (categoryParent == SpecialUpgradesScreen)
-            ChangeButtonColor(specialUpgradesButton, Color.blue);
-    }
 
     // ================= FOOTER NAV =================
     public enum ScreenType { Main, Upgrade, Reward, Research, Settings }

@@ -16,17 +16,17 @@ MonoBehaviour:
   displayName: Bullet Speed
   category: 0
   startsUnlocked: 1
-  maxLevel: 50
+  maxLevel: 16
   maxResearchLevel: 10
-  baseValue: 4
-  baseFragmentsCost: 5
-  baseCoresCost: 10
+  baseValue: 6
+  baseFragmentsCost: 500
+  baseCoresCost: 1000
   valueCurve: 1
-  valueGrowth: 1.15
-  fragmentsCostCurve: 1
-  fragmentsCostGrowth: 1.25
-  coresCostCurve: 1
-  coresCostGrowth: 1.35
+  valueGrowth: 1.1
+  fragmentsCostCurve: 0
+  fragmentsCostGrowth: 7
+  coresCostCurve: 0
+  coresCostGrowth: 10
   customValueCurve:
     serializedVersion: 2
     m_Curve: []

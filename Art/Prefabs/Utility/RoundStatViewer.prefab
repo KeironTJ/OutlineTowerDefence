@@ -180,14 +180,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb21f42fe7af48b439a1c71fb1ea5589, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  durationText: {fileID: 0}
-  difficultyText: {fileID: 0}
-  highestWaveText: {fileID: 0}
-  bulletsFiredText: {fileID: 0}
-  enemiesKilledText: {fileID: 0}
-  currencyContainer: {fileID: 0}
-  rowTextPrefab: {fileID: 8450985653791507526, guid: f17575fc7cf7dd246b78c5567974db27, type: 3}
-  enemyBreakdownContainer: {fileID: 0}
   statsTableContainer: {fileID: 2455267051949274334}
   statItemPrefab: {fileID: 8450985653791507526, guid: cc2b69105558d154f8cdcc5ccd70f84f, type: 3}
   minUpdateInterval: 0.2

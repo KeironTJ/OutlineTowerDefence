@@ -8,36 +8,30 @@ public class Menu : MonoBehaviour
     [Header("References")]
     [SerializeField] private Animator anim;
 
-    [SerializeField] private GameObject buttonPrefab;
-    private ICurrencyWallet roundWallet;
+    [Header("Upgrade Button Root")]
+    [SerializeField] private Transform upgradesPanel; 
+    [SerializeField] private Image panelBackgroundImage; 
 
-    [Header("Category Parents (Panels)")]
-    [SerializeField] private Transform attackCategoryParent;
-    [SerializeField] private Transform defenceCategoryParent;
-    [SerializeField] private Transform supportCategoryParent;
-    [SerializeField] private Transform specialCategoryParent;
-
-    [Header("Button Grids (Content Roots)")]
-    [SerializeField] private Transform attackCategoryButtonGrid;
-    [SerializeField] private Transform defenceCategoryButtonGrid;
-    [SerializeField] private Transform supportCategoryButtonGrid;
-    [SerializeField] private Transform specialCategoryButtonGrid;
-
-    [Header("Category Toggle Buttons")]
+    [Header("Category Buttons")]
     [SerializeField] private Button attackToggleButton;
     [SerializeField] private Button defenceToggleButton;
     [SerializeField] private Button supportToggleButton;
     [SerializeField] private Button specialToggleButton;
 
+    [Header("Prefabs / UI")]
+    [SerializeField] private GameObject buttonPrefab;
+    [SerializeField] private TextMeshProUGUI upgradesTitleText;
+
     [Header("Services")]
     [SerializeField] private SkillService skillService;
 
-    private bool isMenuOpen = true;
-    private Tower tower;
+    private ICurrencyWallet roundWallet;
     private PlayerManager playerManager;
     private RoundManager roundManager;
-
+    private Tower tower;
     private bool inRound = true;
+    private bool isMenuOpen = false;
+    private SkillCategory? openCategory = null;
 
     // ---------------- INITIALIZE ----------------
     public void Initialize(RoundManager roundManager, WaveManager waveManager, Tower tower, ICurrencyWallet roundWallet, bool inRound = true)
@@ -56,50 +50,85 @@ public class Menu : MonoBehaviour
             return;
         }
 
-        if (roundWallet == null)
+        if (roundWallet == null && inRound)
         {
             Debug.LogWarning("Menu: Round wallet not provided (buttons will be non‑interactive).");
         }
 
-        BuildShop();
+        ShowCategory(SkillCategory.Attack);
     }
 
-    // ---------------- BUILD SHOP ----------------
-    private void BuildShop()
+    // ---------------- CATEGORY PANEL LOGIC ----------------
+    public void ShowCategory(SkillCategory category)
     {
-        ClearGrid(attackCategoryButtonGrid);
-        ClearGrid(defenceCategoryButtonGrid);
-        ClearGrid(supportCategoryButtonGrid);
-        ClearGrid(specialCategoryButtonGrid);
+        // CASE 1: Menu closed, any click opens menu to that category
+        if (!isMenuOpen)
+        {
+            isMenuOpen = true;
+            openCategory = category;
+            if (anim) anim.SetBool("MenuOpen", true);
+            BuildCategoryUI(category);
+            return;
+        }
 
-        int attackCount  = BuildButtonsForCategory(SkillCategory.Attack,  attackCategoryButtonGrid);
-        int defenceCount = BuildButtonsForCategory(SkillCategory.Defence, defenceCategoryButtonGrid);
-        int supportCount = BuildButtonsForCategory(SkillCategory.Support, supportCategoryButtonGrid);
-        int specialCount = BuildButtonsForCategory(SkillCategory.Special, specialCategoryButtonGrid);
+        // CASE 2: Menu open, clicking a different category switches content (no anim)
+        if (openCategory != category)
+        {
+            openCategory = category;
+            BuildCategoryUI(category);
+            return;
+        }
 
-        attackCategoryParent.gameObject.SetActive(attackCount  > 0);
-        defenceCategoryParent.gameObject.SetActive(false);
-        supportCategoryParent.gameObject.SetActive(false);
-        specialCategoryParent.gameObject.SetActive(false);
+        // CASE 3: Menu open, clicking same category closes menu
+        isMenuOpen = false;
+        openCategory = null;
+        if (anim) anim.SetBool("MenuOpen", false);
+        // Optionally clear UI or leave as is
     }
 
-    private void ClearGrid(Transform grid)
+    private void BuildCategoryUI(SkillCategory category)
     {
-        if (!grid) return;
-        for (int i = grid.childCount - 1; i >= 0; i--)
-            Destroy(grid.GetChild(i).gameObject);
+        ClearGrid(upgradesPanel);
+
+        // Update title if present
+        if (upgradesTitleText)
+            upgradesTitleText.text = category + " Upgrades";
+
+        // Change panel background colour (optional)
+        if (panelBackgroundImage)
+        {
+            Color panelColor = Color.white;
+            switch (category)
+            {
+                case SkillCategory.Attack:   panelColor = new Color(1f, 0.5f, 0.5f, 0.3f); break;
+                case SkillCategory.Defence:  panelColor = new Color(0.5f, 0.7f, 1f, 0.3f); break;
+                case SkillCategory.Support:  panelColor = new Color(1f, 1f, 0.6f, 0.3f); break;
+                case SkillCategory.Special:  panelColor = new Color(0.9f, 0.7f, 1f, 0.3f); break;
+            }
+            panelBackgroundImage.color = panelColor;
+        }
+
+        BuildButtonsForCategory(category, upgradesPanel);
+        SetCategoryButtonColours(category);
     }
 
-    private int BuildButtonsForCategory(SkillCategory category, Transform grid)
+    private void ClearGrid(Transform root)
     {
-        if (!grid) return 0;
+        if (!root) return;
+        for (int i = root.childCount - 1; i >= 0; i--)
+            Destroy(root.GetChild(i).gameObject);
+    }
+
+    private int BuildButtonsForCategory(SkillCategory category, Transform root)
+    {
+        if (!root || !skillService || playerManager == null) return 0;
         int built = 0;
 
         foreach (var def in skillService.GetByCategory(category))
         {
-            // If you later add unlock flags, filter here (e.g., if (!skillService.IsUnlocked(def.id)) continue;)
+            if (!def) continue;
 
-            GameObject go = Instantiate(buttonPrefab, grid);
+            var go = Instantiate(buttonPrefab, root);
             if (!go) continue;
 
             var btn = go.GetComponent<Button>();
@@ -122,42 +151,39 @@ public class Menu : MonoBehaviour
         return built;
     }
 
+    // CATEGORY BUTTON HOOKS
+    public void OnAttackCategory()  => ShowCategory(SkillCategory.Attack);
+    public void OnDefenceCategory() => ShowCategory(SkillCategory.Defence);
+    public void OnSupportCategory() => ShowCategory(SkillCategory.Support);
+    public void OnSpecialCategory() => ShowCategory(SkillCategory.Special);
+
+    public void SetCategoryButtonColours(SkillCategory category)
+    {
+        ChangeButtonColor(attackToggleButton?.gameObject,   new Color(0, 0, 0.5f, 1f));
+        ChangeButtonColor(defenceToggleButton?.gameObject,  new Color(0, 0, 0.5f, 1f));
+        ChangeButtonColor(supportToggleButton?.gameObject,  new Color(0, 0, 0.5f, 1f));
+        ChangeButtonColor(specialToggleButton?.gameObject,  new Color(0, 0, 0.5f, 1f));
+
+        switch (category)
+        {
+            case SkillCategory.Attack:   ChangeButtonColor(attackToggleButton?.gameObject, new Color(1f, 0.5f, 0.5f)); break;
+            case SkillCategory.Defence:  ChangeButtonColor(defenceToggleButton?.gameObject, new Color(0.5f, 0.7f, 1f)); break;
+            case SkillCategory.Support:  ChangeButtonColor(supportToggleButton?.gameObject, new Color(1f, 1f, 0.6f)); break;
+            case SkillCategory.Special:  ChangeButtonColor(specialToggleButton?.gameObject, new Color(0.9f, 0.7f, 1f)); break;
+        }
+    }
+
+    public void ChangeButtonColor(GameObject button, Color color)
+    {
+        if (!button) return;
+        var img = button.GetComponent<Image>();
+        if (img) img.color = color;
+    }
+
     // ---------------- UI TOGGLING ----------------
     public void ToggleMenu()
     {
         isMenuOpen = !isMenuOpen;
-        anim.SetBool("MenuOpen", isMenuOpen);
-    }
-
-    public void ToggleCategory(Transform categoryParent)
-    {
-        if (!isMenuOpen)
-        {
-            ToggleMenu();
-        }
-
-        if (categoryParent.gameObject.activeSelf)
-        {
-            ToggleMenu();
-            attackCategoryParent.gameObject.SetActive(false);
-            defenceCategoryParent.gameObject.SetActive(false);
-            supportCategoryParent.gameObject.SetActive(false);
-            specialCategoryParent.gameObject.SetActive(false);
-        }
-        else
-        {
-            attackCategoryParent.gameObject.SetActive(false);
-            defenceCategoryParent.gameObject.SetActive(false);
-            supportCategoryParent.gameObject.SetActive(false);
-            specialCategoryParent.gameObject.SetActive(false);
-            
-            categoryParent.gameObject.SetActive(true);
-        }
-    }
-
-    private void OnGUI()
-    {
-        if (tower == null || roundManager == null)
-            return;
+        if (anim) anim.SetBool("MenuOpen", isMenuOpen);
     }
 }

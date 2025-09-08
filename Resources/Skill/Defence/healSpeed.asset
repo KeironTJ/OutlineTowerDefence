@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1da1f865474384f43843a9059a5f7782, type: 3}
   m_Name: healSpeed
   m_EditorClassIdentifier: 
-  id: Health Speed
-  displayName: Health Speed
+  id: Heal Speed
+  displayName: Heal Speed
   category: 1
   startsUnlocked: 1
   maxLevel: 999
@@ -22,7 +22,7 @@ MonoBehaviour:
   baseFragmentsCost: 1
   baseCoresCost: 40
   valueCurve: 1
-  valueGrowth: 1.2
+  valueGrowth: 1.15
   fragmentsCostCurve: 1
   fragmentsCostGrowth: 1.2
   coresCostCurve: 1

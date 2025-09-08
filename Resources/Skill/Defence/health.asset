@@ -18,15 +18,15 @@ MonoBehaviour:
   startsUnlocked: 1
   maxLevel: 999
   maxResearchLevel: 99
-  baseValue: 3
-  baseFragmentsCost: 5
-  baseCoresCost: 10
+  baseValue: 10
+  baseFragmentsCost: 7
+  baseCoresCost: 40
   valueCurve: 1
-  valueGrowth: 1.15
+  valueGrowth: 1.2
   fragmentsCostCurve: 1
-  fragmentsCostGrowth: 1.25
+  fragmentsCostGrowth: 1.2
   coresCostCurve: 1
-  coresCostGrowth: 1.35
+  coresCostGrowth: 1.2
   customValueCurve:
     serializedVersion: 2
     m_Curve: []

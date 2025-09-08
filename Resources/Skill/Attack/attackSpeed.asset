@@ -16,15 +16,15 @@ MonoBehaviour:
   displayName: Attack Speed
   category: 0
   startsUnlocked: 1
-  maxLevel: 50
-  maxResearchLevel: 10
+  maxLevel: 100
+  maxResearchLevel: 99
   baseValue: 1
-  baseFragmentsCost: 5
-  baseCoresCost: 10
+  baseFragmentsCost: 2
+  baseCoresCost: 40
   valueCurve: 1
-  valueGrowth: 1.15
+  valueGrowth: 1.05
   fragmentsCostCurve: 1
-  fragmentsCostGrowth: 1.25
+  fragmentsCostGrowth: 1.75
   coresCostCurve: 1
   coresCostGrowth: 1.35
   customValueCurve:
