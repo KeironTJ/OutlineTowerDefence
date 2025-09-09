@@ -24,8 +24,25 @@ public class MainUpgradeScreen : MonoBehaviour
     [SerializeField] private SkillService skillService;
     [SerializeField] private ScrollRect scrollRect; // assign your Scroll View here
 
+    [Header("Multiplier Buttons")]
+    [SerializeField] private List<Button> multiplierButtons;
+    [SerializeField] private List<int> multiplierValues = new List<int> { 1, 5, 10, 50, 100, -1 }; // -1 for MAX
+
+    [Header("Multiplier Button Styling")]
+    [SerializeField] private Color multBgNormal   = new Color(0.16f, 0.18f, 0.22f, 1f);
+    [SerializeField] private Color multBgSelected = new Color(0.95f, 0.85f, 0.30f, 1f);
+    [SerializeField] private Color multTextNormal = Color.white;
+    [SerializeField] private Color multTextSelected = Color.black;
+
     private PlayerManager playerManager;
     private SkillCategory currentCategory = SkillCategory.Attack;
+    private int multiplierSelected = 1;
+
+    private void Awake()
+    {
+        InitMultiplierButtons();
+        SyncMultiplierButtonVisuals();
+    }
 
     private void Start()
     {
@@ -91,6 +108,7 @@ public class MainUpgradeScreen : MonoBehaviour
 
             var menuSkill = go.GetComponent<MenuSkill>() ?? go.AddComponent<MenuSkill>();
             menuSkill.Bind(def.id, playerManager.Wallet, false);
+            menuSkill.SetMultiplier(multiplierSelected); // ensure current multiplier is applied
 
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(menuSkill.OnClickUpgrade);
@@ -128,5 +146,76 @@ public class MainUpgradeScreen : MonoBehaviour
         if (!button) return;
         var img = button.GetComponent<Image>();
         if (img) img.color = color;
+    }
+
+    // -------- Multiplier wiring (same behavior as Round Shop Menu) --------
+    private void InitMultiplierButtons()
+    {
+        if (multiplierButtons == null || multiplierValues == null) return;
+
+        int count = Mathf.Min(multiplierButtons.Count, multiplierValues.Count);
+        if (multiplierButtons.Count != multiplierValues.Count)
+            Debug.LogWarning($"MainUpgradeScreen: multiplierButtons ({multiplierButtons.Count}) and multiplierValues ({multiplierValues.Count}) size mismatch.");
+
+        for (int i = 0; i < count; i++)
+        {
+            var btn = multiplierButtons[i];
+            if (!btn) continue;
+            int value = multiplierValues[i]; // capture
+            btn.onClick.RemoveAllListeners();
+            btn.onClick.AddListener(() => SelectMultiplier(value));
+
+            // Ensure ColorTint so our colors apply consistently
+            if (btn.transition == Selectable.Transition.SpriteSwap)
+                btn.transition = Selectable.Transition.ColorTint;
+        }
+    }
+
+    private void ApplyMultiplierButtonStyle(Button btn, bool selected)
+    {
+        if (!btn) return;
+
+        var graphic = btn.targetGraphic;
+        if (graphic)
+        {
+            var c = selected ? multBgSelected : multBgNormal;
+            graphic.color = c;
+
+            var cb = btn.colors;
+            cb.normalColor = c;
+            cb.highlightedColor = c;
+            cb.selectedColor = c;
+            cb.pressedColor = c * 0.95f;
+            cb.disabledColor = c * 0.6f;
+            btn.colors = cb;
+        }
+
+        var txt = btn.GetComponentInChildren<TextMeshProUGUI>(true);
+        if (txt) txt.color = selected ? multTextSelected : multTextNormal;
+    }
+
+    private void SyncMultiplierButtonVisuals()
+    {
+        if (multiplierButtons == null || multiplierValues == null) return;
+        int idx = multiplierValues.IndexOf(multiplierSelected);
+        for (int i = 0; i < multiplierButtons.Count; i++)
+            ApplyMultiplierButtonStyle(multiplierButtons[i], i == idx);
+    }
+
+    public void SelectMultiplier(int value)
+    {
+        multiplierSelected = value;
+        SyncMultiplierButtonVisuals();
+        PropagateMultiplierToVisible();
+    }
+
+    private void PropagateMultiplierToVisible()
+    {
+        if (!upgradesPanel) return;
+        for (int i = 0; i < upgradesPanel.childCount; i++)
+        {
+            var ms = upgradesPanel.GetChild(i).GetComponent<MenuSkill>();
+            if (ms) ms.SetMultiplier(multiplierSelected);
+        }
     }
 }

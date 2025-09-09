@@ -5,6 +5,7 @@ using TMPro;
 public class MenuSkill : MonoBehaviour
 {
     [Header("Refs")]
+    [SerializeField] private Image backgroundImage;
     [SerializeField] private TextMeshProUGUI skillHeaderText;
     [SerializeField] private TextMeshProUGUI skillCostText;
     [SerializeField] private TextMeshProUGUI skillLevelText;
@@ -23,6 +24,7 @@ public class MenuSkill : MonoBehaviour
     private Button button;
     private bool inRound;
     private bool subscribed;
+    private int multiplier = 1;
 
     public void Bind(string skillId, ICurrencyWallet wallet, bool inRound)
     {
@@ -72,12 +74,78 @@ public class MenuSkill : MonoBehaviour
     {
         var svc = SkillService.Instance;
         if (!svc || wallet == null) return;
+        var def = svc.GetDefinition(skillId);
+        if (def == null) return;
 
-        bool ok = inRound
-            ? svc.TryUpgradeRound(skillId, currency, wallet)
-            : PlayerManager.main.TryMetaUpgradeSkill(skillId, currency);
+        int lvl = svc.GetLevel(skillId);
+        int max = def.maxLevel;
+        int remaining = Mathf.Max(0, max - lvl);
+        float available = wallet.Get(currency);
 
-        if (ok) Refresh();
+        // MAX = buy as many as affordable (up to remaining)
+        if (multiplier == -1)
+        {
+            if (remaining == 0) { Refresh(); return; }
+
+            int canBuy = 0;
+            for (int i = 1; i <= remaining; i++)
+            {
+                var p = svc.GetUpgradePreview(skillId, currency, lvl, i);
+                if (available >= p.cost) canBuy = i; else break;
+            }
+            if (canBuy <= 0) { Refresh(); return; }
+
+            for (int i = 0; i < canBuy; i++)
+            {
+                bool ok = inRound
+                    ? svc.TryUpgradeRound(skillId, currency, wallet)
+                    : svc.TryUpgradePersistent(skillId, currency, wallet);
+                if (!ok) break;
+            }
+            Refresh();
+            return;
+        }
+
+        // Fixed multiplier
+        int desired = Mathf.Max(1, multiplier);
+
+        // Case A: desired within cap -> all-or-nothing
+        if (desired <= remaining)
+        {
+            var bundle = svc.GetUpgradePreview(skillId, currency, lvl, desired);
+            if (available < bundle.cost) { Refresh(); return; }
+
+            for (int i = 0; i < desired; i++)
+            {
+                bool ok = inRound
+                    ? svc.TryUpgradeRound(skillId, currency, wallet)
+                    : svc.TryUpgradePersistent(skillId, currency, wallet);
+                if (!ok) break;
+            }
+            Refresh();
+            return;
+        }
+
+        // Case B: desired exceeds cap -> show MAX preview and only buy full path to MAX if affordable
+        if (remaining == 0) { Refresh(); return; }
+
+        var capPreview = svc.GetUpgradePreview(skillId, currency, lvl, remaining);
+        if (available < capPreview.cost) { Refresh(); return; } // not enough for full MAX path
+
+        for (int i = 0; i < remaining; i++)
+        {
+            bool ok = inRound
+                ? svc.TryUpgradeRound(skillId, currency, wallet)
+                : svc.TryUpgradePersistent(skillId, currency, wallet);
+            if (!ok) break;
+        }
+        Refresh();
+    }
+
+    public void SetMultiplier(int value)
+    {
+        multiplier = value;
+        Refresh();
     }
 
     public void Refresh()
@@ -89,30 +157,114 @@ public class MenuSkill : MonoBehaviour
 
         int lvl = svc.GetLevel(skillId);
         int max = def.maxLevel;
+        int remaining = Mathf.Max(0, max - lvl);
 
         if (skillHeaderText) skillHeaderText.text = def.displayName;
         if (skillLevelText)  skillLevelText.text  = $"{lvl}/{max}";
         if (skillValueText)  skillValueText.text  = NumberManager.FormatLargeNumber(svc.GetValue(skillId));
-        if (upgradeMultiplierText) upgradeMultiplierText.text = $"x1";
 
+        float available = wallet.Get(currency);
 
-        var preview = svc.GetUpgradePreview(skillId, currency);
-        if (preview.isMaxed)
+        // Maxed
+        if (remaining == 0)
         {
-            if (skillCostText) skillCostText.text = "MAX";
+            if (backgroundImage) backgroundImage.color = new Color(0f, 0.75f, 0f);
+            if (skillCostText) { skillCostText.text = "MAX"; skillCostText.fontStyle = FontStyles.Bold; }
             if (skillNextValueText) skillNextValueText.text = "";
+            if (currencyImage) currencyImage.enabled = false;
             if (button) button.interactable = false;
+            return;
         }
-        else
+
+        // MAX: only show the first step when even the first is unaffordable.
+        if (multiplier == -1)
         {
+            // Preview the first step (for the "cannot afford any" case)
+            var firstStep = svc.GetUpgradePreview(skillId, currency, lvl, 1);
+
+            // Find how many steps up to MAX are affordable
+            int affordable = 0;
+            float costAffordable = 0f;
+            float valueAffordable = svc.GetValue(skillId);
+            for (int i = 1; i <= remaining; i++)
+            {
+                var p = svc.GetUpgradePreview(skillId, currency, lvl, i);
+                if (available >= p.cost)
+                {
+                    affordable = i;
+                    costAffordable = p.cost;
+                    valueAffordable = p.nextValue;
+                }
+                else break;
+            }
+
+            if (affordable == 0)
+            {
+                // Can't afford even 1: show first step cost/value (disabled)
+                if (skillCostText)
+                {
+                    skillCostText.text  = NumberManager.FormatLargeNumber(firstStep.cost);
+                    skillCostText.color = Color.red;
+                }
+                if (skillNextValueText)
+                    skillNextValueText.text = $"x1 -> {NumberManager.FormatLargeNumber(firstStep.nextValue)}";
+
+                if (button) button.interactable = false;
+                if (currencyImage) currencyImage.enabled = true;
+            }
+            else
+            {
+                // Can afford some: show what MAX will actually buy
+                if (skillCostText)
+                {
+                    skillCostText.text  = NumberManager.FormatLargeNumber(costAffordable);
+                    skillCostText.color = Color.white;
+                }
+                if (skillNextValueText)
+                    skillNextValueText.text = $"x{affordable} -> {NumberManager.FormatLargeNumber(valueAffordable)}";
+
+                if (button) button.interactable = true;
+                if (currencyImage) currencyImage.enabled = true;
+            }
+            return;
+        }
+
+        // Fixed multiplier label inside next-value: x{multiplier} -> {newValue}
+        int desired = Mathf.Max(1, multiplier);
+
+        // A) within cap -> all-or-nothing
+        if (desired <= remaining)
+        {
+            var bundle = svc.GetUpgradePreview(skillId, currency, lvl, desired);
+            bool canAffordFull = available >= bundle.cost;
+
             if (skillCostText)
             {
-                skillCostText.text = NumberManager.FormatLargeNumber(preview.cost);
-                skillCostText.color = wallet.Get(currency) >= preview.cost ? Color.white : Color.red;
+                skillCostText.text  = NumberManager.FormatLargeNumber(bundle.cost);
+                skillCostText.color = canAffordFull ? Color.white : Color.red;
             }
             if (skillNextValueText)
-                skillNextValueText.text = "→ " + NumberManager.FormatLargeNumber(preview.nextValue);
-            if (button) button.interactable = wallet.Get(currency) >= preview.cost;
+                skillNextValueText.text = $"x{multiplier} -> {NumberManager.FormatLargeNumber(bundle.nextValue)}";
+
+            if (button) button.interactable = canAffordFull;
+            if (currencyImage) currencyImage.enabled = true;
+            return;
+        }
+
+        // B) desired exceeds cap -> show FINAL MAXED STEP as MAX>{newValue} (no stepping)
+        {
+            var capPreview = svc.GetUpgradePreview(skillId, currency, lvl, remaining);
+
+            if (skillCostText)
+            {
+                skillCostText.text  = NumberManager.FormatLargeNumber(capPreview.cost);
+                skillCostText.color = (available >= capPreview.cost) ? Color.white : Color.red;
+            }
+            if (skillNextValueText)
+                skillNextValueText.text = $"x{remaining} -> {NumberManager.FormatLargeNumber(capPreview.nextValue)}";
+
+            if (button) button.interactable = available >= capPreview.cost;
+            if (currencyImage) currencyImage.enabled = true;
         }
     }
 }

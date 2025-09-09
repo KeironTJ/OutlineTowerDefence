@@ -9,8 +9,8 @@ public class Menu : MonoBehaviour
     [SerializeField] private Animator anim;
 
     [Header("Upgrade Button Root")]
-    [SerializeField] private Transform upgradesPanel; 
-    [SerializeField] private Image panelBackgroundImage; 
+    [SerializeField] private Transform upgradesPanel;
+    [SerializeField] private Image panelBackgroundImage;
 
     [Header("Category Buttons")]
     [SerializeField] private Button attackToggleButton;
@@ -25,6 +25,16 @@ public class Menu : MonoBehaviour
     [Header("Services")]
     [SerializeField] private SkillService skillService;
 
+    [Header("Multiplier Buttons")]
+    [SerializeField] private List<Button> multiplierButtons;
+    [SerializeField] private List<int> multiplierValues = new List<int> { 1, 5, 10, 50, 100, -1 }; // -1 for Max
+
+    [Header("Multiplier Button Styling")]
+    [SerializeField] private Color multBgNormal   = new Color(0.16f, 0.18f, 0.22f, 1f);
+    [SerializeField] private Color multBgSelected = new Color(0.95f, 0.85f, 0.30f, 1f);
+    [SerializeField] private Color multTextNormal = Color.white;
+    [SerializeField] private Color multTextSelected = Color.black;
+
     private ICurrencyWallet roundWallet;
     private PlayerManager playerManager;
     private RoundManager roundManager;
@@ -32,6 +42,7 @@ public class Menu : MonoBehaviour
     private bool inRound = true;
     private bool isMenuOpen = false;
     private SkillCategory? openCategory = null;
+    private int multiplierSelected = 1;
 
     // ---------------- INITIALIZE ----------------
     public void Initialize(RoundManager roundManager, WaveManager waveManager, Tower tower, ICurrencyWallet roundWallet, bool inRound = true)
@@ -100,10 +111,10 @@ public class Menu : MonoBehaviour
             Color panelColor = Color.white;
             switch (category)
             {
-                case SkillCategory.Attack:   panelColor = new Color(1f, 0.5f, 0.5f, 0.3f); break;
-                case SkillCategory.Defence:  panelColor = new Color(0.5f, 0.7f, 1f, 0.3f); break;
-                case SkillCategory.Support:  panelColor = new Color(1f, 1f, 0.6f, 0.3f); break;
-                case SkillCategory.Special:  panelColor = new Color(0.9f, 0.7f, 1f, 0.3f); break;
+                case SkillCategory.Attack: panelColor = new Color(1f, 0.5f, 0.5f, 0.3f); break;
+                case SkillCategory.Defence: panelColor = new Color(0.5f, 0.7f, 1f, 0.3f); break;
+                case SkillCategory.Support: panelColor = new Color(1f, 1f, 0.6f, 0.3f); break;
+                case SkillCategory.Special: panelColor = new Color(0.9f, 0.7f, 1f, 0.3f); break;
             }
             panelBackgroundImage.color = panelColor;
         }
@@ -142,6 +153,9 @@ public class Menu : MonoBehaviour
             var menuSkill = go.GetComponent<MenuSkill>() ?? go.AddComponent<MenuSkill>();
             menuSkill.Bind(def.id, inRound ? roundWallet : playerManager.Wallet, inRound);
 
+            // ensure the current multiplier is applied to new buttons
+            menuSkill.SetMultiplier(multiplierSelected);
+
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(menuSkill.OnClickUpgrade);
 
@@ -152,24 +166,24 @@ public class Menu : MonoBehaviour
     }
 
     // CATEGORY BUTTON HOOKS
-    public void OnAttackCategory()  => ShowCategory(SkillCategory.Attack);
+    public void OnAttackCategory() => ShowCategory(SkillCategory.Attack);
     public void OnDefenceCategory() => ShowCategory(SkillCategory.Defence);
     public void OnSupportCategory() => ShowCategory(SkillCategory.Support);
     public void OnSpecialCategory() => ShowCategory(SkillCategory.Special);
 
     public void SetCategoryButtonColours(SkillCategory category)
     {
-        ChangeButtonColor(attackToggleButton?.gameObject,   new Color(0, 0, 0.5f, 1f));
-        ChangeButtonColor(defenceToggleButton?.gameObject,  new Color(0, 0, 0.5f, 1f));
-        ChangeButtonColor(supportToggleButton?.gameObject,  new Color(0, 0, 0.5f, 1f));
-        ChangeButtonColor(specialToggleButton?.gameObject,  new Color(0, 0, 0.5f, 1f));
+        ChangeButtonColor(attackToggleButton?.gameObject, new Color(0, 0, 0.5f, 1f));
+        ChangeButtonColor(defenceToggleButton?.gameObject, new Color(0, 0, 0.5f, 1f));
+        ChangeButtonColor(supportToggleButton?.gameObject, new Color(0, 0, 0.5f, 1f));
+        ChangeButtonColor(specialToggleButton?.gameObject, new Color(0, 0, 0.5f, 1f));
 
         switch (category)
         {
-            case SkillCategory.Attack:   ChangeButtonColor(attackToggleButton?.gameObject, new Color(1f, 0.5f, 0.5f)); break;
-            case SkillCategory.Defence:  ChangeButtonColor(defenceToggleButton?.gameObject, new Color(0.5f, 0.7f, 1f)); break;
-            case SkillCategory.Support:  ChangeButtonColor(supportToggleButton?.gameObject, new Color(1f, 1f, 0.6f)); break;
-            case SkillCategory.Special:  ChangeButtonColor(specialToggleButton?.gameObject, new Color(0.9f, 0.7f, 1f)); break;
+            case SkillCategory.Attack: ChangeButtonColor(attackToggleButton?.gameObject, new Color(1f, 0.5f, 0.5f)); break;
+            case SkillCategory.Defence: ChangeButtonColor(defenceToggleButton?.gameObject, new Color(0.5f, 0.7f, 1f)); break;
+            case SkillCategory.Support: ChangeButtonColor(supportToggleButton?.gameObject, new Color(1f, 1f, 0.6f)); break;
+            case SkillCategory.Special: ChangeButtonColor(specialToggleButton?.gameObject, new Color(0.9f, 0.7f, 1f)); break;
         }
     }
 
@@ -185,5 +199,87 @@ public class Menu : MonoBehaviour
     {
         isMenuOpen = !isMenuOpen;
         if (anim) anim.SetBool("MenuOpen", isMenuOpen);
+    }
+
+    private void Awake()
+    {
+        // Optional: ensure buttons are wired consistently at runtime
+        InitMultiplierButtons();
+        // Sync visuals with default multiplierSelected
+        SyncMultiplierButtonVisuals();
+    }
+
+    private void InitMultiplierButtons()
+    {
+        if (multiplierButtons == null || multiplierValues == null) return;
+
+        int count = Mathf.Min(multiplierButtons.Count, multiplierValues.Count);
+        if (multiplierButtons.Count != multiplierValues.Count)
+            Debug.LogWarning($"Menu: multiplierButtons ({multiplierButtons.Count}) and multiplierValues ({multiplierValues.Count}) size mismatch.");
+
+        for (int i = 0; i < count; i++)
+        {
+            var btn = multiplierButtons[i];
+            if (!btn) continue;
+            int value = multiplierValues[i]; // capture per-iteration
+            btn.onClick.RemoveAllListeners();
+            btn.onClick.AddListener(() => SelectMultiplier(value));
+            // Ensure transition is ColorTint (or None) so we can control colors
+            if (btn.transition == Selectable.Transition.SpriteSwap)
+                btn.transition = Selectable.Transition.ColorTint;
+        }
+    }
+
+    private void ApplyMultiplierButtonStyle(Button btn, bool selected)
+    {
+        if (!btn) return;
+
+        // Background (targetGraphic)
+        var graphic = btn.targetGraphic;
+        if (graphic)
+        {
+            var c = selected ? multBgSelected : multBgNormal;
+            graphic.color = c;
+
+            // Also push into ColorBlock so highlight/pressed/selected don’t fight our choice
+            var cb = btn.colors;
+            cb.normalColor = c;
+            cb.highlightedColor = c;
+            cb.selectedColor = c;
+            cb.pressedColor = c * 0.95f;
+            cb.disabledColor = c * 0.6f;
+            btn.colors = cb;
+        }
+
+        // Label color
+        var txt = btn.GetComponentInChildren<TextMeshProUGUI>(true);
+        if (txt) txt.color = selected ? multTextSelected : multTextNormal;
+    }
+
+    private void SyncMultiplierButtonVisuals()
+    {
+        int idx = multiplierValues.IndexOf(multiplierSelected);
+        for (int i = 0; i < multiplierButtons.Count; i++)
+            ApplyMultiplierButtonStyle(multiplierButtons[i], i == idx);
+    }
+
+    // Select multiplier for upgrades
+    public void SelectMultiplier(int multiplier)
+    {
+        multiplierSelected = multiplier;
+
+        // Update selected state visuals
+        SyncMultiplierButtonVisuals();
+
+        // Push the new multiplier to visible MenuSkill items
+        if (upgradesPanel)
+        {
+            foreach (Transform child in upgradesPanel)
+            {
+                var menuSkill = child.GetComponent<MenuSkill>();
+                if (menuSkill != null)
+                    menuSkill.SetMultiplier(multiplierSelected);
+            }
+        }
     }
 }

@@ -66,6 +66,71 @@ public class SkillService : MonoBehaviour
         return new UpgradePreview(id, level, level + 1, current, nextVal, cost, currency);
     }
 
+
+    public UpgradePreview GetUpgradePreview(string id, CurrencyType currency, int startLevel, int upgrades)
+    {
+        if (!defs.TryGetValue(id, out var def)) return UpgradePreview.Maxed;
+
+        int effectiveLevel = startLevel;                // current effective level (base + round)
+        int max = def.maxLevel;
+
+        // cap desired upgrades by remaining levels from effective
+        int remainingByEffective = Mathf.Max(0, max - effectiveLevel);
+        int stepsTarget = Mathf.Min(upgrades, remainingByEffective);
+        if (stepsTarget <= 0) return UpgradePreview.Maxed;
+
+        float totalCost = 0f;
+        float currentValue = GetValueAtLevel(id, effectiveLevel);
+        float nextValue = currentValue;
+
+        if (currency == CurrencyType.Fragments && round.TryGetValue(id, out var r))
+        {
+            // Round costs depend on roundLevels only
+            int startStep = r.roundLevels + 1; // next round step to buy
+            for (int i = 0; i < stepsTarget; i++)
+            {
+                int step = startStep + i;
+                float c = Mathf.Ceil(
+                    SkillMath.EvaluateCurve(def.fragmentsCostCurve, def.baseFragmentsCost, def.fragmentsCostGrowth,
+                        step, def.customCostCurveFragments)
+                );
+                totalCost += c;
+
+                // value preview increments effective level
+                effectiveLevel++;
+                nextValue = GetValueAtLevel(id, effectiveLevel);
+            }
+        }
+        else
+        {
+            // Persistent costs depend on persistent baseLevel, not effective level
+            if (!persistent.TryGetValue(id, out var p)) return UpgradePreview.Maxed;
+
+            // Also ensure we don't cross the global max considering current round state
+            int effectiveRoundLevel = round.TryGetValue(id, out var rState)
+                ? rState.baseLevel + rState.roundLevels
+                : p.baseLevel;
+            int remainingByMax = Mathf.Max(0, def.maxLevel - effectiveRoundLevel);
+            stepsTarget = Mathf.Min(stepsTarget, remainingByMax);
+
+            int baseLevelCursor = p.baseLevel;
+            for (int i = 0; i < stepsTarget; i++)
+            {
+                int nextBase = baseLevelCursor + 1;
+                float c = GetCostPersistent(id, currency, nextBase);
+                totalCost += c;
+                baseLevelCursor = nextBase;
+
+                // value preview increments effective level
+                effectiveLevel++;
+                nextValue = GetValueAtLevel(id, effectiveLevel);
+            }
+        }
+
+        int endLevel = startLevel + stepsTarget;
+        return new UpgradePreview(id, startLevel, endLevel, currentValue, nextValue, totalCost, currency);
+    }
+
     // --- ROUND UPGRADE (fragments) ---
     public bool TryUpgradeRound(string id, CurrencyType currency, ICurrencyWallet wallet)
     {
