@@ -111,6 +111,8 @@ public class RoundManager : MonoBehaviour
     private void Start()
     {
         if (!skillService) skillService = SkillService.Instance;
+        SkillService.Instance.BuildRoundStates();
+        
         if (tower == null)
         {
             StartNewRound();

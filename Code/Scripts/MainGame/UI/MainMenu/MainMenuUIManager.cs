@@ -60,6 +60,7 @@ public class MainMenuUIManager : MonoBehaviour
     {
         playerManager = PlayerManager.main;
         if (!skillService) skillService = SkillService.Instance;
+        if (skillService) skillService.ClearRoundStates();
 
         DisplayPlayerUsername();
         DisplayCurrency();

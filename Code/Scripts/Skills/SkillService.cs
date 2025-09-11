@@ -16,6 +16,10 @@ public class SkillService : MonoBehaviour
     public event Action<string> SkillValueChanged;
     public event Action<string> SkillModifiersChanged;
 
+    private bool roundActive = false; // NEW: gate use of 'round' state
+    public bool RoundActive => roundActive;
+
+
     // --- PUBLIC DEFINITION ACCESS ---
     public SkillDefinition GetDefinition(string id) => defs.TryGetValue(id, out var d) ? d : null;
     public bool TryGetDefinition(string id, out SkillDefinition def) => defs.TryGetValue(id, out def);
@@ -24,12 +28,12 @@ public class SkillService : MonoBehaviour
     public IEnumerable<PersistentSkillState> GetPersistentStates() => persistent.Values;
 
     // --- PREVIEW / VALUE HELPERS ---
-    public float GetValueAtLevel(string id, int level)
+     public float GetValueAtLevel(string id, int level)
     {
         if (!defs.TryGetValue(id, out var def)) return 0f;
         level = Mathf.Max(1, level);
         float baseVal = SkillMath.EvaluateCurve(def.valueCurve, def.baseValue, def.valueGrowth, level, def.customValueCurve);
-        if (round.TryGetValue(id, out var r))
+        if (roundActive && round.TryGetValue(id, out var r)) // gate by roundActive
             baseVal = (baseVal + r.additiveBonus) * r.multiplicativeBonus;
         return baseVal;
     }
@@ -50,14 +54,13 @@ public class SkillService : MonoBehaviour
         float nextVal;
         float cost;
 
-        if (currency == CurrencyType.Fragments && round.ContainsKey(id))
+        if (currency == CurrencyType.Fragments && roundActive && round.ContainsKey(id)) // gate by roundActive
         {
             cost = GetRoundCost(id);
             nextVal = GetValueAtLevel(id, level + 1);
         }
         else
         {
-            // Persistent preview: cost of next base level, value = effective +1
             if (!persistent.TryGetValue(id, out var p)) return UpgradePreview.Maxed;
             cost = GetCostPersistent(id, currency, p.baseLevel + 1);
             nextVal = GetValueAtLevel(id, level + 1);
@@ -66,15 +69,13 @@ public class SkillService : MonoBehaviour
         return new UpgradePreview(id, level, level + 1, current, nextVal, cost, currency);
     }
 
-
     public UpgradePreview GetUpgradePreview(string id, CurrencyType currency, int startLevel, int upgrades)
     {
         if (!defs.TryGetValue(id, out var def)) return UpgradePreview.Maxed;
 
-        int effectiveLevel = startLevel;                // current effective level (base + round)
+        int effectiveLevel = startLevel;
         int max = def.maxLevel;
 
-        // cap desired upgrades by remaining levels from effective
         int remainingByEffective = Mathf.Max(0, max - effectiveLevel);
         int stepsTarget = Mathf.Min(upgrades, remainingByEffective);
         if (stepsTarget <= 0) return UpgradePreview.Maxed;
@@ -83,10 +84,9 @@ public class SkillService : MonoBehaviour
         float currentValue = GetValueAtLevel(id, effectiveLevel);
         float nextValue = currentValue;
 
-        if (currency == CurrencyType.Fragments && round.TryGetValue(id, out var r))
+        if (currency == CurrencyType.Fragments && roundActive && round.TryGetValue(id, out var r)) // gate by roundActive
         {
-            // Round costs depend on roundLevels only
-            int startStep = r.roundLevels + 1; // next round step to buy
+            int startStep = r.roundLevels + 1;
             for (int i = 0; i < stepsTarget; i++)
             {
                 int step = startStep + i;
@@ -95,19 +95,15 @@ public class SkillService : MonoBehaviour
                         step, def.customCostCurveFragments)
                 );
                 totalCost += c;
-
-                // value preview increments effective level
                 effectiveLevel++;
                 nextValue = GetValueAtLevel(id, effectiveLevel);
             }
         }
         else
         {
-            // Persistent costs depend on persistent baseLevel, not effective level
             if (!persistent.TryGetValue(id, out var p)) return UpgradePreview.Maxed;
 
-            // Also ensure we don't cross the global max considering current round state
-            int effectiveRoundLevel = round.TryGetValue(id, out var rState)
+            int effectiveRoundLevel = (roundActive && round.TryGetValue(id, out var rState))
                 ? rState.baseLevel + rState.roundLevels
                 : p.baseLevel;
             int remainingByMax = Mathf.Max(0, def.maxLevel - effectiveRoundLevel);
@@ -121,7 +117,6 @@ public class SkillService : MonoBehaviour
                 totalCost += c;
                 baseLevelCursor = nextBase;
 
-                // value preview increments effective level
                 effectiveLevel++;
                 nextValue = GetValueAtLevel(id, effectiveLevel);
             }
@@ -134,6 +129,7 @@ public class SkillService : MonoBehaviour
     // --- ROUND UPGRADE (fragments) ---
     public bool TryUpgradeRound(string id, CurrencyType currency, ICurrencyWallet wallet)
     {
+        if (!roundActive) return false; // gate
         if (currency != CurrencyType.Fragments) return false;
         if (!CanUpgradeRound(id, currency, wallet)) return false;
         float cost = GetRoundCost(id);
@@ -192,12 +188,20 @@ public class SkillService : MonoBehaviour
                 multiplicativeBonus = 1f
             };
         }
+        roundActive = true; // mark active
     }
+
+    public void ClearRoundStates() // NEW
+    {
+        round.Clear();
+        roundActive = false;
+    }
+
 
     // ======== LEVEL / VALUE ========
     public int GetLevel(string id)
     {
-        if (round.TryGetValue(id, out var r))
+        if (roundActive && round.TryGetValue(id, out var r)) // gate by roundActive
             return r.baseLevel + r.roundLevels;
         if (persistent.TryGetValue(id, out var p))
             return p.baseLevel;
@@ -209,10 +213,10 @@ public class SkillService : MonoBehaviour
     public float GetValue(string id)
     {
         if (!defs.TryGetValue(id, out var def)) return 0f;
-        int effectiveLevel = Mathf.Max(1, GetEffectiveLevel(id));
+        int effectiveLevel = Mathf.Max(1, GetLevel(id));
         float baseVal = SkillMath.EvaluateCurve(def.valueCurve, def.baseValue, def.valueGrowth, effectiveLevel, def.customValueCurve);
 
-        if (round.TryGetValue(id, out var r))
+        if (roundActive && round.TryGetValue(id, out var r)) // gate by roundActive
             baseVal = (baseVal + r.additiveBonus) * r.multiplicativeBonus;
 
         return baseVal;
@@ -246,7 +250,7 @@ public class SkillService : MonoBehaviour
 
     public float GetCost(string id, CurrencyType currency)
     {
-        if (currency == CurrencyType.Fragments && round.ContainsKey(id))
+        if (currency == CurrencyType.Fragments && roundActive && round.ContainsKey(id))
             return GetRoundCost(id);
         if (persistent.TryGetValue(id, out var p))
             return GetCostPersistent(id, currency, p.baseLevel + 1);
@@ -256,6 +260,7 @@ public class SkillService : MonoBehaviour
     // ======== UPGRADE CHECKS ========
     public bool CanUpgradeRound(string id, CurrencyType currency, ICurrencyWallet wallet)
     {
+        if (!roundActive) return false; // gate
         if (currency != CurrencyType.Fragments) return false;
         if (!defs.TryGetValue(id, out var def)) return false;
         if (!round.TryGetValue(id, out var r)) return false;
