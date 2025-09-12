@@ -19,14 +19,17 @@ MonoBehaviour:
   maxLevel: 999
   maxResearchLevel: 99
   baseValue: 2
+  valueFormat: 
   baseFragmentsCost: 1
   baseCoresCost: 30
+  prerequisiteSkillId: 
+  coresToUnlock: 500
   valueCurve: 1
-  valueGrowth: 1.2
+  valueGrowth: 1.1
   fragmentsCostCurve: 1
-  fragmentsCostGrowth: 1.35
+  fragmentsCostGrowth: 1.15
   coresCostCurve: 1
-  coresCostGrowth: 1.5
+  coresCostGrowth: 1.25
   customValueCurve:
     serializedVersion: 2
     m_Curve: []

@@ -281,10 +281,48 @@ public class SkillService : MonoBehaviour
         return wallet.Get(currency) >= cost;
     }
 
-    public bool CanUpgrade(string id, CurrencyType currency, ICurrencyWallet wallet) =>
-        currency == CurrencyType.Fragments
-            ? CanUpgradeRound(id, currency, wallet)
-            : CanUpgradePersistent(id, currency, wallet);
+    public bool CanUnlockPersistent(string id, ICurrencyWallet wallet)
+    {
+        if (string.IsNullOrEmpty(id) || wallet == null) return false;
+        if (!defs.TryGetValue(id, out var def)) return false;
+        if (!persistent.TryGetValue(id, out var ps)) return false;
+        if (ps.unlocked) return false;
+
+        // prerequisite: either none or unlocked (persistent)
+        if (!string.IsNullOrEmpty(def.prerequisiteSkillId))
+        {
+            if (!persistent.TryGetValue(def.prerequisiteSkillId, out var pre) || !pre.unlocked)
+                return false;
+        }
+
+        float cost = Mathf.Max(0f, def.coresToUnlock);
+        if (cost == 0f) return true;
+        return wallet.Get(CurrencyType.Cores) >= cost;
+    }
+
+    public bool TryUnlockPersistent(string id, ICurrencyWallet wallet)
+    {
+        if (string.IsNullOrEmpty(id) || wallet == null) return false;
+        if (!defs.TryGetValue(id, out var def)) return false;
+        if (!persistent.TryGetValue(id, out var ps)) return false;
+        if (ps.unlocked) return true;
+
+        // prerequisite must be unlocked
+        if (!string.IsNullOrEmpty(def.prerequisiteSkillId))
+        {
+            if (!persistent.TryGetValue(def.prerequisiteSkillId, out var pre) || !pre.unlocked)
+                return false;
+        }
+
+        float cost = Mathf.Max(0f, def.coresToUnlock);
+        if (cost > 0f && !wallet.TrySpend(CurrencyType.Cores, cost))
+            return false;
+
+        ps.unlocked = true;
+        // optional: notify listeners
+        SkillValueChanged?.Invoke(id);
+        return true;
+    }
 
     // ======== INIT / LOAD ========
     private void Awake()
@@ -334,5 +372,21 @@ public class SkillService : MonoBehaviour
     {
         foreach (var d in defs.Values)
             if (d.category == cat) yield return d;
+    }
+
+    public bool IsUnlocked(string id, bool persistentOnly = true)
+    {
+        if (!defs.TryGetValue(id, out var def)) return false;
+
+        if (persistentOnly)
+        {
+            if (persistent != null && persistent.TryGetValue(id, out var p)) return p.unlocked;
+            return def.startsUnlocked;
+        }
+
+        // Include round state if active
+        if (roundActive && round != null && round.TryGetValue(id, out var r)) return r.unlocked;
+        if (persistent != null && persistent.TryGetValue(id, out var p2)) return p2.unlocked;
+        return def.startsUnlocked;
     }
 }

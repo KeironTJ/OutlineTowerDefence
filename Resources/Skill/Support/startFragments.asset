@@ -15,14 +15,17 @@ MonoBehaviour:
   id: Start Fragments
   displayName: Start Fragments
   category: 2
-  startsUnlocked: 1
+  startsUnlocked: 0
   maxLevel: 50
   maxResearchLevel: 10
   baseValue: 1
-  baseFragmentsCost: 5
+  valueFormat: 
+  baseFragmentsCost: 0
   baseCoresCost: 10
-  valueCurve: 1
-  valueGrowth: 1.15
+  prerequisiteSkillId: 
+  coresToUnlock: 500
+  valueCurve: 4
+  valueGrowth: 0.5
   fragmentsCostCurve: 1
   fragmentsCostGrowth: 1.25
   coresCostCurve: 1

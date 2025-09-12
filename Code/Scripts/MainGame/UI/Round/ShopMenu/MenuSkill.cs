@@ -161,7 +161,8 @@ public class MenuSkill : MonoBehaviour
 
         if (skillHeaderText) skillHeaderText.text = def.displayName;
         if (skillLevelText)  skillLevelText.text  = $"{lvl}/{max}";
-        if (skillValueText)  skillValueText.text  = NumberManager.FormatLargeNumber(svc.GetValue(skillId));
+        if (skillValueText)  skillValueText.text  = $"{NumberManager.FormatLargeNumber(svc.GetValue(skillId))}" +
+            (string.IsNullOrWhiteSpace(def.valueFormat) ? "" : $" {def.valueFormat}");
 
         float available = wallet.Get(currency);
 

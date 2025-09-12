@@ -15,14 +15,17 @@ MonoBehaviour:
   id: Fragments Modifier
   displayName: Fragments Modifier
   category: 2
-  startsUnlocked: 1
-  maxLevel: 50
+  startsUnlocked: 0
+  maxLevel: 200
   maxResearchLevel: 10
   baseValue: 1
+  valueFormat: x
   baseFragmentsCost: 5
   baseCoresCost: 10
-  valueCurve: 1
-  valueGrowth: 1.05
+  prerequisiteSkillId: 
+  coresToUnlock: 500
+  valueCurve: 4
+  valueGrowth: 0.05
   fragmentsCostCurve: 1
   fragmentsCostGrowth: 1.25
   coresCostCurve: 1

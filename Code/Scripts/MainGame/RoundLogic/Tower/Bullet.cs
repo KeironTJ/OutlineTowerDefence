@@ -5,14 +5,20 @@ using UnityEngine;
 public class Bullet : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private Rigidbody2D rb; 
+    [SerializeField] private Rigidbody2D rb;
 
     private Vector2 moveDirection;
     private Tower tower;
     private float bulletSpeed;
-    private float attackDamage;
 
-    public void SetTarget(Transform target, Tower _tower) 
+    // Damage / Crit
+    private float baseDamage;
+    private float critChance01;    // 0..1 (e.g., 1% => 0.01)
+    private float critMultiplier = 1f; // ≥1
+    private bool critRolled;
+    private bool isCrit;
+
+    public void SetTarget(Transform target, Tower _tower)
     {
         tower = _tower;
         // Calculate direction once at spawn
@@ -34,9 +40,32 @@ public class Bullet : MonoBehaviour
             rb.linearVelocity = moveDirection * bulletSpeed;
     }
 
+    // Back-compat: if called, treat as base damage without crit
     public void SetDamage(float damage)
     {
-        attackDamage = damage;
+        baseDamage = damage;
+        critChance01 = 0f;
+        critMultiplier = 1f;
+        critRolled = true; // no crit
+        isCrit = false;
+    }
+
+    // Preferred: configure full damage parameters
+    public void ConfigureDamage(float baseDamage, float critChance01, float critMultiplier, bool rollNow = false)
+    {
+        this.baseDamage = baseDamage;
+        this.critChance01 = Mathf.Clamp01(critChance01);
+        this.critMultiplier = Mathf.Max(1f, critMultiplier);
+
+        if (rollNow)
+        {
+            isCrit = Random.value < this.critChance01;
+            critRolled = true;
+        }
+        else
+        {
+            critRolled = false; // roll on hit
+        }
     }
 
     private void FixedUpdate()
@@ -54,12 +83,23 @@ public class Bullet : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D other)
     {
-        Enemy enemy = other.gameObject.GetComponent<Enemy>();
-        if (enemy != null)
+        var enemy = other.gameObject.GetComponent<Enemy>();
+        if (enemy == null) return;
+
+        if (!critRolled)
         {
-            enemy.TakeDamage(attackDamage);
-            Destroy(gameObject);
+            isCrit = Random.value < critChance01;
+            critRolled = true;
         }
+
+        float finalDamage = baseDamage * (isCrit ? critMultiplier : 1f);
+        enemy.TakeDamage(finalDamage);
+
+        Debug.Log($"Bullet hit: {baseDamage} base, {(isCrit ? "CRIT x" + critMultiplier : "no crit")} => {finalDamage} damage.");
+
+        // TODO: trigger crit VFX/SFX if (isCrit)
+
+        Destroy(gameObject);
     }
 
     private void OnBecameInvisible()

@@ -1,7 +1,7 @@
 using UnityEngine;
 
 public enum SkillCategory { Attack, Defence, Support, Special }
-public enum ProgressionCurve { Linear, Exponential, Quadratic, Custom }
+public enum ProgressionCurve { Linear, Exponential, Quadratic, Custom, PercentAdditive } // see SkillMath
 
 [CreateAssetMenu(menuName = "Game/Skill Definition")]
 public class SkillDefinition : ScriptableObject
@@ -17,8 +17,15 @@ public class SkillDefinition : ScriptableObject
 
     [Header("Base Values")]
     public float baseValue = 1f;
+    public string valueFormat = "";   // List of format options
     public float baseFragmentsCost = 5f;
     public float baseCoresCost = 10f;
+
+    [Header("Unlock Cost")]
+    public string prerequisiteSkillId;
+    public float coresToUnlock = 500f;
+    // Skill required to unlock this one (optional)
+    
 
     [Header("Curves")]
     public ProgressionCurve valueCurve = ProgressionCurve.Exponential;

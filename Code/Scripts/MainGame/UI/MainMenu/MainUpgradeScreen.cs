@@ -34,6 +34,9 @@ public class MainUpgradeScreen : MonoBehaviour
     [SerializeField] private Color multTextNormal = Color.white;
     [SerializeField] private Color multTextSelected = Color.black;
 
+    [Header("Locked Skills")]
+    [SerializeField] private bool showLockedAsDisabled = false;
+
     private PlayerManager playerManager;
     private SkillCategory currentCategory = SkillCategory.Attack;
     private int multiplierSelected = 1;
@@ -95,6 +98,19 @@ public class MainUpgradeScreen : MonoBehaviour
         {
             if (!def) continue;
 
+            // 1) Only show skills whose prerequisite is empty OR unlocked (persistent)
+            bool prereqOk = string.IsNullOrEmpty(def.prerequisiteSkillId)
+                            || skillService.IsUnlocked(def.prerequisiteSkillId, persistentOnly: true);
+            if (!prereqOk) continue;
+
+            // 2) If cost to unlock is 0 and it's locked, auto-unlock
+            bool isUnlocked = skillService.IsUnlocked(def.id, persistentOnly: true);
+            if (!isUnlocked && def.coresToUnlock <= 0f)
+            {
+                skillService.TryUnlockPersistent(def.id, playerManager.Wallet);
+                isUnlocked = skillService.IsUnlocked(def.id, persistentOnly: true);
+            }
+
             var go = Instantiate(upgradeButtonPrefab, root);
             if (!go) continue;
 
@@ -108,15 +124,79 @@ public class MainUpgradeScreen : MonoBehaviour
 
             var menuSkill = go.GetComponent<MenuSkill>() ?? go.AddComponent<MenuSkill>();
             menuSkill.Bind(def.id, playerManager.Wallet, false);
-            menuSkill.SetMultiplier(multiplierSelected); // ensure current multiplier is applied
+            menuSkill.SetMultiplier(multiplierSelected);
 
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(menuSkill.OnClickUpgrade);
+
+            if (!isUnlocked)
+            {
+                // 3) Locked but visible: show unlock panel with cores cost; disable main upgrade button
+                btn.interactable = false;
+                ShowUnlockPanel(go, def);
+            }
+            else
+            {
+                // 4) Unlocked: hide unlock panel if present
+                HideUnlockPanel(go);
+            }
 
             built++;
         }
 
         return built;
+    }
+
+    // Looks for child objects named "UnlockPanel", "UnlockButton", "UnlockCostText"
+    private void ShowUnlockPanel(GameObject root, SkillDefinition def)
+    {
+        var unlockPanel = root.transform.Find("UnlockPanel");
+        if (!unlockPanel)
+        {
+            Debug.LogWarning($"UnlockPanel not found under {root.name}. Add a child named 'UnlockPanel' with a Button 'UnlockButton' and TMP 'UnlockCostText'.");
+            return;
+        }
+
+        unlockPanel.gameObject.SetActive(true);
+
+        var costTextTf = unlockPanel.Find("UnlockCostText");
+        var costText = costTextTf ? costTextTf.GetComponent<TextMeshProUGUI>() : null;
+
+        var btnTf = unlockPanel.Find("UnlockButton");
+        var unlockBtn = btnTf ? btnTf.GetComponent<Button>() : null;
+
+        float cost = Mathf.Max(0f, def.coresToUnlock);
+        if (costText)
+            costText.text = cost > 0f ? NumberManager.FormatLargeNumber(cost) : "FREE";
+
+        if (unlockBtn)
+        {
+            unlockBtn.onClick.RemoveAllListeners();
+            unlockBtn.onClick.AddListener(() =>
+            {
+                if (skillService.TryUnlockPersistent(def.id, playerManager.Wallet))
+                {
+                    // Rebuild to reflect new unlocked state
+                    ShowCategory(currentCategory);
+                }
+                else
+                {
+                    // Update afford state
+                    bool canAfford = skillService.CanUnlockPersistent(def.id, playerManager.Wallet);
+                    if (costText) costText.color = canAfford ? Color.white : Color.red;
+                }
+            });
+
+            bool canAfford = skillService.CanUnlockPersistent(def.id, playerManager.Wallet);
+            unlockBtn.interactable = canAfford;
+            if (costText) costText.color = canAfford ? Color.white : Color.red;
+        }
+    }
+
+    private void HideUnlockPanel(GameObject root)
+    {
+        var unlockPanel = root.transform.Find("UnlockPanel");
+        if (unlockPanel) unlockPanel.gameObject.SetActive(false);
     }
 
     // CATEGORY BUTTON HOOKS

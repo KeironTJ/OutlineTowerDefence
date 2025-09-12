@@ -35,6 +35,9 @@ public class Menu : MonoBehaviour
     [SerializeField] private Color multTextNormal = Color.white;
     [SerializeField] private Color multTextSelected = Color.black;
 
+    [Header("Locked Skills")]
+    [SerializeField] private bool showLockedAsDisabled = false;
+
     private ICurrencyWallet roundWallet;
     private PlayerManager playerManager;
     private RoundManager roundManager;
@@ -139,6 +142,13 @@ public class Menu : MonoBehaviour
         {
             if (!def) continue;
 
+            // Use persistent unlock state (same as main menu)
+            bool isUnlocked = skillService.IsUnlocked(def.id, persistentOnly: true);
+
+            // Hide locked unless explicitly showing as disabled
+            if (!showLockedAsDisabled && !isUnlocked)
+                continue;
+
             var go = Instantiate(buttonPrefab, root);
             if (!go) continue;
 
@@ -152,12 +162,18 @@ public class Menu : MonoBehaviour
 
             var menuSkill = go.GetComponent<MenuSkill>() ?? go.AddComponent<MenuSkill>();
             menuSkill.Bind(def.id, inRound ? roundWallet : playerManager.Wallet, inRound);
-
-            // ensure the current multiplier is applied to new buttons
             menuSkill.SetMultiplier(multiplierSelected);
 
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(menuSkill.OnClickUpgrade);
+
+            // If we chose to show locked, make them non-interactable and optionally dim
+            if (!isUnlocked)
+            {
+                btn.interactable = false;
+                var cg = go.GetComponent<CanvasGroup>();
+                if (cg) cg.alpha = 0.5f;
+            }
 
             built++;
         }

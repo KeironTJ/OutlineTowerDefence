@@ -17,13 +17,25 @@ public class Tower : MonoBehaviour
     [SerializeField] private bool isHealing = false;
     [SerializeField] private bool towerAlive = true;
 
-    [Header("Skill Ids")]
-    [SerializeField] private string healthSkillId = "Health";
-    [SerializeField] private string healSpeedSkillId = "Heal Speed";
+    [Header("Attack Skill Ids")]
+
     [SerializeField] private string attackDamageSkillId = "Attack Damage";
+    [SerializeField] private string attackSpeedSkillId = "Attack Speed";
     [SerializeField] private string bulletSpeedSkillId = "Bullet Speed";
     [SerializeField] private string targetingRangeSkillId = "Targeting Range";
-    [SerializeField] private string attackSpeedSkillId = "Attack Speed";
+    [SerializeField] private string criticalChanceSkillId = "Critical Chance";
+    [SerializeField] private string criticalMultiplierSkillId = "Critical Multiplier";
+
+    [Header("Support Skill Ids")]
+    [SerializeField] private string healthSkillId = "Health";
+    [SerializeField] private string healSpeedSkillId = "Heal Speed";
+    [SerializeField] private string armorSkillId = "Armor";
+    
+
+    //[Header("Special Skill Ids")]
+    
+
+
 
     // Events
     public event System.Action<float, float> HealthChanged; // (current,max)
@@ -168,6 +180,25 @@ public class Tower : MonoBehaviour
         return false;
     }
 
+    private float GetCritChance01()
+    {
+        if (skillService == null) return 0f;
+        bool unlocked = skillService.IsUnlocked(criticalChanceSkillId, persistentOnly: false);
+        if (!unlocked) return 0f;
+
+        float raw = GetSkillValue(criticalChanceSkillId); // authored as percent, 1 => 1%
+        return Mathf.Clamp01(raw * 0.01f);
+    }
+
+    private float GetCritMultiplier()
+    {
+        if (skillService == null) return 1f;
+        bool unlocked = skillService.IsUnlocked(criticalMultiplierSkillId, persistentOnly: false);
+        if (!unlocked) return 1f;
+
+        return Mathf.Max(1f, GetSkillValue(criticalMultiplierSkillId));
+    }
+
     private void Shoot()
     {
         if (!bulletPrefab || !firingPoint || !target) return;
@@ -178,7 +209,13 @@ public class Tower : MonoBehaviour
         {
             bulletScript.SetTarget(target, this);
             bulletScript.SetSpeed(GetSkillValue(bulletSpeedSkillId));
-            bulletScript.SetDamage(GetSkillValue(attackDamageSkillId));
+
+            float baseDamage = GetSkillValue(attackDamageSkillId);
+            float critChance = GetCritChance01();
+            float critMult   = GetCritMultiplier();
+
+            // Pass damage and crit params to bullet; crit is resolved on hit
+            bulletScript.ConfigureDamage(baseDamage, critChance, critMult, rollNow: false);
         }
 
         EventManager.TriggerEvent(EventNames.BulletFired, bulletScript);
@@ -324,7 +361,20 @@ public class Tower : MonoBehaviour
     public void TakeDamage(float dmg)
     {
         if (dmg <= 0f || !towerAlive) return;
-        AddHealth(-dmg);
+
+        float armorPct = 0f;
+        bool armorUnlocked = skillService != null && skillService.IsUnlocked(armorSkillId, persistentOnly: false);
+        if (armorUnlocked)
+        {
+            float armorRaw = GetSkillValue(armorSkillId);     // authored as percent, e.g. 1 => 1%
+            armorPct = Mathf.Clamp01(armorRaw * 0.01f);       // Option B: always percent-based
+        }
+
+        float reducedDamage = dmg * (1f - armorPct);
+
+        Debug.Log($"Tower takes {reducedDamage} damage (raw {dmg}, armor {(armorPct * 100f):0.#}% | unlocked={armorUnlocked})");
+
+        AddHealth(-reducedDamage);
         if (currentHealth <= 0f)
         {
             currentHealth = 0f;

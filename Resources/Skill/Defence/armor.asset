@@ -10,24 +10,26 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1da1f865474384f43843a9059a5f7782, type: 3}
-  m_Name: healSpeed
+  m_Name: armor
   m_EditorClassIdentifier: 
-  id: Heal Speed
-  displayName: Heal Speed
+  id: Armor
+  displayName: Armor
   category: 1
-  startsUnlocked: 1
-  maxLevel: 999
+  startsUnlocked: 0
+  maxLevel: 99
   maxResearchLevel: 99
-  baseValue: 0.5
-  valueFormat: /sec
-  baseFragmentsCost: 1
-  baseCoresCost: 40
-  valueCurve: 1
-  valueGrowth: 1.15
+  baseValue: 1
+  valueFormat: '%'
+  baseFragmentsCost: 5
+  baseCoresCost: 10
+  prerequisiteSkillId: 
+  coresToUnlock: 500
+  valueCurve: 4
+  valueGrowth: 0.5
   fragmentsCostCurve: 1
-  fragmentsCostGrowth: 1.2
+  fragmentsCostGrowth: 1.25
   coresCostCurve: 1
-  coresCostGrowth: 1.2
+  coresCostGrowth: 1.35
   customValueCurve:
     serializedVersion: 2
     m_Curve: []
