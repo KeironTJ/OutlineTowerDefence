@@ -142,23 +142,18 @@ public class Menu : MonoBehaviour
         {
             if (!def) continue;
 
-            // Use persistent unlock state (same as main menu)
-            bool isUnlocked = skillService.IsUnlocked(def.id, persistentOnly: true);
+            // Hide skills that are not upgradable in-round when we're in a round
+            if (inRound && !def.upgradableInRound) continue; // or: if (inRound && !skillService.IsUpgradableInRound(def.id)) continue;
 
-            // Hide locked unless explicitly showing as disabled
-            if (!showLockedAsDisabled && !isUnlocked)
-                continue;
+            // Only show unlocked skills (persistent)
+            bool isUnlocked = skillService.IsUnlocked(def.id, persistentOnly: true);
+            if (!showLockedAsDisabled && !isUnlocked) continue;
 
             var go = Instantiate(buttonPrefab, root);
             if (!go) continue;
 
             var btn = go.GetComponent<Button>();
-            if (!btn)
-            {
-                Debug.LogError("Menu: Button prefab missing Button component.");
-                Destroy(go);
-                continue;
-            }
+            if (!btn) { Destroy(go); continue; }
 
             var menuSkill = go.GetComponent<MenuSkill>() ?? go.AddComponent<MenuSkill>();
             menuSkill.Bind(def.id, inRound ? roundWallet : playerManager.Wallet, inRound);
@@ -167,7 +162,6 @@ public class Menu : MonoBehaviour
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(menuSkill.OnClickUpgrade);
 
-            // If we chose to show locked, make them non-interactable and optionally dim
             if (!isUnlocked)
             {
                 btn.interactable = false;

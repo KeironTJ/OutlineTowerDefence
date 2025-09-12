@@ -372,7 +372,7 @@ public class Tower : MonoBehaviour
 
         float reducedDamage = dmg * (1f - armorPct);
 
-        Debug.Log($"Tower takes {reducedDamage} damage (raw {dmg}, armor {(armorPct * 100f):0.#}% | unlocked={armorUnlocked})");
+        //Debug.Log($"Tower takes {reducedDamage} damage (raw {dmg}, armor {(armorPct * 100f):0.#}% | unlocked={armorUnlocked})");
 
         AddHealth(-reducedDamage);
         if (currentHealth <= 0f)

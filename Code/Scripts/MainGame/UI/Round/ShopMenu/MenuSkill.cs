@@ -155,6 +155,19 @@ public class MenuSkill : MonoBehaviour
         var def = svc.GetDefinition(skillId);
         if (!def) return;
 
+        // If we’re in-round and this skill is main-menu-only, show message and disable
+        if (inRound && !svc.IsUpgradableInRound(skillId))
+        {
+            if (skillHeaderText) skillHeaderText.text = def.displayName;
+            if (skillLevelText)  skillLevelText.text  = $"{svc.GetLevel(skillId)}/{def.maxLevel}";
+            if (skillValueText)  skillValueText.text  = NumberManager.FormatLargeNumber(svc.GetValue(skillId));
+            if (skillCostText)   { skillCostText.text = "Main Menu Only"; skillCostText.color = Color.white; }
+            if (skillNextValueText) skillNextValueText.text = "";
+            if (currencyImage) currencyImage.enabled = false;
+            if (button) button.interactable = false;
+            return;
+        }
+
         int lvl = svc.GetLevel(skillId);
         int max = def.maxLevel;
         int remaining = Mathf.Max(0, max - lvl);

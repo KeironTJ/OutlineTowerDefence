@@ -95,7 +95,7 @@ public class Bullet : MonoBehaviour
         float finalDamage = baseDamage * (isCrit ? critMultiplier : 1f);
         enemy.TakeDamage(finalDamage);
 
-        Debug.Log($"Bullet hit: {baseDamage} base, {(isCrit ? "CRIT x" + critMultiplier : "no crit")} => {finalDamage} damage.");
+        //Debug.Log($"Bullet hit: {baseDamage} base, {(isCrit ? "CRIT x" + critMultiplier : "no crit")} => {finalDamage} damage.");
 
         // TODO: trigger crit VFX/SFX if (isCrit)
 

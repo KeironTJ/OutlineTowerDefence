@@ -15,9 +15,7 @@ public class RoundManager : MonoBehaviour
     private Tower tower;
 
     [Header("Services")]
-    [SerializeField] private SkillService skillService;          // NEW: replace SkillManager
-
-    // Removed: [SerializeField] private SkillManager skillManager;
+    [SerializeField] private SkillService skillService; 
 
     [Header("Round Wallet")]
     private RoundCurrencyWallet roundWallet;

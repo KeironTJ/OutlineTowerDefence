@@ -14,9 +14,8 @@ public class SkillService : MonoBehaviour
 
     public event Action<string> SkillUpgraded;
     public event Action<string> SkillValueChanged;
-    public event Action<string> SkillModifiersChanged;
 
-    private bool roundActive = false; // NEW: gate use of 'round' state
+    private bool roundActive = false; 
     public bool RoundActive => roundActive;
 
 
@@ -84,19 +83,24 @@ public class SkillService : MonoBehaviour
         float currentValue = GetValueAtLevel(id, effectiveLevel);
         float nextValue = currentValue;
 
-        if (currency == CurrencyType.Fragments && roundActive && round.TryGetValue(id, out var r)) // gate by roundActive
+        if (currency == CurrencyType.Fragments)
         {
-            int startStep = r.roundLevels + 1;
-            for (int i = 0; i < stepsTarget; i++)
+            if (!roundActive || !IsUpgradableInRound(id)) return UpgradePreview.Maxed;
+
+            if (round.TryGetValue(id, out var r)) // gate by roundActive
             {
-                int step = startStep + i;
-                float c = Mathf.Ceil(
-                    SkillMath.EvaluateCurve(def.fragmentsCostCurve, def.baseFragmentsCost, def.fragmentsCostGrowth,
-                        step, def.customCostCurveFragments)
-                );
-                totalCost += c;
-                effectiveLevel++;
-                nextValue = GetValueAtLevel(id, effectiveLevel);
+                int startStep = r.roundLevels + 1;
+                for (int i = 0; i < stepsTarget; i++)
+                {
+                    int step = startStep + i;
+                    float c = Mathf.Ceil(
+                        SkillMath.EvaluateCurve(def.fragmentsCostCurve, def.baseFragmentsCost, def.fragmentsCostGrowth,
+                            step, def.customCostCurveFragments)
+                    );
+                    totalCost += c;
+                    effectiveLevel++;
+                    nextValue = GetValueAtLevel(id, effectiveLevel);
+                }
             }
         }
         else
@@ -129,9 +133,11 @@ public class SkillService : MonoBehaviour
     // --- ROUND UPGRADE (fragments) ---
     public bool TryUpgradeRound(string id, CurrencyType currency, ICurrencyWallet wallet)
     {
-        if (!roundActive) return false; // gate
+        if (!roundActive) return false;
         if (currency != CurrencyType.Fragments) return false;
+        if (!IsUpgradableInRound(id)) return false; 
         if (!CanUpgradeRound(id, currency, wallet)) return false;
+
         float cost = GetRoundCost(id);
         if (!wallet.TrySpend(CurrencyType.Fragments, cost)) return false;
 
@@ -191,7 +197,7 @@ public class SkillService : MonoBehaviour
         roundActive = true; // mark active
     }
 
-    public void ClearRoundStates() // NEW
+    public void ClearRoundStates() 
     {
         round.Clear();
         roundActive = false;
@@ -260,8 +266,9 @@ public class SkillService : MonoBehaviour
     // ======== UPGRADE CHECKS ========
     public bool CanUpgradeRound(string id, CurrencyType currency, ICurrencyWallet wallet)
     {
-        if (!roundActive) return false; // gate
+        if (!roundActive) return false;
         if (currency != CurrencyType.Fragments) return false;
+        if (!IsUpgradableInRound(id)) return false; 
         if (!defs.TryGetValue(id, out var def)) return false;
         if (!round.TryGetValue(id, out var r)) return false;
 
@@ -388,5 +395,10 @@ public class SkillService : MonoBehaviour
         if (roundActive && round != null && round.TryGetValue(id, out var r)) return r.unlocked;
         if (persistent != null && persistent.TryGetValue(id, out var p2)) return p2.unlocked;
         return def.startsUnlocked;
+    }
+
+    public bool IsUpgradableInRound(string id)
+    {
+        return defs.TryGetValue(id, out var def) && def.upgradableInRound;
     }
 }

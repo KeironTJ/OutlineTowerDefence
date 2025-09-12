@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
-using UnityEngine.Serialization;   // NEW
+using UnityEngine.Serialization;   
 
 
 public class UIManager : MonoBehaviour
@@ -18,7 +18,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private PlayerManager playerManager;
 
     [Header("Services")]
-    [SerializeField] private SkillService skillService;          // NEW: ensure assigned (or auto-find)
+    [SerializeField] private SkillService skillService; 
 
     [Header("Shop Menu")]
     [SerializeField] private Menu shopMenu;
@@ -55,7 +55,6 @@ public class UIManager : MonoBehaviour
 
     [Header("Skill Ids (match SkillDefinition ids)")]
 
-    [SerializeField] private string healthSkillId       = "Health";
     [SerializeField] private string attackDamageSkillId = "Attack Damage";
 
     private Tower tower;
@@ -107,7 +106,7 @@ public class UIManager : MonoBehaviour
             tower.TowerDestroyed += OnTowerDestroyedHandler;
             tower.HealthChanged += OnTowerHealthChanged;
             // We missed the initial event fired inside Tower.Initialize, so force a manual refresh:
-            OnTowerHealthChanged(tower.GetCurrentHealth(), tower.MaxHealth);   // NEW
+            OnTowerHealthChanged(tower.GetCurrentHealth(), tower.MaxHealth); 
         }
     }
 

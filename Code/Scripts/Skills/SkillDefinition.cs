@@ -8,8 +8,12 @@ public class SkillDefinition : ScriptableObject
 {
     public string id;                 // unique key
     public string displayName;
+    public string description; // limit to ~100 characters for UI fit
     public SkillCategory category;
+
+    [Header("Upgrade Availability")]
     public bool startsUnlocked = true;
+    public bool upgradableInRound = true;
 
     [Header("Progression")]
     public int maxLevel = 50;

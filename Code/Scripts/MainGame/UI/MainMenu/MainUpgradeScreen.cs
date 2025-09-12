@@ -34,9 +34,6 @@ public class MainUpgradeScreen : MonoBehaviour
     [SerializeField] private Color multTextNormal = Color.white;
     [SerializeField] private Color multTextSelected = Color.black;
 
-    [Header("Locked Skills")]
-    [SerializeField] private bool showLockedAsDisabled = false;
-
     private PlayerManager playerManager;
     private SkillCategory currentCategory = SkillCategory.Attack;
     private int multiplierSelected = 1;
