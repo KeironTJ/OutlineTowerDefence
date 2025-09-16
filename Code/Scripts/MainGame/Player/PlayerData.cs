@@ -49,12 +49,14 @@ public class PlayerData
     public List<string> unlockedTowerVisuals = new List<string>();
     public string selectedTowerVisualId = "0001";
 
-    [Header("Skills")]
-    public List<SkillData> attackSkills = new List<SkillData>();
-    public List<SkillData> defenceSkills = new List<SkillData>();
-    public List<SkillData> supportSkills = new List<SkillData>();
-    public List<SkillData> specialSkills = new List<SkillData>();
+    [Header("Turrets")]
+    [Tooltip("IDs of turret types the player has unlocked (use TurretDefinition.id values)")]
+    public List<string> unlockedTurretIds = new List<string>();
 
+    [Tooltip("Selected turret ids for each mount (index -> TurretSlot.Index). Empty string = empty slot.")]
+    public List<string> selectedTurretIds = new List<string> { "", "", "", "" };
+
+    [Header("Skills")]
     public List<PersistentSkillState> skillStates = new List<PersistentSkillState>();
 
     [Header("Currency Information")]
@@ -98,6 +100,10 @@ public class PlayerData
     public string lastDailyObjectiveAddIsoUtc = "";   
     public string lastDailyObjectiveSlotKey = ""; //e.g. "20250828-12" (UTC date + slot hour)
 
+    [Header("Loadout")]
+    // id of the selected LoadoutDefinition (set by your menu/UI)
+    public string selectedLoadoutId = ""; 
+
 
     /// <summary>
     /// Constructor to initialize a new player.
@@ -110,5 +116,11 @@ public class PlayerData
         // Unlock default tower visuals
         unlockedTowerVisuals = new List<string> { "0001", "0002", "0003" };
         selectedTowerVisualId = "0001";
+
+        // ensure the selectedTurretIds list exists
+        if (selectedTurretIds == null) selectedTurretIds = new List<string> { "", "", "", "" };
+
+        // Add default unlocked turrets
+        unlockedTurretIds = new List<string> { "MSB" };
     }
 }

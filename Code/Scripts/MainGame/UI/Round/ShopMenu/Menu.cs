@@ -16,7 +16,7 @@ public class Menu : MonoBehaviour
     [SerializeField] private Button attackToggleButton;
     [SerializeField] private Button defenceToggleButton;
     [SerializeField] private Button supportToggleButton;
-    [SerializeField] private Button specialToggleButton;
+    [SerializeField] private Button turretToggleButton;
 
     [Header("Prefabs / UI")]
     [SerializeField] private GameObject buttonPrefab;
@@ -117,7 +117,7 @@ public class Menu : MonoBehaviour
                 case SkillCategory.Attack: panelColor = new Color(1f, 0.5f, 0.5f, 0.3f); break;
                 case SkillCategory.Defence: panelColor = new Color(0.5f, 0.7f, 1f, 0.3f); break;
                 case SkillCategory.Support: panelColor = new Color(1f, 1f, 0.6f, 0.3f); break;
-                case SkillCategory.Special: panelColor = new Color(0.9f, 0.7f, 1f, 0.3f); break;
+                case SkillCategory.Turret: panelColor = new Color(0.9f, 0.7f, 1f, 0.3f); break;
             }
             panelBackgroundImage.color = panelColor;
         }
@@ -179,21 +179,21 @@ public class Menu : MonoBehaviour
     public void OnAttackCategory() => ShowCategory(SkillCategory.Attack);
     public void OnDefenceCategory() => ShowCategory(SkillCategory.Defence);
     public void OnSupportCategory() => ShowCategory(SkillCategory.Support);
-    public void OnSpecialCategory() => ShowCategory(SkillCategory.Special);
+    public void OnTurretCategory() => ShowCategory(SkillCategory.Turret);
 
     public void SetCategoryButtonColours(SkillCategory category)
     {
         ChangeButtonColor(attackToggleButton?.gameObject, new Color(0, 0, 0.5f, 1f));
         ChangeButtonColor(defenceToggleButton?.gameObject, new Color(0, 0, 0.5f, 1f));
         ChangeButtonColor(supportToggleButton?.gameObject, new Color(0, 0, 0.5f, 1f));
-        ChangeButtonColor(specialToggleButton?.gameObject, new Color(0, 0, 0.5f, 1f));
+        ChangeButtonColor(turretToggleButton?.gameObject, new Color(0, 0, 0.5f, 1f));
 
         switch (category)
         {
             case SkillCategory.Attack: ChangeButtonColor(attackToggleButton?.gameObject, new Color(1f, 0.5f, 0.5f)); break;
             case SkillCategory.Defence: ChangeButtonColor(defenceToggleButton?.gameObject, new Color(0.5f, 0.7f, 1f)); break;
             case SkillCategory.Support: ChangeButtonColor(supportToggleButton?.gameObject, new Color(1f, 1f, 0.6f)); break;
-            case SkillCategory.Special: ChangeButtonColor(specialToggleButton?.gameObject, new Color(0.9f, 0.7f, 1f)); break;
+            case SkillCategory.Turret: ChangeButtonColor(turretToggleButton?.gameObject, new Color(0.9f, 0.7f, 1f)); break;
         }
     }
 

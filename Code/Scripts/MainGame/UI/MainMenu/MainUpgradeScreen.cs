@@ -14,7 +14,7 @@ public class MainUpgradeScreen : MonoBehaviour
     [SerializeField] private GameObject attackUpgradesButton;
     [SerializeField] private GameObject defenceUpgradesButton;
     [SerializeField] private GameObject supportUpgradesButton;
-    [SerializeField] private GameObject specialUpgradesButton;
+    [SerializeField] private GameObject turretUpgradesButton;
 
     [Header("Prefabs / UI")]
     [SerializeField] private GameObject upgradeButtonPrefab;
@@ -68,7 +68,7 @@ public class MainUpgradeScreen : MonoBehaviour
             case SkillCategory.Attack:   panelColor = new Color(1f, 0.5f, 0.5f, 0.3f); break;    // soft red, low alpha
             case SkillCategory.Defence:  panelColor = new Color(0.5f, 0.7f, 1f, 0.3f); break;    // soft blue, low alpha
             case SkillCategory.Support:  panelColor = new Color(1f, 1f, 0.6f, 0.3f); break;      // soft yellow, low alpha
-            case SkillCategory.Special:  panelColor = new Color(0.9f, 0.7f, 1f, 0.3f); break;    // soft magenta, low alpha
+            case SkillCategory.Turret:  panelColor = new Color(0.9f, 0.7f, 1f, 0.3f); break;    // soft magenta, low alpha
         }
         if (panelBackgroundImage)
             panelBackgroundImage.color = panelColor;
@@ -200,21 +200,21 @@ public class MainUpgradeScreen : MonoBehaviour
     public void OnAttackCategory()  => ShowCategory(SkillCategory.Attack);
     public void OnDefenceCategory() => ShowCategory(SkillCategory.Defence);
     public void OnSupportCategory() => ShowCategory(SkillCategory.Support);
-    public void OnSpecialCategory() => ShowCategory(SkillCategory.Special);
+    public void OnTurretCategory() => ShowCategory(SkillCategory.Turret);
 
     public void SetCategoryButtonColours(SkillCategory category)
     {
         ChangeButtonColor(attackUpgradesButton,   new Color(0f, 0f, 0.5f, 1f));
         ChangeButtonColor(defenceUpgradesButton,  new Color(0f, 0f, 0.5f, 1f));
         ChangeButtonColor(supportUpgradesButton,  new Color(0f, 0f, 0.5f, 1f));
-        ChangeButtonColor(specialUpgradesButton,  new Color(0f, 0f, 0.5f, 1f));
+        ChangeButtonColor(turretUpgradesButton,  new Color(0f, 0f, 0.5f, 1f));
 
         switch (category)
         {
             case SkillCategory.Attack:   ChangeButtonColor(attackUpgradesButton, new Color(1f, 0.5f, 0.5f)); break;
             case SkillCategory.Defence:  ChangeButtonColor(defenceUpgradesButton, new Color(0.5f, 0.7f, 1f)); break;
             case SkillCategory.Support:  ChangeButtonColor(supportUpgradesButton, new Color(1f, 1f, 0.6f)); break;
-            case SkillCategory.Special:  ChangeButtonColor(specialUpgradesButton, new Color(0.9f, 0.7f, 1f)); break;
+            case SkillCategory.Turret:  ChangeButtonColor(turretUpgradesButton, new Color(0.9f, 0.7f, 1f)); break;
         }
     }
 

@@ -4327,7 +4327,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: SPE
+  m_text: TUR
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -5690,10 +5690,12 @@ MonoBehaviour:
     Username: 12b4601a-14f6-4ce7-8ac8-7466e843aab0
     unlockedTowerVisuals: []
     selectedTowerVisualId: 0001
-    attackSkills: []
-    defenceSkills: []
-    supportSkills: []
-    specialSkills: []
+    unlockedTurretIds: []
+    selectedTurretIds:
+    - 
+    - 
+    - 
+    - 
     skillStates: []
     cores: 0
     prisms: 0
@@ -5718,6 +5720,7 @@ MonoBehaviour:
     weeklyObjectives: []
     lastDailyObjectiveAddIsoUtc: 
     lastDailyObjectiveSlotKey: 
+    selectedLoadoutId: 
   difficultySelected: 0
 --- !u!1 &821159037
 GameObject:
@@ -8237,7 +8240,7 @@ MonoBehaviour:
   attackUpgradesButton: {fileID: 746594398}
   defenceUpgradesButton: {fileID: 1714725072}
   supportUpgradesButton: {fileID: 1679968120}
-  specialUpgradesButton: {fileID: 1797903012}
+  turretUpgradesButton: {fileID: 1797903012}
   upgradeButtonPrefab: {fileID: 5431130913958704780, guid: 6b6bf5aac5300534a92a67f77d490849, type: 3}
   upgradesTitleText: {fileID: 903969317}
   skillService: {fileID: 0}
@@ -10293,6 +10296,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1446478308}
   - component: {fileID: 1446478307}
+  - component: {fileID: 1446478309}
   m_Layer: 0
   m_Name: TowerVisualManager
   m_TagString: Untagged
@@ -10328,6 +10332,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1446478309
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1446478306}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2715fd7772ea18340b446a4715cfb760, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  allTurretDefinitions:
+  - {fileID: 11400000, guid: 4b22e18b3fe109d44a5ff042d290e56e, type: 2}
+  - {fileID: 11400000, guid: 20973a31b85bddb439c4eb0aaf90e80a, type: 2}
+  - {fileID: 11400000, guid: 3fd1d4b88b2ee614c9453825f21e5243, type: 2}
 --- !u!1 &1454671523
 GameObject:
   m_ObjectHideFlags: 0
@@ -13948,7 +13968,7 @@ GameObject:
   - component: {fileID: 1797903015}
   - component: {fileID: 1797903014}
   m_Layer: 5
-  m_Name: btn_Special
+  m_Name: btn_Turret
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -14035,7 +14055,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1137169207}
         m_TargetAssemblyTypeName: MainUpgradeScreen, Assembly-CSharp
-        m_MethodName: OnSpecialCategory
+        m_MethodName: OnTurretCategory
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -16354,62 +16374,6 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!1 &2009906388
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2009906390}
-  - component: {fileID: 2009906389}
-  m_Layer: 0
-  m_Name: SkillService
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &2009906389
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2009906388}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57aed7ac84a1b834b97f5a3aaef9fb1d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  loadedDefinitions:
-  - {fileID: 11400000, guid: 052ae5dd3534f5d4c83f772d2d523e8e, type: 2}
-  - {fileID: 11400000, guid: 61c6f37511a4e5d4789d50ecb175abc1, type: 2}
-  - {fileID: 11400000, guid: 50d1d42639f47b34fa796f1fd68ad579, type: 2}
-  - {fileID: 11400000, guid: 201a3f277b27c534fac68ab7ed8eeefd, type: 2}
-  - {fileID: 11400000, guid: aa2aafb570d100847ae8f3653e17b76c, type: 2}
-  - {fileID: 11400000, guid: 760f9d4678644d946a7530c2eafc40c4, type: 2}
-  - {fileID: 11400000, guid: 66d57471f5001e9439da7cd32507b76c, type: 2}
-  - {fileID: 11400000, guid: 10edba85fe1fe5546872c19bc2cb2f22, type: 2}
-  - {fileID: 11400000, guid: 8a093197e12677d43a361314c1145543, type: 2}
-  - {fileID: 11400000, guid: 4a7161c90a647b14cb438e2e7b2c4a91, type: 2}
-  - {fileID: 11400000, guid: 5a74243b83b0bd940b31764819291a96, type: 2}
---- !u!4 &2009906390
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2009906388}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 977.0171, y: 1646.5957, z: -12.351119}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2010725541
 GameObject:
   m_ObjectHideFlags: 0
@@ -18584,4 +18548,3 @@ SceneRoots:
   - {fileID: 818530411}
   - {fileID: 1446478308}
   - {fileID: 115070702}
-  - {fileID: 2009906390}

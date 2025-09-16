@@ -76,9 +76,11 @@ public class Enemy : MonoBehaviour
         rb.linearVelocity = direction * moveSpeed;
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnCollisionEnter2D(Collision2D col)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        // find a Tower on the collided object or any of its parents
+        var tower = col.collider.GetComponentInParent<Tower>();
+        if (tower != null)
         {
             StartDamage();
         }

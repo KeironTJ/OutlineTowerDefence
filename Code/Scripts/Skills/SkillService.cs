@@ -228,6 +228,14 @@ public class SkillService : MonoBehaviour
         return baseVal;
     }
 
+    // --- New safe accessor: returns 1f when the skill id is not defined (useful for multipliers) ---
+    public float GetValueSafe(string id)
+    {
+        if (string.IsNullOrEmpty(id)) return 1f;
+        if (!defs.TryGetValue(id, out var def)) return 1f; // default multiplier
+        return GetValue(id);
+    }
+
     // ======== COSTS ========
     private float GetRoundCost(string id)
     {
@@ -329,6 +337,18 @@ public class SkillService : MonoBehaviour
         // optional: notify listeners
         SkillValueChanged?.Invoke(id);
         return true;
+    }
+
+    public bool IsSkillAvailable(string skillId)
+    {
+        if (string.IsNullOrEmpty(skillId)) return true;
+        if (!defs.TryGetValue(skillId, out var def)) return true; // missing definition -> treat as available (no prereq)
+        if (string.IsNullOrEmpty(def.requiredTurretId)) return true;
+
+        // require the turret to be unlocked via PlayerManager
+        var pm = PlayerManager.main;
+        if (pm == null) return false; // conservative: if no player manager, skill not available
+        return pm.IsTurretUnlocked(def.requiredTurretId);
     }
 
     // ======== INIT / LOAD ========

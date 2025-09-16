@@ -14,16 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: Attack Damage
   displayName: Attack Damage
+  description: 
   category: 0
   startsUnlocked: 1
+  upgradableInRound: 1
   maxLevel: 999
   maxResearchLevel: 99
-  baseValue: 2
+  baseValue: 3
   valueFormat: 
   baseFragmentsCost: 1
   baseCoresCost: 30
   prerequisiteSkillId: 
   coresToUnlock: 500
+  requiredTurretId: 
   valueCurve: 1
   valueGrowth: 1.1
   fragmentsCostCurve: 1

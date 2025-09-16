@@ -54,6 +54,10 @@ public class PlayerManager : MonoBehaviour
         playerData = payload.player ?? (payload.player = new PlayerData());
         ValidatePlayerData();
 
+        // Ensure turret lists exist (migrate older saves)
+        if (playerData.unlockedTurretIds == null) playerData.unlockedTurretIds = new List<string>();
+        if (playerData.selectedTurretIds == null) playerData.selectedTurretIds = new List<string> { "", "", "", "" };
+
         // Ensure list exists (first session)
         if (playerData.skillStates == null)
             playerData.skillStates = new List<PersistentSkillState>();
@@ -298,6 +302,54 @@ public class PlayerManager : MonoBehaviour
     private void OnRoundEnded(object eventData)
     {
         playerData.totalRoundsCompleted++;
+        SavePlayerData();
+    }
+
+    // --- New PlayerManager API for turret unlock / selection management ---
+    public bool IsTurretUnlocked(string turretId)
+    {
+        if (string.IsNullOrEmpty(turretId) || playerData == null) return false;
+        return playerData.unlockedTurretIds != null && playerData.unlockedTurretIds.Contains(turretId);
+    }
+
+    public void UnlockTurret(string turretId)
+    {
+        if (string.IsNullOrEmpty(turretId) || playerData == null) return;
+        if (playerData.unlockedTurretIds == null) playerData.unlockedTurretIds = new List<string>();
+        if (!playerData.unlockedTurretIds.Contains(turretId))
+        {
+            playerData.unlockedTurretIds.Add(turretId);
+            SavePlayerData();
+        }
+    }
+
+    public void LockTurret(string turretId)
+    {
+        if (string.IsNullOrEmpty(turretId) || playerData == null || playerData.unlockedTurretIds == null) return;
+        if (playerData.unlockedTurretIds.Remove(turretId))
+        {
+            SavePlayerData();
+        }
+    }
+
+    public string GetSelectedTurretForSlot(int slotIndex)
+    {
+        if (playerData == null || playerData.selectedTurretIds == null) return "";
+        if (slotIndex < 0 || slotIndex >= playerData.selectedTurretIds.Count) return "";
+        return playerData.selectedTurretIds[slotIndex] ?? "";
+    }
+
+    public void SetSelectedTurretForSlot(int slotIndex, string turretId)
+    {
+        if (playerData == null) return;
+        if (playerData.selectedTurretIds == null) playerData.selectedTurretIds = new List<string> { "", "", "", "" };
+
+        while (playerData.selectedTurretIds.Count <= slotIndex)
+            playerData.selectedTurretIds.Add("");
+
+        playerData.selectedTurretIds[slotIndex] = turretId ?? "";
+
+        // Persist selection immediately
         SavePlayerData();
     }
 }

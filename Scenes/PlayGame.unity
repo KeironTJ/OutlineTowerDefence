@@ -4705,7 +4705,7 @@ MonoBehaviour:
   attackToggleButton: {fileID: 281291113}
   defenceToggleButton: {fileID: 923712757}
   supportToggleButton: {fileID: 415227136}
-  specialToggleButton: {fileID: 2010419209}
+  turretToggleButton: {fileID: 2010419209}
   buttonPrefab: {fileID: 5431130913958704780, guid: 6b6bf5aac5300534a92a67f77d490849, type: 3}
   upgradesTitleText: {fileID: 500842453}
   skillService: {fileID: 0}
@@ -4721,6 +4721,7 @@ MonoBehaviour:
   multBgSelected: {r: 0.95, g: 0.85, b: 0.3, a: 1}
   multTextNormal: {r: 1, g: 1, b: 1, a: 1}
   multTextSelected: {r: 0, g: 0, b: 0, a: 1}
+  showLockedAsDisabled: 0
 --- !u!95 &1271751155
 Animator:
   serializedVersion: 7
@@ -6073,7 +6074,6 @@ MonoBehaviour:
   loopsUI: {fileID: 1973312435}
   hudRoundStatsView: {fileID: 602895493}
   roundStatsPanel: {fileID: 602895488}
-  healthSkillId: Health
   attackDamageSkillId: Attack Damage
 --- !u!114 &1583948375
 MonoBehaviour:
@@ -7358,7 +7358,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: SPE
+  m_text: TUR
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -8256,7 +8256,7 @@ GameObject:
   - component: {fileID: 2010419209}
   - component: {fileID: 2010419208}
   m_Layer: 5
-  m_Name: Special Toggle
+  m_Name: Turret Toggle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8343,7 +8343,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1271751154}
         m_TargetAssemblyTypeName: Menu, Assembly-CSharp
-        m_MethodName: OnSpecialCategory
+        m_MethodName: OnTurretCategory
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

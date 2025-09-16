@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: Start Fragments
   displayName: Start Fragments
+  description: 
   category: 2
   startsUnlocked: 0
+  upgradableInRound: 0
   maxLevel: 50
   maxResearchLevel: 10
   baseValue: 1
@@ -24,6 +26,7 @@ MonoBehaviour:
   baseCoresCost: 10
   prerequisiteSkillId: 
   coresToUnlock: 500
+  requiredTurretId: 
   valueCurve: 4
   valueGrowth: 0.5
   fragmentsCostCurve: 1

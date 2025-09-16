@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1da1f865474384f43843a9059a5f7782, type: 3}
+  m_Name: NRL damage
+  m_EditorClassIdentifier: 
+  id: CC_damage
+  displayName: CC Damage Multiplier
+  description: TEST
+  category: 3
+  startsUnlocked: 0
+  upgradableInRound: 1
+  maxLevel: 50
+  maxResearchLevel: 10
+  baseValue: 1
+  valueFormat: x
+  baseFragmentsCost: 5
+  baseCoresCost: 10
+  prerequisiteSkillId: 
+  coresToUnlock: 500
+  requiredTurretId: CC
+  valueCurve: 4
+  valueGrowth: 0.01
+  fragmentsCostCurve: 1
+  fragmentsCostGrowth: 1.25
+  coresCostCurve: 1
+  coresCostGrowth: 1.35
+  customValueCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  customCostCurveFragments:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  customCostCurveCores:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4

@@ -8,7 +8,6 @@ public class Bullet : MonoBehaviour
     [SerializeField] private Rigidbody2D rb;
 
     private Vector2 moveDirection;
-    private Tower tower;
     private float bulletSpeed;
 
     // Damage / Crit
@@ -18,9 +17,8 @@ public class Bullet : MonoBehaviour
     private bool critRolled;
     private bool isCrit;
 
-    public void SetTarget(Transform target, Tower _tower)
+    public void SetTarget(Transform target)
     {
-        tower = _tower;
         // Calculate direction once at spawn
         moveDirection = (target.position - transform.position).normalized;
 
