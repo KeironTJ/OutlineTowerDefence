@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1da1f865474384f43843a9059a5f7782, type: 3}
   m_Name: NRL range
   m_EditorClassIdentifier: 
-  id: CC_range
-  displayName: CC Range Multiplier
+  id: NRL_range
+  displayName: NRL Range Multiplier
   description: TEST
   category: 3
   startsUnlocked: 0
@@ -26,7 +26,7 @@ MonoBehaviour:
   baseCoresCost: 10
   prerequisiteSkillId: 
   coresToUnlock: 500
-  requiredTurretId: CC
+  requiredTurretId: NRL
   valueCurve: 4
   valueGrowth: 0.01
   fragmentsCostCurve: 1

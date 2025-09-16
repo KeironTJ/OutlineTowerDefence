@@ -58,10 +58,10 @@ public class TowerSpawner : MonoBehaviour
         foreach (var m in mounts) mountByIndex[m.Index] = m;
 
         // registry checks
-        var registry = TurretDefRegistry.Instance;
+        var registry = TurretDefinitionManager.Instance;
         if (registry == null)
         {
-            Debug.LogError("[TowerSpawner] TurretDefRegistry.Instance is null. Create a TurretDefRegistry in the scene and assign definitions.");
+            Debug.LogError("[TowerSpawner] TurretDefinitionManager.Instance is null. Create a TurretDefinitionManager in the scene and assign definitions.");
             return spawnedTower;
         }
 
@@ -86,7 +86,6 @@ public class TowerSpawner : MonoBehaviour
             {
                 // helpful debug: list available ids
                 Debug.LogWarning($"[TowerSpawner] TurretDefinition '{turretId}' not found for slot {i}.");
-                Debug.Log($"[TowerSpawner] Available turret ids: {string.Join(", ", registry.DebugListIds())}");
                 continue;
             }
 

@@ -10,6 +10,10 @@ public class Bullet : MonoBehaviour
     private Vector2 moveDirection;
     private float bulletSpeed;
 
+    // origin & max travel range (set by the spawning turret)
+    private Vector3 originPosition;
+    private float maxRange = -1f; // <=0 means unlimited
+
     // Damage / Crit
     private float baseDamage;
     private float critChance01;    // 0..1 (e.g., 1% => 0.01)
@@ -66,9 +70,26 @@ public class Bullet : MonoBehaviour
         }
     }
 
+    public void SetOriginAndMaxRange(Vector3 origin, float maxRange)
+    {
+        originPosition = origin;
+        this.maxRange = maxRange;
+    }
+
     private void FixedUpdate()
     {
         rb.linearVelocity = moveDirection * bulletSpeed;
+
+        // destroy when bullet exceeds the firing turret's range
+        if (maxRange > 0f)
+        {
+            float sqr = (transform.position - originPosition).sqrMagnitude;
+            if (sqr >= maxRange * maxRange)
+            {
+                Destroy(gameObject);
+                return;
+            }
+        }
 
         // Margin so the bullet is destroyed slightly outside the screen
         float margin = 0.5f; 

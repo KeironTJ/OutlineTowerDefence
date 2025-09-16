@@ -20,7 +20,7 @@ MonoBehaviour:
   upgradableInRound: 1
   maxLevel: 999
   maxResearchLevel: 99
-  baseValue: 3
+  baseValue: 1
   valueFormat: 
   baseFragmentsCost: 1
   baseCoresCost: 30
