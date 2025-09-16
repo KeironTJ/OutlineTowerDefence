@@ -13,6 +13,10 @@ public class PlayerManager : MonoBehaviour
     [Header("Runtime State")]
     public PlayerData playerData;
 
+    [Header("Defaults")]
+    [Tooltip("Default turret id to auto-assign for new players / empty slots")]
+    [SerializeField] private string defaultTurretId = "MSB";
+
     public ICurrencyWallet Wallet { get; private set; }      // Persistent wallet (cores / prisms / loops / total fragments KPI)
     public int difficultySelected;
 
@@ -57,6 +61,20 @@ public class PlayerManager : MonoBehaviour
         // Ensure turret lists exist (migrate older saves)
         if (playerData.unlockedTurretIds == null) playerData.unlockedTurretIds = new List<string>();
         if (playerData.selectedTurretIds == null) playerData.selectedTurretIds = new List<string> { "", "", "", "" };
+
+        // Ensure selected slot count (4)
+        while (playerData.selectedTurretIds.Count < 4)
+            playerData.selectedTurretIds.Add("");
+
+        // Only auto-assign the default turret to slot 0 (main) if it's empty
+        if (playerData.selectedTurretIds.Count > 0 && string.IsNullOrEmpty(playerData.selectedTurretIds[0]))
+        {
+            playerData.selectedTurretIds[0] = defaultTurretId;
+            // ensure default is unlocked so selection is valid
+            if (playerData.unlockedTurretIds == null) playerData.unlockedTurretIds = new List<string>();
+            if (!playerData.unlockedTurretIds.Contains(defaultTurretId))
+                playerData.unlockedTurretIds.Add(defaultTurretId);
+        }
 
         // Ensure list exists (first session)
         if (playerData.skillStates == null)
