@@ -350,24 +350,33 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-    public string GetSelectedTurretForSlot(int slotIndex)
-    {
-        if (playerData == null || playerData.selectedTurretIds == null) return "";
-        if (slotIndex < 0 || slotIndex >= playerData.selectedTurretIds.Count) return "";
-        return playerData.selectedTurretIds[slotIndex] ?? "";
-    }
-
-    public void SetSelectedTurretForSlot(int slotIndex, string turretId)
+    // Ensure list has at least 'count' entries
+    private void EnsureSelectedSlots(int count)
     {
         if (playerData == null) return;
-        if (playerData.selectedTurretIds == null) playerData.selectedTurretIds = new List<string> { "", "", "", "" };
+        if (playerData.selectedTurretIds == null) playerData.selectedTurretIds = new List<string>();
+        while (playerData.selectedTurretIds.Count < count) playerData.selectedTurretIds.Add(string.Empty);
+    }
 
-        while (playerData.selectedTurretIds.Count <= slotIndex)
-            playerData.selectedTurretIds.Add("");
+    public string GetSelectedTurretForSlot(int index)
+    {
+        EnsureSelectedSlots(index + 1);
+        string id = playerData.selectedTurretIds[index];
+        Debug.Log($"GetSelectedTurretForSlot({index}) = {id}");
+        return id;
+    }
 
-        playerData.selectedTurretIds[slotIndex] = turretId ?? "";
+    public void SetSelectedTurretForSlot(int index, string id)
+    {
+        EnsureSelectedSlots(index + 1);
+        playerData.selectedTurretIds[index] = id ?? string.Empty;
 
-        // Persist selection immediately
+        // Optional: auto-unlock if selecting something not yet unlocked
+        if (playerData.unlockedTurretIds == null) playerData.unlockedTurretIds = new List<string>();
+        if (!string.IsNullOrEmpty(id) && !playerData.unlockedTurretIds.Contains(id))
+            playerData.unlockedTurretIds.Add(id);
+
         SavePlayerData();
+        Debug.Log($"SetSelectedTurretForSlot({index}) = {id}");
     }
 }

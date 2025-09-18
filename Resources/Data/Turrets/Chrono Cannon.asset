@@ -13,17 +13,11 @@ MonoBehaviour:
   m_Name: Chrono Cannon
   m_EditorClassIdentifier: 
   id: CC
-  displayName: Chrono Cannon
+  turretName: Chrono Cannon
+  turretDescription: Chrono Cannon Shoots Special Bullets
   turretPrefab: {fileID: 4304509950014231380, guid: 7e67f06fec0cbe640ad46392d6a7e9aa, type: 3}
-  previewSprite: {fileID: -2413806693520163455, guid: 69da9ad0974ee2246bc386f1fca7d127, type: 3}
-  baseDamage: 10
-  baseFireRate: 1
-  baseRange: 6
+  previewSprite: {fileID: 5808186972362433900, guid: 53fa9ba0fb81d6544b96545f1139b021, type: 3}
   baseRotationSpeed: 360
-  damageMultiplier: 1.5
-  fireRateMultiplier: 0.75
-  rangeMultiplier: 1.25
-  rotationMultiplier: 0.75
   skillSuffixDamage: damage
   skillSuffixFireRate: fireRate
   skillSuffixRange: range

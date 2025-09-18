@@ -13,17 +13,11 @@ MonoBehaviour:
   m_Name: Nova Rocket Launcher
   m_EditorClassIdentifier: 
   id: NRL
-  displayName: Nova Rocket Launcher
+  turretName: Nova Rocket Launcher
+  turretDescription: NRL Shoots Special Bullets
   turretPrefab: {fileID: 4304509950014231380, guid: 15513424b872428459bb7c66a6f545db, type: 3}
-  previewSprite: {fileID: 7482667652216324306, guid: 628e99be5679c4e4cb46fbe223e1d493, type: 3}
-  baseDamage: 10
-  baseFireRate: 1
-  baseRange: 6
+  previewSprite: {fileID: 4468041796090770668, guid: 3224f6e5e56c0cd40b333c95100a3c51, type: 3}
   baseRotationSpeed: 360
-  damageMultiplier: 1.5
-  fireRateMultiplier: 0.5
-  rangeMultiplier: 2
-  rotationMultiplier: 0.5
   skillSuffixDamage: damage
   skillSuffixFireRate: fireRate
   skillSuffixRange: range

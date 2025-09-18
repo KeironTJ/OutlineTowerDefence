@@ -57,6 +57,8 @@ public class TurretDefinitionManager : MonoBehaviour
         return def;
     }
 
+    public List<TurretDefinition> GetAllTurrets() => allDefinitions;
+
     public bool TryGet(string id, out TurretDefinition def) => map.TryGetValue(id, out def);
 
     public IReadOnlyList<TurretDefinition> GetAll() => allDefinitions;

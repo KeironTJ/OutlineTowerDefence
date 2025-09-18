@@ -4,7 +4,8 @@ using UnityEngine;
 public class TurretDefinition : ScriptableObject
 {
     public string id;
-    public string displayName;
+    public string turretName;
+    public string turretDescription;
     [Tooltip("Prefab must contain a Turret component.")]
     public GameObject turretPrefab;
     public Sprite previewSprite;

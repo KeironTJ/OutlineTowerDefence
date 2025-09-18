@@ -13,17 +13,11 @@ MonoBehaviour:
   m_Name: Microshard Blaster
   m_EditorClassIdentifier: 
   id: MSB
-  displayName: Micro Shard Blaster
+  turretName: Microshard Blaster
+  turretDescription: Microshard Blaster Shoots Special Bullets
   turretPrefab: {fileID: 4304509950014231380, guid: 6cb3d20c0bbff024580ec2c8f374bb3b, type: 3}
-  previewSprite: {fileID: 7482667652216324306, guid: 3e88248585eb5d148b9b93e5e063d64d, type: 3}
-  baseDamage: 10
-  baseFireRate: 1
-  baseRange: 6
+  previewSprite: {fileID: -1358655451419470906, guid: 14c94cf3726fdf340b3fa3c308f2a76f, type: 3}
   baseRotationSpeed: 360
-  damageMultiplier: 1
-  fireRateMultiplier: 1
-  rangeMultiplier: 1
-  rotationMultiplier: 1
   skillSuffixDamage: damage
   skillSuffixFireRate: fireRate
   skillSuffixRange: range
