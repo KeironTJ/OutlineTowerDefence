@@ -25,8 +25,8 @@ public class WaveManager : MonoBehaviour
 
     [Header("Spawn Frequency")]
     [SerializeField] private int maxSpawnWaves = 1000; // Maximum number of waves
-    [SerializeField] private float minSpawnInterval = 0.2f; // Minimum time between spawns (allows up to 5 enemies per second)
-    [SerializeField] private float maxSpawnInterval = 1f; // Maximum time between spawns (ensures at least 1 enemy per second)
+    [SerializeField] private float minSpawnInterval = 0.1f; // Minimum time between spawns (allows up to 10 enemies per second)
+    [SerializeField] private float maxSpawnInterval = 0.5f; // Maximum time between spawns (ensures at least 2 enemy per second)
 
     private Coroutine waveRoutine;
     private Tower subscribedTower; // Weak reference to the subscribed Tower
@@ -71,7 +71,12 @@ public class WaveManager : MonoBehaviour
             enemySpawner.SpawnBasicEnemy(tower, healthModifier, moveSpeedModifier, attackDamageModifier, rewardModifier);
 
             // Calculate dynamic spawn interval
-            float spawnInterval = Mathf.Lerp(maxSpawnInterval, minSpawnInterval, (float)currentWave / maxSpawnWaves);
+            // t = normalized wave progress [0..1]; caps scaling once we hit maxSpawnWaves
+            float t = Mathf.Clamp01((float)currentWave / maxSpawnWaves);
+            float spawnInterval = Mathf.Lerp(maxSpawnInterval, minSpawnInterval, t);
+            // Safety: keep within configured bounds even if values are mis-set at runtime
+            spawnInterval = Mathf.Clamp(spawnInterval, minSpawnInterval, maxSpawnInterval);
+
             yield return new WaitForSeconds(spawnInterval);
         }
 

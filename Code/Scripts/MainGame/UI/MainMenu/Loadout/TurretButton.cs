@@ -9,18 +9,18 @@ public class TurretButton : MonoBehaviour
     [SerializeField] private Image turretImage;
     [SerializeField] private TextMeshProUGUI turretNameText;
     [SerializeField] private TextMeshProUGUI turretDescriptionText;
-    [SerializeField] private Button selectButton;
-    [SerializeField] private TextMeshProUGUI selectButtonText; // label on the button
+    [SerializeField] private Button actionButton;
+    [SerializeField] private TextMeshProUGUI actionButtonText; // label on the button
+    [SerializeField] private TextMeshProUGUI footerText;        // optional: show cost/reason
 
     private string turretId;
     private int slotIndex;
-    private PlayerManager playerManager;
+    private PlayerManager pm;
     private Action<string> onPicked;
 
-    // Configure tile. If currentlySelected==true the button becomes "Remove".
     public void Configure(TurretDefinition def, int slotIndex, bool unlocked, Action<string> onPickedCallback = null, bool currentlySelected = false)
     {
-        playerManager = PlayerManager.main;
+        pm = PlayerManager.main;
         this.slotIndex = slotIndex;
         onPicked = onPickedCallback;
         turretId = def?.id ?? string.Empty;
@@ -29,44 +29,62 @@ public class TurretButton : MonoBehaviour
         if (turretNameText) turretNameText.text = def?.turretName ?? "(Unknown)";
         if (turretDescriptionText) turretDescriptionText.text = def?.turretDescription ?? "";
 
-        if (!selectButtonText && selectButton) selectButtonText = selectButton.GetComponentInChildren<TextMeshProUGUI>(true);
+        if (!actionButtonText && actionButton) actionButtonText = actionButton.GetComponentInChildren<TextMeshProUGUI>(true);
 
-        if (selectButton)
+        actionButton.onClick.RemoveAllListeners();
+
+        if (currentlySelected)
         {
-            selectButton.onClick.RemoveAllListeners();
-
-            if (currentlySelected)
+            if (actionButtonText) actionButtonText.text = "Remove";
+            if (footerText) footerText.text = "";
+            actionButton.interactable = true;
+            actionButton.onClick.AddListener(() =>
             {
-                if (selectButtonText) selectButtonText.text = "Remove";
-                selectButton.interactable = true;
-                selectButton.onClick.AddListener(RemoveThis);
-            }
-            else
+                pm.SetSelectedTurretForSlot(this.slotIndex, "");
+                onPicked?.Invoke(string.Empty);
+            });
+        }
+        else if (unlocked)
+        {
+            if (actionButtonText) actionButtonText.text = "Select";
+            if (footerText) footerText.text = "";
+            actionButton.interactable = !string.IsNullOrEmpty(turretId);
+            actionButton.onClick.AddListener(() =>
             {
-                if (selectButtonText) selectButtonText.text = unlocked ? "Select" : "Locked";
-                selectButton.interactable = unlocked && !string.IsNullOrEmpty(turretId);
-                selectButton.onClick.AddListener(SelectThis);
-            }
+                pm.SetSelectedTurretForSlot(this.slotIndex, turretId);
+                onPicked?.Invoke(turretId);
+            });
+        }
+        else
+        {
+            // default to locked; TurretSelectorUI can switch to unlock mode via ConfigureForUnlock
+            if (actionButtonText) actionButtonText.text = "Locked";
+            if (footerText) footerText.text = "";
+            actionButton.interactable = false;
         }
     }
 
-    private void SelectThis()
+    public void ConfigureForUnlock(TurretDefinition def, TurretUnlockManager.CurrencyCost cost, Func<bool> tryUnlock, Action onUnlocked)
     {
-        if (playerManager == null || string.IsNullOrEmpty(turretId)) return;
-        playerManager.SetSelectedTurretForSlot(slotIndex, turretId);
-        onPicked?.Invoke(turretId);
+        if (!actionButtonText && actionButton) actionButtonText = actionButton.GetComponentInChildren<TextMeshProUGUI>(true);
+
+        if (actionButtonText) actionButtonText.text = $"Unlock";
+        if (footerText) footerText.text = cost.ToLabel();
+
+        actionButton.interactable = true;
+        actionButton.onClick.RemoveAllListeners();
+        actionButton.onClick.AddListener(() =>
+        {
+            if (tryUnlock())
+                onUnlocked?.Invoke();
+        });
     }
 
-    private void RemoveThis()
+    public void ConfigureLockedReason(string reason)
     {
-        if (playerManager == null) return;
-        playerManager.SetSelectedTurretForSlot(slotIndex, ""); // clear slot
-        onPicked?.Invoke(string.Empty);
+        if (actionButtonText) actionButtonText.text = "Locked";
+        if (footerText) footerText.text = reason ?? "";
+        actionButton.interactable = false;
+        actionButton.onClick.RemoveAllListeners();
     }
-
-    private void OnDestroy()
-    {
-        if (selectButton) selectButton.onClick.RemoveAllListeners();
-
-
-}    }   
+}

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15fb5356bf2c5a04589b261309a57031, type: 3}
+  m_Name: TurretUnlock_MSB
+  m_EditorClassIdentifier: 
+  turretId: MSB
+  requiredHighestWave: 0
+  requiredMaxDifficulty: 0
+  prerequisiteTurretIds: []
+  grantByDefault: 1
+  costCores: 0
+  costPrisms: 0
+  costLoops: 0
+  lockedHint: 

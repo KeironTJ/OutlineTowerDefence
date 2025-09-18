@@ -24,11 +24,10 @@ public class TurretSelectorUI : MonoBehaviour
         if (mgr == null) { Debug.LogWarning("No TurretDefinitionManager in scene"); return; }
 
         var pm = PlayerManager.main;
-        var unlocked = pm?.playerData?.unlockedTurretIds ?? new List<string>();
+        var unlocks = TurretUnlockManager.Instance;
         var defs = mgr.GetAllTurrets();
         if (defs == null || defs.Count == 0) { Debug.LogWarning("No turret definitions found"); return; }
 
-        // current selection for this slot
         string currentId = pm != null ? pm.GetSelectedTurretForSlot(slotIndex) : string.Empty;
 
         foreach (var def in defs)
@@ -37,9 +36,34 @@ public class TurretSelectorUI : MonoBehaviour
             var tile = go.GetComponent<TurretButton>();
             if (tile == null) { Debug.LogWarning("optionPrefab missing TurretButton"); continue; }
 
-            bool isUnlocked = unlocked.Contains(def.id);
+            bool isUnlocked = pm?.playerData?.unlockedTurretIds != null && pm.playerData.unlockedTurretIds.Contains(def.id);
             bool isCurrent  = !string.IsNullOrEmpty(currentId) && currentId == def.id;
+
             tile.Configure(def, slotIndex, isUnlocked, OnPicked, isCurrent);
+
+            if (!isUnlocked)
+            {
+                string reason = "";
+                TurretUnlockManager.CurrencyCost cost = default;
+                bool canUnlock = unlocks != null && unlocks.CanUnlock(pm, def.id, out reason, out cost);
+
+                if (canUnlock)
+                {
+                    tile.ConfigureForUnlock(def, cost,
+                        tryUnlock: () => unlocks.TryUnlock(pm, def.id, out _),
+                        onUnlocked: () =>
+                        {
+                            // optional: auto-assign on unlock, then close
+                            pm.SetSelectedTurretForSlot(slotIndex, def.id);
+                            mainMenu?.UpdateSlotButtons();
+                            gameObject.SetActive(false);
+                        });
+                }
+                else
+                {
+                    tile.ConfigureLockedReason(string.IsNullOrEmpty(reason) ? "Not available" : reason);
+                }
+            }
         }
 
         LayoutRebuilder.ForceRebuildLayoutImmediate(contentParent as RectTransform);

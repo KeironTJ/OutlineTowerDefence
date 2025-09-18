@@ -185,7 +185,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rb: {fileID: 76966599065338782}
-  health: 2
+  health: 1
   moveSpeed: 2
   attackDamage: 1
   damageInterval: 1
