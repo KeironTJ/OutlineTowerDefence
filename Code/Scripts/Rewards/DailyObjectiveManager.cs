@@ -41,6 +41,25 @@ public class DailyObjectiveManager : MonoBehaviour
         EventManager.StartListening(EventNames.CurrencySpent, OnCurrencySpent);
         EventManager.StartListening(EventNames.SkillUnlocked, OnSkillUnlocked);
         EventManager.StartListening(EventNames.WaveCompleted, OnWaveCompleted);
+
+        // Subscribe to SaveManager.OnAfterLoad if available; otherwise fallback to polling
+        if (SaveManager.main != null)
+        {
+            SaveManager.main.OnAfterLoad += OnSaveLoaded; // typed subscription
+            if (SaveManager.main.Current != null)
+            {
+                EnsureInitialized();
+                EvaluateSlots();
+            }
+            else
+            {
+                StartCoroutine(WaitForSaveAndInitialize());
+            }
+        }
+        else
+        {
+            StartCoroutine(WaitForSaveAndInitialize());
+        }
     }
 
     private void OnDisable()
@@ -51,6 +70,43 @@ public class DailyObjectiveManager : MonoBehaviour
         EventManager.StopListening(EventNames.CurrencySpent, OnCurrencySpent);
         EventManager.StopListening(EventNames.SkillUnlocked, OnSkillUnlocked);
         EventManager.StopListening(EventNames.WaveCompleted, OnWaveCompleted);
+
+        if (SaveManager.main != null)
+            SaveManager.main.OnAfterLoad -= OnSaveLoaded;
+    }
+
+    // Called when SaveManager finishes loading or when ReplaceCurrent is invoked
+    private void OnSaveLoaded(PlayerSavePayload payload)
+    {
+        EnsureInitialized();
+        EvaluateSlots();
+    }
+
+    private System.Collections.IEnumerator WaitForSaveAndInitialize()
+    {
+        // short polling until SaveManager.current/player data exists
+        while (SaveManager.main == null || SaveManager.main.Current == null || PlayerData == null)
+            yield return new WaitForSeconds(0.1f);
+
+        EnsureInitialized();
+        EvaluateSlots();
+    }
+
+    // When returning from background, re-evaluate missed slot rollovers
+    private void OnApplicationFocus(bool hasFocus)
+    {
+        if (hasFocus)
+        {
+            if (!initialized) EnsureInitialized();
+            EvaluateSlots();
+        }
+    }
+
+    // Safety: ensure initialization before any event-driven progress is applied
+    // Call this at the start of each public/event handler.
+    private void EnsureInitIfNeeded()
+    {
+        if (!initialized) EnsureInitialized();
     }
 
     public void EnsureInitialized()
@@ -341,6 +397,7 @@ public class DailyObjectiveManager : MonoBehaviour
 
     private void OnEnemyDestroyed(object data)
     {
+        EnsureInitIfNeeded();
         if (data is EnemyDestroyedEvent e)
         {
             foreach (var rt in activeDaily)
@@ -354,6 +411,7 @@ public class DailyObjectiveManager : MonoBehaviour
 
     private void OnWaveCompleted(object data)
     {
+        EnsureInitIfNeeded();
         Debug.Log($"Event Heard: Wave Completed");
         foreach (var rt in activeDaily)
         {
@@ -365,6 +423,7 @@ public class DailyObjectiveManager : MonoBehaviour
 
     private void OnRoundCompleted(object data)
     {
+        EnsureInitIfNeeded();
         foreach (var rt in activeDaily)
             if (rt.definition.type == ObjectiveType.CompleteRounds)
                 Progress(rt, 1f);
@@ -372,6 +431,7 @@ public class DailyObjectiveManager : MonoBehaviour
 
     private void OnCurrencyEarned(object data)
     {
+        EnsureInitIfNeeded();
         if (data is CurrencyEarnedEvent ce)
         {
             if (ce.fragments + ce.cores + ce.prisms + ce.loops <= 0f) return;
@@ -394,6 +454,7 @@ public class DailyObjectiveManager : MonoBehaviour
 
     private void OnCurrencySpent(object data)
     {
+        EnsureInitIfNeeded();
         if (data is SpendCurrencyEvent se)
         {
             if (se.fragments + se.cores + se.prisms + se.loops <= 0f) return;
@@ -404,9 +465,9 @@ public class DailyObjectiveManager : MonoBehaviour
                 if (def.type != ObjectiveType.SpendCurrency) continue;
                 switch (def.currencyType)
                 {
-                    case CurrencyType.Fragments:   if (se.fragments   > 0f) Progress(rt, se.fragments);   break;
+                    case CurrencyType.Fragments: if (se.fragments > 0f) Progress(rt, se.fragments); break;
                     case CurrencyType.Cores: if (se.cores > 0f) Progress(rt, se.cores); break;
-                    case CurrencyType.Prisms:  if (se.prisms  > 0f) Progress(rt, se.prisms);  break;
+                    case CurrencyType.Prisms: if (se.prisms > 0f) Progress(rt, se.prisms); break;
                     case CurrencyType.Loops: if (se.loops > 0f) Progress(rt, se.loops); break;
                 }
             }
@@ -415,6 +476,7 @@ public class DailyObjectiveManager : MonoBehaviour
 
     private void OnSkillUnlocked(object data) 
     {
+        EnsureInitIfNeeded();
         if (data is SkillUnlockedEvent su)
         {
             foreach (var rt in activeDaily)

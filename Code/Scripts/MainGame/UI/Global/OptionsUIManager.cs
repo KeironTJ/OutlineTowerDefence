@@ -12,6 +12,8 @@ public class OptionsUIManager : MonoBehaviour
     [SerializeField] private GameObject roundHistoryPanel;   // the panel root in Options
     [SerializeField] private GameObject settingsPanel;
 
+    [SerializeField] private RewardsUIController rewardsController; // assign in Inspector if possible
+
 
     private static OptionsUIManager instance;
     public static OptionsUIManager Instance => instance;
@@ -65,6 +67,7 @@ public class OptionsUIManager : MonoBehaviour
     public void ShowGameStats() => ShowSubPanel(gameStatsPanel);
     public void ShowSettings() => ShowSubPanel(settingsPanel);
     public void ShowRoundHistory() => ShowSubPanel(roundHistoryPanel);
+    public void ShowRewards() => OnRewardsButton();
 
     public void ShowPanel(GameObject panel)
     {
@@ -104,5 +107,15 @@ public class OptionsUIManager : MonoBehaviour
     private static void SafeSetActive(GameObject go, bool state)
     {
         if (go && go.activeSelf != state) go.SetActive(state);
+    }
+
+    public void OnRewardsButton()
+    {
+        if (rewardsController == null)
+            rewardsController = FindObjectOfType<RewardsUIController>();
+        if (rewardsController != null)
+            rewardsController.Toggle();
+        else
+            Debug.LogWarning("RewardsUIController not found. Make sure it's added in MainMenu and persists.");
     }
 }

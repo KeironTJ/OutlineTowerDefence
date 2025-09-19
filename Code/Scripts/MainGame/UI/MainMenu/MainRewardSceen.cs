@@ -33,9 +33,7 @@ public class MainRewardSceen : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        UpdateDailyLoginUI();
-        OpenDailyRewardTab();
-
+        RefreshUI();
     }
 
     // Update is called once per frame
@@ -65,20 +63,31 @@ public class MainRewardSceen : MonoBehaviour
     {
         DailyObjectiveManager.OnProgress -= HandleObjectiveProgress;
         DailyObjectiveManager.OnSlotRollover -= HandleSlotRollover;
-        claimButton.interactable = false;
-        statusText.text = "";
+        if (claimButton) claimButton.interactable = false;
+        if (statusText) statusText.text = "";
     }
-
+    
     void UpdateDailyLoginUI()
     {
-        bool canClaim = DailyLoginRewardManager.main.CanClaimToday();
-        claimButton.interactable = canClaim;
-        statusText.text = canClaim ? "Daily login reward available!" : "Already claimed today.";
-    }
+        var dlm = DailyLoginRewardManager.main;
+        if (dlm == null)
+        {
+            if (claimButton) claimButton.interactable = false;
+            if (statusText) statusText.text = "Daily login unavailable";
+            Debug.LogWarning("[MainRewardSceen] DailyLoginRewardManager.main is null; login UI disabled.");
+            return;
+        }
 
+        bool canClaim = dlm.CanClaimToday();
+        if (claimButton) claimButton.interactable = canClaim;
+        if (statusText) statusText.text = canClaim ? "Daily login reward available!" : "Already claimed today.";
+    }
+    
     public void OnClaimDailyLogin()
     {
-        DailyLoginRewardManager.main.ClaimToday();
+        var dlm = DailyLoginRewardManager.main;
+        if (dlm == null) { Debug.LogWarning("[MainRewardSceen] Can't claim: DailyLoginRewardManager.main is null"); return; }
+        dlm.ClaimToday();
         UpdateDailyLoginUI();
     }
 
@@ -188,5 +197,19 @@ public class MainRewardSceen : MonoBehaviour
     private void HandleSlotRollover(string newSlotKey)
     {
         PopulateDailyObjectives(); // refresh list after rollover
+    }
+
+    // Public entrypoint for external callers (Options menu / HUD / controller)
+    public void RefreshUI()
+    {
+        DailyObjectiveManager.main?.EnsureInitialized();
+        UpdateDailyLoginUI();
+        PopulateDailyObjectives();
+    }
+
+    // Close/hide the rewards screen (wire a UI Close button to this)
+    public void Close()
+    {
+        gameObject.SetActive(false);
     }
 }
