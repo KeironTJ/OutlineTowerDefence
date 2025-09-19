@@ -215,6 +215,7 @@ public class RoundManager : MonoBehaviour
 
     public void EndRound()
     {
+        SetHighestDifficulties();
         SetHighestWaves();
         DestroyAllEnemies();
         DestroyAllBullets();
@@ -370,6 +371,18 @@ public class RoundManager : MonoBehaviour
 
             playerManager.SetMaxWaveAchieved(difficulty, waveManager.GetCurrentWave());
 
+        }
+    }
+
+    private void SetHighestDifficulties()
+    {
+        if (playerManager != null)
+        {
+            int maxDifficulty = playerManager.GetMaxDifficultyAchieved();
+            if (roundDifficulty > maxDifficulty)
+            {
+                playerManager.SetMaxDifficultyAchieved(roundDifficulty);
+            }
         }
     }
 

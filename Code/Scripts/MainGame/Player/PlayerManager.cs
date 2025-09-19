@@ -211,14 +211,30 @@ public class PlayerManager : MonoBehaviour
     }
 
     // ---------------- DIFFICULTY ----------------
-    public int  GetMaxDifficulty() => playerData.maxDifficultyAchieved;
+    public int GetMaxDifficulty() => playerData.maxDifficultyAchieved;
     public void SetDifficulty(int d) => difficultySelected = d;
-    public int  GetDifficulty() => difficultySelected;
+    public int GetDifficulty() => difficultySelected;
+
+    // Return highest difficulty achieved (fixed signature)
+    public int GetHighestDifficulty() => playerData.maxDifficultyAchieved;
+
+    // Compatibility alias: some code expects this name
+    public int GetMaxDifficultyAchieved() => playerData.maxDifficultyAchieved;
+
 
     public void IncreaseMaxDifficulty()
     {
         playerData.maxDifficultyAchieved++;
         SavePlayerData();
+    }
+
+    public void SetMaxDifficultyAchieved(int d)
+    {
+        if (d > playerData.maxDifficultyAchieved)
+        {
+            playerData.maxDifficultyAchieved = d;
+            SavePlayerData();
+        }
     }
 
     public void SetMaxWaveAchieved(int difficulty, int wave)
