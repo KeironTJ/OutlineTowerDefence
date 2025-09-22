@@ -27,7 +27,7 @@ MonoBehaviour:
   prerequisiteSkillId: 
   coresToUnlock: 500
   requiredTurretId: MSB
-  valueCurve: 4
+  valueCurve: 5
   valueGrowth: 0.01
   fragmentsCostCurve: 1
   fragmentsCostGrowth: 1.25

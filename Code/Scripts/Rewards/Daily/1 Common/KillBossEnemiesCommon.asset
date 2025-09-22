@@ -17,13 +17,18 @@ MonoBehaviour:
   type: 0
   rarity: 0
   targetAmount: 5
-  anyEnemyType: 0
-  enemyType: 2
-  anyEnemySubtype: 0
-  enemySubtype: 0
+  anyEnemy: 0
+  targetDefinitionId: 
+  useTierFilter: 1
+  targetTier: 3
+  useFamilyFilter: 0
+  targetFamily: 
+  useTraitFilter: 0
+  targetTraits: 0
   currencyType: 1
   skillId: 
   rewardType: 1
   rewardAmount: 1000
   manualClaim: 1
-  description: Destroy 5 Boss Enemies.
+  description: Destroy 5 Bosses.
+  debugMatch: 0

@@ -21,7 +21,7 @@ MonoBehaviour:
   targetDefinitionId: Basic_Grunt
   useTierFilter: 1
   targetTier: 0
-  useFamilyFilter: 1
+  useFamilyFilter: 0
   targetFamily: Grunt
   useTraitFilter: 0
   targetTraits: 0
@@ -31,3 +31,4 @@ MonoBehaviour:
   rewardAmount: 2500
   manualClaim: 1
   description: Kill 1000 Basic Grunts.
+  debugMatch: 0

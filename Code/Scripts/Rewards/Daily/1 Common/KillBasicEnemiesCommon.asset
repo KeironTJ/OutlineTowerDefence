@@ -17,13 +17,18 @@ MonoBehaviour:
   type: 0
   rarity: 0
   targetAmount: 250
-  anyEnemyType: 0
-  enemyType: 0
-  anyEnemySubtype: 1
-  enemySubtype: 0
+  anyEnemy: 0
+  targetDefinitionId: 
+  useTierFilter: 1
+  targetTier: 0
+  useFamilyFilter: 0
+  targetFamily: 
+  useTraitFilter: 0
+  targetTraits: 0
   currencyType: 1
   skillId: 
   rewardType: 1
   rewardAmount: 1000
   manualClaim: 1
   description: Destory 250 Basic Enemies.
+  debugMatch: 1

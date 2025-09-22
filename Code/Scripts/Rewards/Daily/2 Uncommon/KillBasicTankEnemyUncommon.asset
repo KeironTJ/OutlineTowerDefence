@@ -17,13 +17,18 @@ MonoBehaviour:
   type: 0
   rarity: 1
   targetAmount: 100
-  anyEnemyType: 0
-  enemyType: 0
-  anyEnemySubtype: 0
-  enemySubtype: 2
-  currencyType: 0
+  anyEnemy: 0
+  targetDefinitionId: Basic_Tank
+  useTierFilter: 1
+  targetTier: 0
+  useFamilyFilter: 0
+  targetFamily: Tank
+  useTraitFilter: 0
+  targetTraits: 0
+  currencyType: 1
   skillId: 
   rewardType: 1
   rewardAmount: 2500
   manualClaim: 1
-  description: Kill 100 Basic Tank Enemies.
+  description: Kill 100 Basic Tanks..
+  debugMatch: 0

@@ -28,7 +28,7 @@ MonoBehaviour:
   coresToUnlock: 500
   requiredTurretId: 
   valueCurve: 4
-  valueGrowth: 0.03
+  valueGrowth: 0.005
   fragmentsCostCurve: 1
   fragmentsCostGrowth: 1.2
   coresCostCurve: 1
