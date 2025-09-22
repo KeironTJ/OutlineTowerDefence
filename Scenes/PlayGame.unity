@@ -4741,21 +4741,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 822c8a84e3d231c47a5fdb86810435ad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timePerWave: 30
-  timeBetweenWaves: 5
-  difficultyScalingFactor: 0.5
+  roundType: {fileID: 11400000, guid: 90b289ab5823d804580570314f758af2, type: 2}
+  enemyTypes:
+  - {fileID: 11400000, guid: 10446742c322a014fba8a766f064a364, type: 2}
+  - {fileID: 11400000, guid: 9e7a1c95425d8f645b7a00a52e28ace3, type: 2}
+  - {fileID: 11400000, guid: f3a9e3355c559d142a3bbbaf94eea9db, type: 2}
+  - {fileID: 11400000, guid: 2c7f83c3d20ee944183c65832ab7bccb, type: 2}
+  - {fileID: 11400000, guid: 0dd506e9ed0e2624f99f23750e1bae5a, type: 2}
+  - {fileID: 11400000, guid: f5e6ca8e7fe968a468eb7b2eb44845db, type: 2}
+  - {fileID: 11400000, guid: 2979f7f5f868ed847a5c09f6fed881c2, type: 2}
+  - {fileID: 11400000, guid: 646198679081a8344ac74dfd5db34678, type: 2}
+  - {fileID: 11400000, guid: eec3410a35e272548a1f69feb0f75647, type: 2}
+  tierShareConfig: {fileID: 11400000, guid: 9e9c746fa20946f4ebcd3ebe4e649f9e, type: 2}
+  baseSeed: 12345
   currentWave: 0
   isWaveActive: 0
+  inBreak: 0
   waveEndTime: 0
-  bossSpawnRate: 10
-  maxRatioWaves: 500
-  healthScalingFactor: 0.1
-  moveSpeedScalingFactor: 0.005
-  rewardScalingFactor: 0.1
-  attackDamageScalingFactor: 0.1
-  maxSpawnWaves: 1000
-  minSpawnInterval: 0.2
-  maxSpawnInterval: 1
+  breakEndTime: 0
+  currentWaveTotalDuration: 0
+  currentBreakTotalDuration: 0
 --- !u!114 &1226402243
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4781,15 +4786,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e13e6db2aeb7db4b932b83e149b76a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bossEnemyPrefabs:
+  bossPrefabs:
   - {fileID: 913476891759774307, guid: 4ccb980b10b4e9744861d711e9924527, type: 3}
-  basicEnemyTypes:
-  - prefab: {fileID: 913476891759774307, guid: 8d3f9bb6cc850c146ba72c2f54056f0b, type: 3}
-    spawnWeight: 1
-  - prefab: {fileID: 913476891759774307, guid: 7e7c906c15f492e4d8958463d962195a, type: 3}
-    spawnWeight: 0
-  - prefab: {fileID: 913476891759774307, guid: d51f811bf23ebb74bb6bccd8f18c33c7, type: 3}
-    spawnWeight: 0
 --- !u!114 &1226402245
 MonoBehaviour:
   m_ObjectHideFlags: 0

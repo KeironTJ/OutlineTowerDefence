@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,12 +15,40 @@ public class RoundRecord
     public int enemiesKilled;
 
     public List<CurrencyAmount> currencyEarned = new List<CurrencyAmount>();
-    public List<EnemyTypeCount> enemyBreakdown = new List<EnemyTypeCount>();
+
+    // New: per-definition kill summary (replaces enemyBreakdown)
+    public List<EnemyKillSummary> enemyKills = new List<EnemyKillSummary>();
+
+    // Optional aggregated views
+    public List<TierKillSummary> tierKills = new List<TierKillSummary>();
+    public List<FamilyKillSummary> familyKills = new List<FamilyKillSummary>();
 }
 
 [Serializable] public struct CurrencyAmount { public CurrencyType type; public float amount; }
-[Serializable] public class EnemySubtypeCount { public EnemySubtype subtype; public int count; }
-[Serializable] public class EnemyTypeCount { public EnemyType type; public int total; public List<EnemySubtypeCount> subtypes = new List<EnemySubtypeCount>(); }
+
+[Serializable]
+public struct EnemyKillSummary
+{
+    public string definitionId;
+    public EnemyTier tier;
+    public string family;
+    public EnemyTrait traits;
+    public int count;
+}
+
+[Serializable]
+public struct TierKillSummary
+{
+    public EnemyTier tier;
+    public int count;
+}
+
+[Serializable]
+public struct FamilyKillSummary
+{
+    public string family;
+    public int count;
+}
 
 public static class RoundDataConverters
 {
@@ -29,45 +56,73 @@ public static class RoundDataConverters
     {
         var list = new List<CurrencyAmount>();
         if (dict == null) return list;
-        foreach (var kv in dict) list.Add(new CurrencyAmount { type = kv.Key, amount = kv.Value });
+        foreach (var kv in dict)
+            list.Add(new CurrencyAmount { type = kv.Key, amount = kv.Value });
         return list;
     }
 
-    public static List<EnemyTypeCount> ToEnemyBreakdown(Dictionary<EnemyType, Dictionary<EnemySubtype, int>> nested)
+    // From runtime dictionary<string,int> plus a lookup of definitions
+    public static List<EnemyKillSummary> ToEnemyKillSummaries(
+        Dictionary<string, int> killsByDefinition,
+        IReadOnlyDictionary<string, EnemyTypeDefinition> defLookup)
     {
-        var result = new List<EnemyTypeCount>();
-        if (nested == null) return result;
+        var list = new List<EnemyKillSummary>();
+        if (killsByDefinition == null) return list;
 
-        foreach (var typeEntry in nested)
+        foreach (var kv in killsByDefinition)
         {
-            var etc = new EnemyTypeCount { type = typeEntry.Key, total = 0, subtypes = new List<EnemySubtypeCount>() };
-            var subDict = typeEntry.Value;
-            if (subDict != null)
+            EnemyTier tier = EnemyTier.Basic;
+            string family = "Unknown";
+            EnemyTrait traits = EnemyTrait.None;
+
+            if (defLookup != null && defLookup.TryGetValue(kv.Key, out var def) && def)
             {
-                foreach (var sub in subDict)
-                {
-                    if (sub.Value <= 0) continue;
-                    etc.subtypes.Add(new EnemySubtypeCount { subtype = sub.Key, count = sub.Value });
-                    etc.total += sub.Value;
-                }
+                tier = def.tier;
+                family = def.family;
+                traits = def.traits;
             }
-            result.Add(etc);
+
+            list.Add(new EnemyKillSummary
+            {
+                definitionId = kv.Key,
+                tier = tier,
+                family = family,
+                traits = traits,
+                count = kv.Value
+            });
         }
-        return result;
+        return list;
+    }
+
+    public static List<TierKillSummary> AggregateTierKills(List<EnemyKillSummary> kills)
+    {
+        var dict = new Dictionary<EnemyTier, int>();
+        foreach (var k in kills)
+        {
+            if (dict.TryGetValue(k.tier, out var c)) dict[k.tier] = c + k.count;
+            else dict[k.tier] = k.count;
+        }
+        var list = new List<TierKillSummary>();
+        foreach (var kv in dict)
+            list.Add(new TierKillSummary { tier = kv.Key, count = kv.Value });
+        return list;
+    }
+
+    public static List<FamilyKillSummary> AggregateFamilyKills(List<EnemyKillSummary> kills)
+    {
+        var dict = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var k in kills)
+        {
+            var key = k.family ?? "Unknown";
+            if (dict.TryGetValue(key, out var c)) dict[key] = c + k.count;
+            else dict[key] = k.count;
+        }
+        var list = new List<FamilyKillSummary>();
+        foreach (var kv in dict)
+            list.Add(new FamilyKillSummary { family = kv.Key, count = kv.Value });
+        return list;
     }
 }
 
-public class RoundData : MonoBehaviour
-{
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-}
+// (Legacy MonoBehaviour was unused—safe to remove. Keep only if you still reference it.)
+public class RoundData : MonoBehaviour { }

@@ -206,16 +206,20 @@ public class UIManager : MonoBehaviour
 
         if (waveManager.IsBetweenWaves())
         {
-            float timeRemaining = waveManager.GetTimeBetweenWavesRemaining();
-            if (waveTimeRemainingUI) waveTimeRemainingUI.text = $"{timeRemaining:F1}s";
-            if (waveProgressBar) waveProgressBar.value = 1 - (timeRemaining / waveManager.timeBetweenWaves);
+            float timeRemaining = waveManager.GetBreakTimeRemaining();
+            float total = Mathf.Max(0.01f, waveManager.GetBreakTotalDuration());
+            float progress = Mathf.Clamp01((total - timeRemaining) / total);   // fills up during break
+            if (waveProgressBar) waveProgressBar.value = progress;
+            if (waveTimeRemainingUI) waveTimeRemainingUI.text = $"Next Wave In: {Mathf.Max(0f,timeRemaining):F1}s";
             if (fillAreaImage) fillAreaImage.color = Color.red;
         }
         else
         {
             float timeRemaining = waveManager.GetWaveTimeRemaining();
-            if (waveTimeRemainingUI) waveTimeRemainingUI.text = $"Time Left: {timeRemaining:F1}s";
-            if (waveProgressBar) waveProgressBar.value = 1 - (timeRemaining / waveManager.timePerWave);
+            float total = Mathf.Max(0.01f, waveManager.GetWaveDuration());
+            float progress = Mathf.Clamp01((total - timeRemaining) / total);   // fills up during wave
+            if (waveProgressBar) waveProgressBar.value = progress;
+            if (waveTimeRemainingUI) waveTimeRemainingUI.text = $"Time Left: {Mathf.Max(0f,timeRemaining):F1}s";
             if (fillAreaImage) fillAreaImage.color = Color.cyan;
         }
     }

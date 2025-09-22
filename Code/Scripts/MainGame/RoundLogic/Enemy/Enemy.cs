@@ -1,112 +1,102 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public enum EnemyType
-{
-    BasicEnemy,
-    AdvancedEnemy,
-    BossEnemy
-}
-
-public enum EnemySubtype
-{
-    Simple,
-    Fast,
-    Tank
-}
-
-public class Enemy : MonoBehaviour
+public class Enemy : MonoBehaviour, IEnemyRuntime
 {
     [Header("References")]
     [SerializeField] private Rigidbody2D rb;
 
-    [Header("Enemy Stats")]
+    [Header("Runtime Stats")]
     [SerializeField] private float health;
     [SerializeField] private float moveSpeed;
     [SerializeField] private float attackDamage;
+    [SerializeField] private float damageInterval = 1f;
 
-    [SerializeField] private float damageInterval = 1f; // Interval between damage applications
+    [Header("Runtime Rewards")]
+    [SerializeField] private int rewardFragments;
+    [SerializeField] private int rewardCores;
+    [SerializeField] private int rewardPrisms;
+    [SerializeField] private int rewardLoops;
 
-    [Header("Enemy Rewards")]
-    [SerializeField] private float fragments = 1f;
-    [SerializeField] private float cores = 0f;
-    [SerializeField] private float prisms = 0f;
-    [SerializeField] private float loops = 0f;
+    [Header("Definition Link (Meta Cache)")]
+    [SerializeField] private string definitionId;
+    [SerializeField] private EnemyTier cachedTier;
+    [SerializeField] private string cachedFamily;
+    [SerializeField] private EnemyTrait cachedTraits;
 
-    [Header("Enemy Type")]
-    [SerializeField] private EnemyType type; // Set in the prefab
-    [SerializeField] private EnemySubtype subtype; // Set in the prefab
-
-    [SerializeField] private GameObject deathEffectPrefab; // Assign EnemyDeathEffect in Inspector
-
-    public EnemyType Type => type; // Expose Type as a read-only property
-    public EnemySubtype Subtype => subtype; // Expose Subtype as a read-only property
+    [Header("VFX")]
+    [SerializeField] private GameObject deathEffectPrefab;
 
     private Tower tower;
     private Transform target;
     private Coroutine damageCoroutine;
-    private bool isDestroyed = false;
+    private bool isDestroyed;
 
-
-
-    public void Initialize(Tower tower, float healthModifier, float moveSpeedModifier, float attackDamageModifier, float rewardModifier = 1.1f)
+    public string DefinitionId => definitionId;
+    public void SetDefinitionId(string id) => definitionId = id;
+    public void CacheDefinitionMeta(EnemyTier tier, string family, EnemyTrait traits)
     {
-        // Existing initialization logic
+        cachedTier = tier;
+        cachedFamily = family;
+        cachedTraits = traits;
+    }
+
+    // IEnemyRuntime
+    public void InitStats(float health, float speed, float damage)
+    {
+        this.health = health;
+        moveSpeed = speed;
+        attackDamage = damage;
+    }
+
+    public void SetRewards(int fragments, int cores, int prisms, int loops)
+    {
+        rewardFragments = fragments;
+        rewardCores = cores;
+        rewardPrisms = prisms;
+        rewardLoops = loops;
+    }
+
+    public void SetTarget(Tower tower)
+    {
         this.tower = tower;
-        this.target = tower.transform;
-        this.health *= healthModifier;
-        this.moveSpeed *= moveSpeedModifier;
-        this.attackDamage *= attackDamageModifier;
-        this.fragments *= rewardModifier;
-        this.cores *= rewardModifier;
-        this.prisms *= rewardModifier;
-        this.loops *= rewardModifier;
+        target = tower ? tower.transform : null;
     }
 
     private void FixedUpdate()
     {
-        if (tower == null || target == null)
-        {
-            return;
-        }
-
-        // Move towards the tower
-        Vector2 direction = (target.position - transform.position).normalized;
-        rb.linearVelocity = direction * moveSpeed;
+        if (!tower || !target) return;
+        Vector2 dir = (target.position - transform.position).normalized;
+#if UNITY_2022_2_OR_NEWER
+        if (rb) rb.linearVelocity = dir * moveSpeed;
+#else
+        if (rb) rb.velocity = dir * moveSpeed;
+#endif
     }
 
     private void OnCollisionEnter2D(Collision2D col)
     {
-        // find a Tower on the collided object or any of its parents
-        var tower = col.collider.GetComponentInParent<Tower>();
-        if (tower != null)
-        {
+        if (col.collider.GetComponentInParent<Tower>() != null)
             StartDamage();
-        }
     }
 
-    private void OnCollisionExit2D(Collision2D collision)
+    private void OnCollisionExit2D(Collision2D col)
     {
-        if (collision.gameObject.CompareTag("Player"))
-        {
+        if (col.collider.GetComponentInParent<Tower>() != null)
             StopDamage();
-        }
     }
 
     private void StartDamage()
     {
         if (damageCoroutine == null)
-        {
             damageCoroutine = StartCoroutine(ApplyDamageOverTime(attackDamage, damageInterval));
-        }
     }
 
-    private IEnumerator ApplyDamageOverTime(float attackDamage, float interval)
+    private IEnumerator ApplyDamageOverTime(float dmg, float interval)
     {
         while (true)
         {
-            tower.TakeDamage(attackDamage);
+            if (tower) tower.TakeDamage(dmg);
             yield return new WaitForSeconds(interval);
         }
     }
@@ -122,82 +112,70 @@ public class Enemy : MonoBehaviour
 
     public void TakeDamage(float dmg)
     {
+        if (isDestroyed) return;
         health -= dmg;
-
-        if (health <= 0 && !isDestroyed)
+        if (health <= 0f)
         {
             isDestroyed = true;
-            StopDamage(); // Stop applying damage to the tower
+            StopDamage();
+            int wave = WaveManager.Instance ? WaveManager.Instance.SafeCurrentWave() : 0;
 
-            // Payloads
-            var enemyPayload = new EnemyDestroyedEvent(type, subtype);
-            var currencyPayload = new CurrencyEarnedEvent(fragments, cores, prisms, loops);
+            EventManager.TriggerEvent(EventNames.RawEnemyRewardEvent, new RawEnemyRewardEvent(
+                definitionId, wave,
+                rewardFragments, rewardCores, rewardPrisms, rewardLoops,
+                cachedTier == EnemyTier.Boss));
 
-            EventManager.TriggerEvent(EventNames.EnemyDestroyed, enemyPayload);
-            EventManager.TriggerEvent(EventNames.CurrencyEarned, currencyPayload);
+            if (!string.IsNullOrEmpty(definitionId))
+            {
+                EventManager.TriggerEvent(EventNames.EnemyDestroyedDefinition,
+                    new EnemyDestroyedDefinitionEvent(definitionId, cachedTier, cachedFamily, cachedTraits, wave));
+            }
+
             Die();
         }
     }
 
-    public void Die()
+    private void Die()
     {
-        if (deathEffectPrefab != null)
+        if (deathEffectPrefab)
         {
-            GameObject effect = Instantiate(deathEffectPrefab, transform.position, Quaternion.identity);
-
-            var ps = effect.GetComponent<ParticleSystem>();
-            if (ps != null)
+            var fx = Instantiate(deathEffectPrefab, transform.position, Quaternion.identity);
+            if (fx.TryGetComponent<ParticleSystem>(out var ps))
             {
-                var main = ps.main;
-                //main.startColor = Color.white; // fallback
-
-                // Emit for each currency type
-                EmitCurrencyParticles(ps, fragments, GetColorForCurrency(CurrencyType.Fragments));
-                EmitCurrencyParticles(ps, cores, GetColorForCurrency(CurrencyType.Cores));
-                EmitCurrencyParticles(ps, prisms, GetColorForCurrency(CurrencyType.Prisms));
-                EmitCurrencyParticles(ps, loops, GetColorForCurrency(CurrencyType.Loops));
+                EmitCurrencyParticles(ps, rewardFragments, GetCurrencyColor(CurrencyType.Fragments));
+                EmitCurrencyParticles(ps, rewardCores,     GetCurrencyColor(CurrencyType.Cores));
+                EmitCurrencyParticles(ps, rewardPrisms,    GetCurrencyColor(CurrencyType.Prisms));
+                EmitCurrencyParticles(ps, rewardLoops,     GetCurrencyColor(CurrencyType.Loops));
             }
         }
-
         Destroy(gameObject);
     }
 
-    private void EmitCurrencyParticles(ParticleSystem ps, float amount, Color color)
+    private void EmitCurrencyParticles(ParticleSystem ps, int amount, Color color)
     {
-        if (amount > 0)
+        if (amount <= 0) return;
+        var emitParams = new ParticleSystem.EmitParams
         {
-            var emitParams = new ParticleSystem.EmitParams();
-            emitParams.startSize = Random.Range(0.5f, 0.8f);
-            emitParams.startColor = new Color(color.r, color.g, color.b, Random.Range(0.7f, 1f));
-
-            // Use logarithmic scaling and cap the max particles
-            int minParticles = 5;
-            int maxParticles = 30;
-            int particlesToEmit = Mathf.Clamp(Mathf.RoundToInt(Mathf.Log10(amount + 1) * 5), minParticles, maxParticles);
-
-            ps.Emit(emitParams, particlesToEmit);
-        }
+            startSize = Random.Range(0.5f, 0.8f),
+            startColor = new Color(color.r, color.g, color.b, Random.Range(0.7f, 1f))
+        };
+        int particles = Mathf.Clamp(Mathf.RoundToInt(Mathf.Log10(amount + 1) * 5), 5, 30);
+        ps.Emit(emitParams, particles);
     }
 
-    private Color GetColorForCurrency(CurrencyType type)
-    {
-        switch (type)
+    private Color GetCurrencyColor(CurrencyType t) =>
+        t switch
         {
-            case CurrencyType.Fragments: return Color.cyan;
-            case CurrencyType.Cores: return Color.yellow;
-            case CurrencyType.Prisms: return Color.magenta;
-            case CurrencyType.Loops: return Color.green;
-            default: return Color.white;
-        }
-    }
+            CurrencyType.Fragments => Color.cyan,
+            CurrencyType.Cores     => Color.yellow,
+            CurrencyType.Prisms    => Color.magenta,
+            CurrencyType.Loops     => Color.green,
+            _ => Color.white
+        };
 
-    // Getters
-    public float GetFragments() => fragments;
-    public float GetCores() => cores;
-    public float GetPrisms() => prisms;
-    public float GetLoops() => loops;
-
-    public EnemyType GetEnemyType() => type;
-    public EnemySubtype GetEnemySubtype() => subtype;
-
+    // Simple accessors if still needed elsewhere
+    public int Fragments => rewardFragments;
+    public int Cores => rewardCores;
+    public int Prisms => rewardPrisms;
+    public int Loops => rewardLoops;
 }

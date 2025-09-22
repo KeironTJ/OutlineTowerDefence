@@ -39,7 +39,12 @@ public class RoundManager : MonoBehaviour
     [SerializeField] private float roundEndTime;
     [SerializeField] private int bulletsFiredThisRound;
     [SerializeField] private int enemiesKilledThisRound;
-    private Dictionary<EnemyType, Dictionary<EnemySubtype, int>> enemiesKilledByTypeAndSubtype = new Dictionary<EnemyType, Dictionary<EnemySubtype, int>>();
+    // New tracking (by definition id / tier / family)
+    private string roundStartTimeIsoUtc;
+    private readonly Dictionary<string, int> enemyKillsByDefinition = new();
+    private readonly Dictionary<EnemyTier, int> enemyKillsByTier = new();
+    private readonly Dictionary<string, int> enemyKillsByFamily = new(StringComparer.Ordinal);
+
     private Dictionary<CurrencyType, float> currencyEarnedThisRound = new Dictionary<CurrencyType, float>
     {
         { CurrencyType.Fragments, 0f },
@@ -72,6 +77,8 @@ public class RoundManager : MonoBehaviour
 
     public RoundRecord GetLiveRoundRecord()
     {
+        var defLookup = BuildDefinitionLookup();
+        var killSummaries = RoundDataConverters.ToEnemyKillSummaries(enemyKillsByDefinition, defLookup);
         return new RoundRecord
         {
             id = string.Empty,
@@ -79,30 +86,13 @@ public class RoundManager : MonoBehaviour
             endedAtIsoUtc = string.Empty,
             durationSeconds = GetRoundLengthInSeconds(),
             difficulty = roundDifficulty,
-            highestWave = waveManager != null ? waveManager.GetCurrentWave() : 0,
+            highestWave = waveManager ? waveManager.GetCurrentWave() : 0,
             bulletsFired = bulletsFiredThisRound,
             enemiesKilled = enemiesKilledThisRound,
             currencyEarned = RoundDataConverters.ToCurrencyList(currencyEarnedThisRound),
-            enemyBreakdown = RoundDataConverters.ToEnemyBreakdown(enemiesKilledByTypeAndSubtype)
-        };
-    }
-
-    private RoundRecord BuildRoundRecord()
-    {
-        float duration = GetRoundLengthInSeconds();
-        var nowUtc = System.DateTime.UtcNow;
-        return new RoundRecord
-        {
-            id = System.Guid.NewGuid().ToString("N"),
-            startedAtIsoUtc = nowUtc.AddSeconds(-duration).ToString("o"),
-            endedAtIsoUtc = nowUtc.ToString("o"),
-            durationSeconds = duration,
-            difficulty = roundDifficulty,
-            highestWave = waveManager != null ? waveManager.GetCurrentWave() : 0,
-            bulletsFired = bulletsFiredThisRound,
-            enemiesKilled = enemiesKilledThisRound,
-            currencyEarned = RoundDataConverters.ToCurrencyList(currencyEarnedThisRound),
-            enemyBreakdown = RoundDataConverters.ToEnemyBreakdown(enemiesKilledByTypeAndSubtype)
+            enemyKills = killSummaries,
+            tierKills = RoundDataConverters.AggregateTierKills(killSummaries),
+            familyKills = RoundDataConverters.AggregateFamilyKills(killSummaries)
         };
     }
 
@@ -120,18 +110,18 @@ public class RoundManager : MonoBehaviour
 
     private void OnEnable()
     {
-        EventManager.StartListening(EventNames.CurrencyEarned, OnCurrencyEarned);
+        EventManager.StartListening(EventNames.RawEnemyRewardEvent, OnRawEnemyReward);
         EventManager.StartListening(EventNames.BulletFired, OnBulletFired);
-        EventManager.StartListening(EventNames.EnemyDestroyed, OnEnemyDestroyed);
+        EventManager.StartListening(EventNames.EnemyDestroyedDefinition, OnEnemyDestroyedDefinition);
         EventManager.StartListening(EventNames.NewWaveStarted, OnNewWaveStarted);
 
     }
 
     private void OnDisable()
     {
-        EventManager.StopListening(EventNames.CurrencyEarned, OnCurrencyEarned);
+        EventManager.StopListening(EventNames.RawEnemyRewardEvent, OnRawEnemyReward);
         EventManager.StopListening(EventNames.BulletFired, OnBulletFired);
-        EventManager.StopListening(EventNames.EnemyDestroyed, OnEnemyDestroyed);
+        EventManager.StopListening(EventNames.EnemyDestroyedDefinition, OnEnemyDestroyedDefinition);
         EventManager.StopListening(EventNames.NewWaveStarted, OnNewWaveStarted);
 
         if (tower != null)
@@ -155,7 +145,7 @@ public class RoundManager : MonoBehaviour
             // Update Tower.Initialize signature to drop skillManager param.
             tower.Initialize(this, enemySpawner, uiManager); 
             tower.TowerDestroyed += EndRound;
-            waveManager.StartWave(enemySpawner, tower);
+            waveManager.StartWaveSystem(enemySpawner, tower);
             uiManager.Initialize(this, waveManager, tower, playerManager); // drop skillManager param
         }
         else
@@ -206,6 +196,9 @@ public class RoundManager : MonoBehaviour
 
         EventManager.TriggerEvent(EventNames.RoundStarted);
         RoundInitialized?.Invoke(); // UI hook point
+
+        // Track round start time (ISO 8601 format)
+        roundStartTimeIsoUtc = DateTime.UtcNow.ToString("o");
     }
 
     private void ApplyRoundStartBonuses()
@@ -229,13 +222,31 @@ public class RoundManager : MonoBehaviour
             currencyEarned = new Dictionary<CurrencyType, float>(currencyEarnedThisRound)
         };
 
-        var roundRecord = BuildRoundRecord();
+        var defLookup = BuildDefinitionLookup();
+
+        var killSummaries = RoundDataConverters.ToEnemyKillSummaries(enemyKillsByDefinition, defLookup);
+
+        var record = new RoundRecord
+        {
+            id = Guid.NewGuid().ToString(),
+            startedAtIsoUtc = roundStartTimeIsoUtc,
+            endedAtIsoUtc = DateTime.UtcNow.ToString("o"),
+            durationSeconds = Time.time - roundStartTime,
+            difficulty = roundDifficulty,
+            highestWave = waveManager.GetCurrentWave(),
+            bulletsFired = bulletsFiredThisRound,
+            enemiesKilled = enemiesKilledThisRound,
+            currencyEarned = RoundDataConverters.ToCurrencyList(currencyEarnedThisRound),
+            enemyKills = killSummaries,
+            tierKills = RoundDataConverters.AggregateTierKills(killSummaries),
+            familyKills = RoundDataConverters.AggregateFamilyKills(killSummaries)
+        };
 
         roundWallet?.ClearRound();
 
         EventManager.TriggerEvent(EventNames.RoundEnded, lastRoundSummary);
         EventManager.TriggerEvent(EventNames.RoundStatsUpdated, GetCurrentRoundSummary());
-        EventManager.TriggerEvent(EventNames.RoundRecordCreated, roundRecord);
+        EventManager.TriggerEvent(EventNames.RoundRecordCreated, record);
     }
 
     // Stat Management
@@ -251,15 +262,9 @@ public class RoundManager : MonoBehaviour
             [CurrencyType.Loops] = 0f
         };
 
-        enemiesKilledByTypeAndSubtype.Clear();
-        foreach (EnemyType t in System.Enum.GetValues(typeof(EnemyType)))
-        {
-            enemiesKilledByTypeAndSubtype[t] = new Dictionary<EnemySubtype, int>();
-            foreach (EnemySubtype s in System.Enum.GetValues(typeof(EnemySubtype)))
-            {
-                enemiesKilledByTypeAndSubtype[t][s] = 0;
-            }
-        }
+        enemyKillsByDefinition.Clear();
+        enemyKillsByTier.Clear();
+        enemyKillsByFamily.Clear();
 
         EventManager.TriggerEvent(EventNames.RoundStatsUpdated, GetCurrentRoundSummary());
     }
@@ -290,75 +295,44 @@ public class RoundManager : MonoBehaviour
         return (currencyEarnedThisRound.TryGetValue(type, out var amt) ? amt : 0f) * (60f / secs);
     }
 
-    private void OnEnemyDestroyed(object eventData)
+    private void OnNewWaveStarted(object _)
     {
-        if (eventData is EnemyDestroyedEvent ede)
-        {
-            enemiesKilledThisRound++;
-            if (!enemiesKilledByTypeAndSubtype.TryGetValue(ede.type, out var subtypeDict))
-            {
-                subtypeDict = new Dictionary<EnemySubtype, int>();
-                enemiesKilledByTypeAndSubtype[ede.type] = subtypeDict;
-            }
-            subtypeDict[ede.subtype] = subtypeDict.TryGetValue(ede.subtype, out var count) ? count + 1 : 1;
-        }
+        // Optionally update highestWave or UI
+        EventManager.TriggerEvent(EventNames.RoundStatsUpdated, GetCurrentRoundSummary());
+    }
+
+    private void OnEnemyDestroyedDefinition(object payload)
+    {
+        if (payload is not EnemyDestroyedDefinitionEvent e) return;
+        enemiesKilledThisRound++;
+
+        // per definition
+        enemyKillsByDefinition[e.definitionId] =
+            enemyKillsByDefinition.TryGetValue(e.definitionId, out var c) ? c + 1 : 1;
+
+        // per tier
+        enemyKillsByTier[e.tier] =
+            enemyKillsByTier.TryGetValue(e.tier, out var tcount) ? tcount + 1 : 1;
+
+        // per family
+        var famKey = e.family ?? "Unknown";
+        enemyKillsByFamily[famKey] =
+            enemyKillsByFamily.TryGetValue(famKey, out var fcount) ? fcount + 1 : 1;
 
         EventManager.TriggerEvent(EventNames.RoundStatsUpdated, GetCurrentRoundSummary());
     }
 
-    public int GetBulletsFiredThisRound() => bulletsFiredThisRound;
-    public float GetCurrencyEarnedThisRound(CurrencyType type) => currencyEarnedThisRound.TryGetValue(type, out var amt) ? amt : 0f;
-
-    public int GetEnemiesKilledByType(EnemyType type)
+    // Helper to build lookup for summaries (add anywhere inside class):
+    private Dictionary<string, EnemyTypeDefinition> BuildDefinitionLookup()
     {
-        if (enemiesKilledByTypeAndSubtype.TryGetValue(type, out var subDict))
+        var dict = new Dictionary<string, EnemyTypeDefinition>();
+        if (waveManager)
         {
-            int sum = 0;
-            foreach (var v in subDict.Values) sum += v;
-            return sum;
+            foreach (var d in waveManager.EnemyDefinitions)
+                if (d && !string.IsNullOrEmpty(d.id) && !dict.ContainsKey(d.id))
+                    dict.Add(d.id, d);
         }
-        return 0;
-    }
-
-    public IReadOnlyDictionary<EnemySubtype, int> GetSubtypeCountsForType(EnemyType type)
-    {
-        if (enemiesKilledByTypeAndSubtype.TryGetValue(type, out var subDict))
-            return subDict;
-        return new Dictionary<EnemySubtype, int>();
-    }
-
-    public List<string> GetTypeSubtypeSummaryLines()
-    {
-        var lines = new List<string>();
-        foreach (EnemyType t in Enum.GetValues(typeof(EnemyType)))
-        {
-            int tcount = GetEnemiesKilledByType(t);
-            // decide: skip types with zero kills or include them — current code skips zero
-            if (tcount == 0) continue;
-
-            lines.Add($"Enemy Type: {t}  ({tcount})");
-            var subDict = GetSubtypeCountsForType(t);
-            foreach (var kv in subDict)
-            {
-                if (kv.Value > 0)
-                    lines.Add($"  SubType: {kv.Key}  ({kv.Value})");
-            }
-        }
-        return lines;
-    }
-
-    private void OnNewWaveStarted(object eventData)
-    {
-        //Placeholder for future implementation
-        if (eventData is int waveNumber)
-        {
-            Debug.Log($"New wave started: {waveNumber}");
-            // You can add additional logic here if needed
-        }
-        else
-        {
-            Debug.LogWarning("NewWaveStarted received unexpected event payload.");
-        }
+        return dict;
     }
 
     // PLAYER MANAGEMENT
@@ -411,20 +385,32 @@ public class RoundManager : MonoBehaviour
     }
 
     // CURRENCY
-    private void OnCurrencyEarned(object eventData)
+    private void OnRawEnemyReward(object eventData)
     {
-        if (eventData is CurrencyEarnedEvent currencyEarned)
+        if (eventData is RawEnemyRewardEvent rawEnemyReward)
         {
-            AddFragmentsWithModifiers(currencyEarned.fragments);
-            playerManager.Wallet.Add(CurrencyType.Cores, currencyEarned.cores);
-            playerManager.Wallet.Add(CurrencyType.Prisms, currencyEarned.prisms);
-            playerManager.Wallet.Add(CurrencyType.Loops, currencyEarned.loops);
+            float finalFragments = rawEnemyReward.fragments; // apply modifiers below
+            float finalCores = rawEnemyReward.cores;   // no modifiers for now
+            float finalPrisms = rawEnemyReward.prisms; // no modifiers for now
+            float finalLoops = rawEnemyReward.loops;   // no modifiers for now
 
-            currencyEarnedThisRound[CurrencyType.Fragments] += currencyEarned.fragments;
-            currencyEarnedThisRound[CurrencyType.Cores] += currencyEarned.cores;
-            currencyEarnedThisRound[CurrencyType.Prisms] += currencyEarned.prisms;
-            currencyEarnedThisRound[CurrencyType.Loops] += currencyEarned.loops;
+            AddFragmentsWithModifiers(finalFragments);
+            playerManager.Wallet.Add(CurrencyType.Cores, finalCores);
+            playerManager.Wallet.Add(CurrencyType.Prisms, finalPrisms);
+            playerManager.Wallet.Add(CurrencyType.Loops, finalLoops);
+
+            currencyEarnedThisRound[CurrencyType.Cores] += finalCores;
+            currencyEarnedThisRound[CurrencyType.Prisms] += finalPrisms;
+            currencyEarnedThisRound[CurrencyType.Loops] += finalLoops;
+            
             EventManager.TriggerEvent(EventNames.RoundStatsUpdated, GetCurrentRoundSummary());
+            EventManager.TriggerEvent(EventNames.CurrencyEarned, new CurrencyEarnedEvent
+            {
+                fragments = finalFragments,
+                cores = finalCores,
+                prisms = finalPrisms,
+                loops = finalLoops
+            });
         }
     }
 
@@ -468,16 +454,15 @@ public class RoundManager : MonoBehaviour
     private float ComputeFinalFragments(float baseAmount)
     {
         // Skill: additive percent (e.g. 0.25 => +25%)
-        float additivePercent = Mathf.Max(0f, GetSkillValueSafe(FragmentsModifierSkillId));
+        float fragmentsSkillMult = Mathf.Max(0f, GetSkillValueSafe(FragmentsModifierSkillId));
 
         // Difficulty multiplier (1 = no change)
-        float difficultyMult = 1f * roundDifficulty; 
-
-        // Temporary round buff multiplier
-        float tempBuffMult = 1f;   // replace if you add timed boosts
+        float difficultyMult = 1f * roundDifficulty;
 
         // Order: base * (1 + additive) * difficulty * temp
-        return baseAmount * (1f + additivePercent) * difficultyMult * tempBuffMult;
+        //Debug.Log($"Fragment Gain Calc: base {baseAmount} * (additive {fragmentsSkillMult}) * diff {difficultyMult} * temp {tempBuffMult}");
+        return baseAmount * fragmentsSkillMult * difficultyMult;
+        
     }
 
     public bool SpendFragments(float amount)

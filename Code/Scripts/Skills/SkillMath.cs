@@ -8,6 +8,7 @@ public static class SkillMath
         return curve switch
         {
             ProgressionCurve.Linear          => baseValue * level,
+            ProgressionCurve.Additive        => baseValue + growth * (level - 1),                     // growth = 0.5 => +0.5/level
             ProgressionCurve.Quadratic       => baseValue * (level * level),
             ProgressionCurve.Exponential     => baseValue * Mathf.Pow(growth, level - 1),              // growth = 1.05 => +5% compounded
             ProgressionCurve.Custom          => custom != null ? baseValue * custom.Evaluate(level) : baseValue * level,

@@ -35,7 +35,7 @@ public class DailyObjectiveManager : MonoBehaviour
 
     private void OnEnable()
     {
-        EventManager.StartListening(EventNames.EnemyDestroyed, OnEnemyDestroyed);
+        EventManager.StartListening(EventNames.EnemyDestroyedDefinition, OnEnemyDestroyedDefinition);
         EventManager.StartListening(EventNames.RoundEnded, OnRoundCompleted);
         EventManager.StartListening(EventNames.CurrencyEarned, OnCurrencyEarned);
         EventManager.StartListening(EventNames.CurrencySpent, OnCurrencySpent);
@@ -64,7 +64,7 @@ public class DailyObjectiveManager : MonoBehaviour
 
     private void OnDisable()
     {
-        EventManager.StopListening(EventNames.EnemyDestroyed, OnEnemyDestroyed);
+        EventManager.StopListening(EventNames.EnemyDestroyedDefinition, OnEnemyDestroyedDefinition);
         EventManager.StopListening(EventNames.RoundEnded, OnRoundCompleted);
         EventManager.StopListening(EventNames.CurrencyEarned, OnCurrencyEarned);
         EventManager.StopListening(EventNames.CurrencySpent, OnCurrencySpent);
@@ -118,7 +118,7 @@ public class DailyObjectiveManager : MonoBehaviour
         EstablishBaselineIfNeeded(); // Sets baseline only if missing.
         initialized = true;
 
-        Debug.Log($"[DailyObjectiveManager] Init complete. Slot={PlayerData.lastDailyObjectiveSlotKey} Active={activeDaily.Count}");
+        //Debug.Log($"[DailyObjectiveManager] Init complete. Slot={PlayerData.lastDailyObjectiveSlotKey} Active={activeDaily.Count}");
     }
 
     private void Update()
@@ -159,11 +159,11 @@ public class DailyObjectiveManager : MonoBehaviour
             if (grantInitialFill)
             {
                 AddObjectivesForSlot(DateTime.UtcNow);
-                Debug.Log("[DailyObjectiveManager] First baseline + granted initial objectives.");
+                //Debug.Log("[DailyObjectiveManager] First baseline + granted initial objectives.");
             }
             else
             {
-                Debug.Log("[DailyObjectiveManager] First baseline set (no initial objectives).");
+                //Debug.Log("[DailyObjectiveManager] First baseline set (no initial objectives).");
             }
             SaveManager.main.QueueImmediateSave();
         }
@@ -188,7 +188,7 @@ public class DailyObjectiveManager : MonoBehaviour
         {
             PlayerData.lastDailyObjectiveSlotKey = CurrentSlotKey();
             SaveManager.main.QueueImmediateSave();
-            Debug.Log("[DailyObjectiveManager] Missing slot key repaired.");
+            //Debug.Log("[DailyObjectiveManager] Missing slot key repaired.");
             return;
         }
 
@@ -197,7 +197,7 @@ public class DailyObjectiveManager : MonoBehaviour
             // Fallback: reset baseline to current
             PlayerData.lastDailyObjectiveSlotKey = CurrentSlotKey();
             SaveManager.main.QueueImmediateSave();
-            Debug.LogWarning("[DailyObjectiveManager] Failed to parse slot key. Reset baseline.");
+            //Debug.LogWarning("[DailyObjectiveManager] Failed to parse slot key. Reset baseline.");
             return;
         }
 
@@ -248,7 +248,7 @@ public class DailyObjectiveManager : MonoBehaviour
         if (rollovers > 0)
         {
             OnSlotRollover?.Invoke(newKey);
-            Debug.Log($"[DailyObjectiveManager] Processed {rollovers} slot rollover(s). Active={activeDaily.Count}");
+            //Debug.Log($"[DailyObjectiveManager] Processed {rollovers} slot rollover(s). Active={activeDaily.Count}");
         }
     }
 
@@ -285,7 +285,7 @@ public class DailyObjectiveManager : MonoBehaviour
             };
             PlayerData.dailyObjectives.Add(data);
             activeDaily.Add(new ObjectiveRuntime { definition = chosen, progressData = data });
-            Debug.Log($"[DailyObjectiveManager] Added objective {chosen.id} (slot {SlotKeyFromStart(slotStartUtc)})");
+            //Debug.Log($"[DailyObjectiveManager] Added objective {chosen.id} (slot {SlotKeyFromStart(slotStartUtc)})");
         }
     }
 
@@ -300,7 +300,7 @@ public class DailyObjectiveManager : MonoBehaviour
             {
                 activeDaily.RemoveAt(i);
                 removed = true;
-                Debug.Log($"[DailyObjectiveManager] Pruned claimed {rt.definition.id}");
+                //Debug.Log($"[DailyObjectiveManager] Pruned claimed {rt.definition.id}");
             }
         }
 
@@ -341,7 +341,7 @@ public class DailyObjectiveManager : MonoBehaviour
     {
         activeDaily.Remove(rt);
         PlayerData.dailyObjectives.Remove(rt.progressData);
-        Debug.Log($"[DailyObjectiveManager] Immediately removed claimed objective {rt.definition.id}");
+        //Debug.Log($"[DailyObjectiveManager] Immediately removed claimed objective {rt.definition.id}");
     }
 
     private void Progress(ObjectiveRuntime rt, float amount)
@@ -359,7 +359,7 @@ public class DailyObjectiveManager : MonoBehaviour
             }
             SaveManager.main.QueueSave();
         }
-        Debug.Log($"[DailyObjectiveManager] {rt.definition.id} progress {rt.progressData.currentProgress:0.##}/{rt.definition.targetAmount:0.##}");
+        //Debug.Log($"[DailyObjectiveManager] {rt.definition.id} progress {rt.progressData.currentProgress:0.##}/{rt.definition.targetAmount:0.##}");
         OnProgress?.Invoke(rt);
     }
 
@@ -383,28 +383,27 @@ public class DailyObjectiveManager : MonoBehaviour
         CloudSyncService.main?.ScheduleUpload();
     }
 
-    // OPTIONAL helper (improves readability for enemy filtering):
-    private bool EnemyMatches(ObjectiveDefinition def, EnemyDestroyedEvent e)
-    {
-        if (def.type != ObjectiveType.KillEnemies) return false;
-        if (!def.anyEnemyType && e.type != def.enemyType) return false;
-        if (!def.anyEnemySubtype && e.subtype != def.enemySubtype) return false;
-        Debug.Log($"[DailyObjectiveManager] EnemyMatches: {def.enemyType}:{def.enemySubtype} vs {e.type}:{e.subtype}");
-        return true;
-    }
-
     // --- Event Handlers ---
 
-    private void OnEnemyDestroyed(object data)
+    private void OnEnemyDestroyedDefinition(object data)
     {
         EnsureInitIfNeeded();
-        if (data is EnemyDestroyedEvent e)
+        if (data is not EnemyDestroyedDefinitionEvent e) return;
+
+        bool anyMatched = false;
+
+        foreach (var rt in activeDaily)
         {
-            foreach (var rt in activeDaily)
+            var def = rt.definition;
+            if (def.type != ObjectiveType.KillEnemies) continue;
+
+            string reason;
+            bool match = def.MatchesDetailed(e, out reason);
+
+            if (match)
             {
-                var def = rt.definition;
-                if (EnemyMatches(def, e))
-                    Progress(rt, 1f);
+                Progress(rt, 1f);
+                anyMatched = true;
             }
         }
     }
@@ -412,7 +411,7 @@ public class DailyObjectiveManager : MonoBehaviour
     private void OnWaveCompleted(object data)
     {
         EnsureInitIfNeeded();
-        Debug.Log($"Event Heard: Wave Completed");
+        //Debug.Log($"Event Heard: Wave Completed");
         foreach (var rt in activeDaily)
         {
             var def = rt.definition;
@@ -432,22 +431,18 @@ public class DailyObjectiveManager : MonoBehaviour
     private void OnCurrencyEarned(object data)
     {
         EnsureInitIfNeeded();
-        if (data is CurrencyEarnedEvent ce)
-        {
-            if (ce.fragments + ce.cores + ce.prisms + ce.loops <= 0f) return;
-            //Debug.Log($"[DailyObjectiveManager] OnCurrencyEarned: F{ce.fragments} C{ce.cores} P{ce.prisms} L{ce.loops}");
+        if (data is not CurrencyEarnedEvent ce) return;
 
-            foreach (var rt in activeDaily)
+        foreach (var rt in activeDaily)
+        {
+            var def = rt.definition;
+            if (def.type != ObjectiveType.EarnCurrency) continue;
+            switch (def.currencyType)
             {
-                var def = rt.definition;
-                if (def.type != ObjectiveType.EarnCurrency) continue;
-                switch (def.currencyType)
-                {
-                    case CurrencyType.Fragments: if (ce.fragments > 0f) Progress(rt, ce.fragments); break;
-                    case CurrencyType.Cores: if (ce.cores > 0f) Progress(rt, ce.cores); break;
-                    case CurrencyType.Prisms: if (ce.prisms > 0f) Progress(rt, ce.prisms); break;
-                    case CurrencyType.Loops: if (ce.loops > 0f) Progress(rt, ce.loops); break;
-                }
+                case CurrencyType.Fragments: if (ce.fragments > 0) Progress(rt, ce.fragments); break;
+                case CurrencyType.Cores:     if (ce.cores > 0)     Progress(rt, ce.cores); break;
+                case CurrencyType.Prisms:    if (ce.prisms > 0)    Progress(rt, ce.prisms); break;
+                case CurrencyType.Loops:     if (ce.loops > 0)     Progress(rt, ce.loops); break;
             }
         }
     }

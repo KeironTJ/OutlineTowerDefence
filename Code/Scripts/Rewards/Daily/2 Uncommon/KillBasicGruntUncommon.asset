@@ -10,20 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b587523b96e89a4f94ee01d37383eed, type: 3}
-  m_Name: KillBasicSimpleEnemyUncommon
+  m_Name: KillBasicGruntUncommon
   m_EditorClassIdentifier: 
   id: 1001
   period: 0
   type: 0
   rarity: 1
   targetAmount: 1000
-  anyEnemyType: 0
-  enemyType: 0
-  anyEnemySubtype: 0
-  enemySubtype: 0
-  currencyType: 0
+  anyEnemy: 0
+  targetDefinitionId: Basic_Grunt
+  useTierFilter: 1
+  targetTier: 0
+  useFamilyFilter: 1
+  targetFamily: Grunt
+  useTraitFilter: 0
+  targetTraits: 0
+  currencyType: 1
   skillId: 
   rewardType: 1
   rewardAmount: 2500
   manualClaim: 1
-  description: Kill 1000 Basic Simple Enemies.
+  description: Kill 1000 Basic Grunts.

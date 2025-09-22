@@ -101,21 +101,19 @@ public class PlayerManager : MonoBehaviour
 
     private void OnEnable()
     {
-        EventManager.StartListening(EventNames.EnemyDestroyed, new Action<object>(OnEnemyDestroyed));
+        EventManager.StartListening(EventNames.EnemyDestroyedDefinition, OnEnemyDestroyedDefinition);
         EventManager.StartListening(EventNames.RoundRecordCreated, new Action<object>(OnRoundRecordUpdated));
         EventManager.StartListening(EventNames.WaveCompleted, new Action<object>(OnWaveCompleted));
         EventManager.StartListening(EventNames.RoundEnded, new Action<object>(OnRoundEnded));
-
     }
 
     private void OnDisable()
-        {
+    {
         // Unsubscribe from the EnemyDestroyed event via EventManager
-        EventManager.StopListening(EventNames.EnemyDestroyed, new Action<object>(OnEnemyDestroyed));
+        EventManager.StopListening(EventNames.EnemyDestroyedDefinition, OnEnemyDestroyedDefinition);
         EventManager.StopListening(EventNames.RoundRecordCreated, new Action<object>(OnRoundRecordUpdated));
         EventManager.StopListening(EventNames.WaveCompleted, new Action<object>(OnWaveCompleted));
         EventManager.StopListening(EventNames.RoundEnded, new Action<object>(OnRoundEnded));
-
     }
 
     private void QueueSave() => SaveManager.main?.QueueImmediateSave();
@@ -272,23 +270,23 @@ public class PlayerManager : MonoBehaviour
     public int GetEnemyDestructionCount(string enemyType) =>
         enemyDestructionCounts.TryGetValue(enemyType, out var v) ? v : 0;
 
-    private void OnEnemyDestroyed(object eventData)
+    private void OnEnemyDestroyedDefinition(object payload)
     {
-        if (eventData is EnemyDestroyedEvent ede)
+        if (payload is not EnemyDestroyedDefinitionEvent e) return;
+        if (playerData.enemyKills == null) playerData.enemyKills = new();
+        var entry = playerData.enemyKills.Find(k => k.definitionId == e.definitionId);
+        if (entry == null)
         {
-            var existing = playerData.EnemiesDestroyed
-                .Find(e => e.EnemyType == ede.type && e.EnemySubtype == ede.subtype);
-
-            if (existing != null) existing.Count++;
-            else playerData.EnemiesDestroyed.Add(new SerializableEnemyData
-            {
-                EnemyType = ede.type,
-                EnemySubtype = ede.subtype,
-                Count = 1
+            playerData.enemyKills.Add(new EnemyKillEntry {
+                definitionId = e.definitionId,
+                tier = e.tier,
+                family = e.family,
+                traits = e.traits,
+                count = 1
             });
-
-            SavePlayerData();
         }
+        else entry.count++;
+        SavePlayerData();
     }
 
     private void OnRoundRecordUpdated(object eventData)

@@ -1,141 +1,162 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 
 public class EnemySpawner : MonoBehaviour
 {
-    [Header("References")]
-    [SerializeField] private GameObject[] bossEnemyPrefabs; // Boss enemy prefab
+    [Header("Boss Prefabs (direct)")]
+    [SerializeField] private GameObject[] bossPrefabs;
 
-    [System.Serializable]
-    public class BasicEnemyType
+    [Header("Spawn Area (Off-Screen)")]
+    [Tooltip("Extra world units beyond the camera bounds to spawn enemies.")]
+    [SerializeField] private float offscreenPadding = 2f;
+    [Tooltip("Fallback ring distance if camera not found.")]
+    [SerializeField] private float fallbackRadius = 25f;
+    [Tooltip("Minimum distance from the target tower (to avoid popping on edge). 0 to disable.")]
+    [SerializeField] private float minDistanceFromTower = 8f;
+    [Tooltip("Clamp spawn Y (2D top-down) to this Z if needed.")]
+    [SerializeField] private float fixedZ = 0f;
+    [Tooltip("Visualize last spawn points in editor.")]
+    [SerializeField] private bool debugGizmos = false;
+    private readonly Queue<Vector3> debugPoints = new Queue<Vector3>();
+
+    public GameObject SpawnEnemy(GameObject prefab, Tower tower)
     {
-        public GameObject prefab; // Prefab for this type
-        public float spawnWeight; // Weight for spawning this type
-    }
-
-    [Header("Basic Enemy Types")]
-    [SerializeField] private List<BasicEnemyType> basicEnemyTypes; // List of basic enemy types
-
-    private float totalBasicSpawnWeight;
-
-    private void UpdateTotalBasicSpawnWeight()
-    {
-        totalBasicSpawnWeight = 0;
-        foreach (var type in basicEnemyTypes)
-        {
-            totalBasicSpawnWeight += type.spawnWeight;
-        }
-    }
-
-    public void AdjustBasicSpawnWeights(int currentWave, int maxWaves)
-    {
-        //Debug.Log($"Adjusting spawn weights for wave {currentWave} out of {maxWaves}");
-
-        float simpleRatio = Mathf.Lerp(1f, 0.34f, (float)currentWave / maxWaves);
-        float fastRatio = Mathf.Lerp(0f, 0.33f, (float)currentWave / (maxWaves * 0.5f)); // Fast enemies phase in sooner
-        float tankRatio = Mathf.Lerp(0f, 0.33f, (float)currentWave / maxWaves); // Tank enemies phase in later
-
-        foreach (var type in basicEnemyTypes)
-        {
-            if (type.prefab.name.Contains("Simple")) // Example: Match prefab name
-            {
-                type.spawnWeight = simpleRatio;
-            }
-            else if (type.prefab.name.Contains("Fast"))
-            {
-                type.spawnWeight = fastRatio;
-            }
-            else if (type.prefab.name.Contains("Tank"))
-            {
-                type.spawnWeight = tankRatio;
-            }
-        }
-        UpdateTotalBasicSpawnWeight();
-    }
-
-    public void SpawnBasicEnemy(Tower tower, float healthModifier, float moveSpeedModifier, float attackDamageModifier, float rewardModifier)
-    {
-        UpdateTotalBasicSpawnWeight();
-
-        float randomValue = Random.Range(0, totalBasicSpawnWeight);
-        BasicEnemyType selectedType = null;
-
-        foreach (var type in basicEnemyTypes)
-        {
-            if (randomValue < type.spawnWeight)
-            {
-                selectedType = type;
-                break;
-            }
-            randomValue -= type.spawnWeight;
-        }
-
-        if (selectedType != null)
-        {
-            Vector3 spawnPosition = GetRandomSpawnPosition();
-            GameObject enemyObject = Instantiate(selectedType.prefab, spawnPosition, Quaternion.identity);
-            Enemy enemy = enemyObject.GetComponent<Enemy>();
-            if (enemy != null)
-            {
-                // Prefab already has type and subtype set
-                enemy.Initialize(tower, healthModifier, moveSpeedModifier, attackDamageModifier, rewardModifier);
-            }
-            else
-            {
-                Debug.LogError("Spawned object does not have an Enemy component attached.");
-            }
-        }
-        else
-        {
-            Debug.LogError("No enemy type selected for spawning.");
-        }
+        if (!prefab) return null;
+        Vector3 pos = GetRandomSpawnPosition(tower ? tower.transform.position : transform.position);
+        return Instantiate(prefab, pos, Quaternion.identity);
     }
 
     public void SpawnBossEnemy(Tower tower, float healthModifier, float moveSpeedModifier, float attackDamageModifier)
     {
-        if (bossEnemyPrefabs.Length == 0)
+        if (bossPrefabs == null || bossPrefabs.Length == 0) return;
+        var prefab = bossPrefabs[Random.Range(0, bossPrefabs.Length)];
+        var go = Instantiate(prefab, GetRandomSpawnPosition(tower ? tower.transform.position : transform.position), Quaternion.identity);
+        var runtime = go.GetComponent<IEnemyRuntime>();
+        if (runtime != null && tower)
+            runtime.SetTarget(tower);
+    }
+
+    private Vector3 GetRandomSpawnPosition(Vector3 center)
+    {
+        Camera cam = Camera.main;
+        if (cam == null)
         {
-            Debug.LogError("No boss enemy prefabs assigned.");
-            return;
+            // Fallback: random ring around center
+            Vector2 dir2 = Random.insideUnitCircle.normalized;
+            Vector3 p = center + new Vector3(dir2.x, dir2.y, 0f) * fallbackRadius;
+            p.z = fixedZ;
+            RecordDebugPoint(p, Color.red);
+            return p;
         }
 
-        int enemyIndex = Random.Range(0, bossEnemyPrefabs.Length);
-        Debug.Log($"Spawning boss enemy from prefab index: {enemyIndex}");
-        Vector3 spawnPosition = GetRandomSpawnPosition();
-        GameObject enemyObject = Instantiate(bossEnemyPrefabs[enemyIndex], spawnPosition, Quaternion.identity);
-        Enemy enemy = enemyObject.GetComponent<Enemy>();
-        if (enemy != null)
+        if (cam.orthographic)
         {
-            enemy.Initialize(tower, healthModifier, moveSpeedModifier, attackDamageModifier);
+            float vertSize = cam.orthographicSize;
+            float horSize = vertSize * cam.aspect;
+            Vector3 camPos = cam.transform.position;
+
+            // Decide a side: 0=left 1=right 2=top 3=bottom
+            int side = Random.Range(0, 4);
+            float x = 0, y = 0;
+            switch (side)
+            {
+                case 0: // left
+                    x = camPos.x - horSize - offscreenPadding;
+                    y = Random.Range(camPos.y - vertSize - offscreenPadding, camPos.y + vertSize + offscreenPadding);
+                    break;
+                case 1: // right
+                    x = camPos.x + horSize + offscreenPadding;
+                    y = Random.Range(camPos.y - vertSize - offscreenPadding, camPos.y + vertSize + offscreenPadding);
+                    break;
+                case 2: // top
+                    y = camPos.y + vertSize + offscreenPadding;
+                    x = Random.Range(camPos.x - horSize - offscreenPadding, camPos.x + horSize + offscreenPadding);
+                    break;
+                default: // bottom
+                    y = camPos.y - vertSize - offscreenPadding;
+                    x = Random.Range(camPos.x - horSize - offscreenPadding, camPos.x + horSize + offscreenPadding);
+                    break;
+            }
+            Vector3 pos = new Vector3(x, y, fixedZ);
+
+            // Ensure minimum distance from tower/center if requested
+            if (minDistanceFromTower > 0f)
+            {
+                Vector3 flatCenter = new Vector3(center.x, center.y, pos.z);
+                if (Vector3.Distance(pos, flatCenter) < minDistanceFromTower)
+                {
+                    Vector3 dir = (pos - flatCenter).normalized;
+                    pos = flatCenter + dir * minDistanceFromTower;
+                }
+            }
+            RecordDebugPoint(pos, Color.green);
+            return pos;
         }
         else
         {
-            Debug.LogError("Spawned boss object does not have an Enemy component attached.");
+            // Perspective: pick a viewport point slightly outside [0,1]
+            // Choose one axis to push out
+            float u = Random.value;
+            float v = Random.value;
+            int edge = Random.Range(0, 4);
+            const float pad = 0.08f;
+            switch (edge)
+            {
+                case 0: u = -pad; break;       // left
+                case 1: u = 1f + pad; break;   // right
+                case 2: v = -pad; break;       // bottom
+                case 3: v = 1f + pad; break;   // top
+            }
+            // Raycast from camera to world plane at Z = fixedZ (assuming XY plane)
+            Ray r = cam.ViewportPointToRay(new Vector3(u, v, 0f));
+            float t;
+            Vector3 pos;
+            if (Mathf.Abs(r.direction.z) > 0.0001f)
+            {
+                t = (fixedZ - r.origin.z) / r.direction.z;
+                pos = r.origin + r.direction * Mathf.Max(t, 0f);
+            }
+            else
+            {
+                pos = r.origin + r.direction * 50f;
+            }
+
+            if (minDistanceFromTower > 0f)
+            {
+                Vector3 flatCenter = new Vector3(center.x, center.y, pos.z);
+                if (Vector3.Distance(pos, flatCenter) < minDistanceFromTower)
+                {
+                    Vector3 dir = (pos - flatCenter).normalized;
+                    pos = flatCenter + dir * minDistanceFromTower;
+                }
+            }
+            RecordDebugPoint(pos, Color.cyan);
+            return pos;
         }
     }
 
-    private Vector3 GetRandomSpawnPosition()
+    private struct DebugSpawn
     {
-        // Spawn enemies off-screen, randomly choosing a side and position along that side
-        float screenWidth = Camera.main.orthographicSize * Camera.main.aspect;
-        float screenHeight = Camera.main.orthographicSize;
-
-        int side = Random.Range(0, 4); // 0 = top, 1 = bottom, 2 = left, 3 = right
-        switch (side)
-        {
-            case 0: // Top
-                return new Vector3(Random.Range(-screenWidth, screenWidth), screenHeight + 1, 0);
-            case 1: // Bottom
-                return new Vector3(Random.Range(-screenWidth, screenWidth), -screenHeight - 1, 0);
-            case 2: // Left
-                return new Vector3(-screenWidth - 1, Random.Range(-screenHeight, screenHeight), 0);
-            case 3: // Right
-                return new Vector3(screenWidth + 1, Random.Range(-screenHeight, screenHeight), 0);
-            default:
-                return Vector3.zero; // Fallback, should not happen
-        }
+        public Vector3 pos;
+        public Color color;
+    }
+    private readonly Queue<DebugSpawn> recentSpawns = new Queue<DebugSpawn>();
+    private void RecordDebugPoint(Vector3 p, Color c)
+    {
+        if (!debugGizmos) return;
+        recentSpawns.Enqueue(new DebugSpawn { pos = p, color = c });
+        while (recentSpawns.Count > 40) recentSpawns.Dequeue();
     }
 
+    private void OnDrawGizmosSelected()
+    {
+        if (!debugGizmos) return;
+        Gizmos.matrix = Matrix4x4.identity;
+        foreach (var s in recentSpawns)
+        {
+            Gizmos.color = s.color;
+            Gizmos.DrawWireSphere(s.pos, 0.6f);
+        }
+    }
 }

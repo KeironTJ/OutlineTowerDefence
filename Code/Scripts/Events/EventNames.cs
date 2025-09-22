@@ -24,6 +24,8 @@ public static class EventNames
     // Enemy Events
     public const string EnemySpawned = "EnemySpawned";
     public const string EnemyDestroyed = "EnemyDestroyed";
+    public const string RawEnemyRewardEvent = "EnemyRawReward";
+    public const string EnemyDestroyedDefinition = "EnemyDestroyedDefinition";
 
     // Game Currency Event
     public const string CurrencyEarned = "CurrencyEarned";

@@ -16,7 +16,7 @@ GameObject:
   m_Layer: 8
   m_Name: SimpleEnemy
   m_TagString: Untagged
-  m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
+  m_Icon: {fileID: 7250588514170254948, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -80,7 +80,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 75f5f34dc1b5347e0b8351032682f224, type: 3}
-  m_Color: {r: 1, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -180,14 +180,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rb: {fileID: 7764929145050514648}
-  health: 1
-  moveSpeed: 1
-  attackDamage: 1
-  damageInterval: 1
-  fragments: 1
-  cores: 0
-  prisms: 0
-  loops: 0
+  health: 0
+  moveSpeed: 0
+  attackDamage: 0
+  damageInterval: 0
+  rewardFragments: 0
+  rewardCores: 0
+  rewardPrisms: 0
+  rewardLoops: 0
   type: 0
   subtype: 0
   deathEffectPrefab: {fileID: 4495084802596646429, guid: 10fb575e932fcb54c8d75e89b9f916d4, type: 3}
+  definitionId: 

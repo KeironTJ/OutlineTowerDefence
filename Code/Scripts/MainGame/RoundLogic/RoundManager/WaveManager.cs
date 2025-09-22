@@ -1,165 +1,252 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class WaveManager : MonoBehaviour
 {
-    [Header("Wave Settings")]
-    public float timePerWave = 30f;
-    public float timeBetweenWaves = 5f;
-    [SerializeField] private float difficultyScalingFactor = 1.5f;
+    public static WaveManager Instance { get; private set; }
 
-    [Header("Debugging")]
+    [Header("Round Data")]
+    [SerializeField] private RoundType roundType;
+    [SerializeField] private EnemyTypeDefinition[] enemyTypes;
+    [SerializeField] private TierShareConfig tierShareConfig;
+
+    [Header("Random Seed")]
+    [SerializeField] private int baseSeed = 12345;
+
+    [Header("Runtime State")]
     [SerializeField] private int currentWave = 0;
     [SerializeField] private bool isWaveActive = false;
+    [SerializeField] private bool inBreak = false;
     [SerializeField] private float waveEndTime;
+    [SerializeField] private float breakEndTime;
+    [SerializeField] private float currentWaveTotalDuration;
+    [SerializeField] private float currentBreakTotalDuration;
 
-    [Header("References")]
-    [SerializeField] private int bossSpawnRate = 10;
+    private readonly List<(float t, EnemyTypeDefinition enemy)> schedule = new(256);
+    private int scheduleIndex = 0;
+    private float waveStartTime;
+    private WaveContext currentWaveContext;
 
-    [Header("Enemy Factors")]
-    [SerializeField] private int maxRatioWaves = 500; // Maximum number of waves for scaling
-    [SerializeField] private float healthScalingFactor = 0.1f; // Scaling factor for health modifier
-    [SerializeField] private float moveSpeedScalingFactor = 0.005f; // Scaling factor for move speed modifier
-    [SerializeField] private float rewardScalingFactor = 0.1f; // Scaling factor for reward modifier
-    [SerializeField] private float attackDamageScalingFactor = 0.1f; // Scaling factor for attack damage modifier;
+    private Coroutine loopRoutine;
+    private Tower subscribedTower;
 
-    [Header("Spawn Frequency")]
-    [SerializeField] private int maxSpawnWaves = 1000; // Maximum number of waves
-    [SerializeField] private float minSpawnInterval = 0.1f; // Minimum time between spawns (allows up to 10 enemies per second)
-    [SerializeField] private float maxSpawnInterval = 0.5f; // Maximum time between spawns (ensures at least 2 enemy per second)
+    // Working pools
+    private readonly List<EnemyTypeDefinition> poolBasic = new();
+    private readonly List<EnemyTypeDefinition> poolAdv = new();
+    private readonly List<EnemyTypeDefinition> poolElite = new();
 
-    private Coroutine waveRoutine;
-    private Tower subscribedTower; // Weak reference to the subscribed Tower
+    // API
+    public int GetCurrentWave() => currentWave;
+    public bool IsWaveActive() => isWaveActive;
+    public bool IsBetweenWaves() => !isWaveActive && inBreak;
+    public float GetWaveTimeRemaining() => isWaveActive ? Mathf.Max(0, waveEndTime - Time.time) : 0f;
+    public float GetBreakTimeRemaining() => inBreak ? Mathf.Max(0, breakEndTime - Time.time) : 0f;
+    public float GetWaveDuration() => currentWaveTotalDuration;
+    public float GetBreakTotalDuration() => currentBreakTotalDuration;
+    public int SafeCurrentWave() => currentWave;
+    public float SpawnProgress => schedule.Count == 0 ? 0f : Mathf.Clamp01((float)scheduleIndex / schedule.Count);
+    public float TimeProgress => isWaveActive && currentWaveTotalDuration > 0f
+        ? 1f - (GetWaveTimeRemaining() / currentWaveTotalDuration) : 0f;
 
-    public void StartWave(EnemySpawner enemySpawner, Tower tower)
+    public void StartWaveSystem(EnemySpawner spawner, Tower coreTower)
     {
-        waveRoutine = StartCoroutine(WaveRoutine(enemySpawner, tower));
-        subscribedTower = tower; // Store the reference to the subscribed Tower
-        tower.TowerDestroyed += EndWaveProgression; // Subscribe to the TowerDestroyed event
+        if (loopRoutine != null) StopCoroutine(loopRoutine);
+        if (!roundType)
+        {
+            Debug.LogError("[WaveManager] RoundType missing.");
+            return;
+        }
+        subscribedTower = coreTower;
+        if (subscribedTower) subscribedTower.TowerDestroyed += EndAllWaves;
+        loopRoutine = StartCoroutine(WaveLoop(spawner, coreTower));
     }
 
-    public bool IsBetweenWaves()
+    public void ForceStartNextWave()
     {
-        return !isWaveActive;
+        if (inBreak) breakEndTime = Time.time;
     }
 
-    private IEnumerator WaveRoutine(EnemySpawner enemySpawner, Tower tower)
+    private IEnumerator WaveLoop(EnemySpawner spawner, Tower tower)
     {
-        currentWave++;
-        isWaveActive = true;
-        waveEndTime = Time.time + timePerWave;
-
-        EventManager.TriggerEvent(EventNames.NewWaveStarted, currentWave);
-
-        // Adjust spawn weights for basic enemies
-        enemySpawner.AdjustBasicSpawnWeights(currentWave, maxRatioWaves);
-
-        // Calculate modifiers based on current wave with exponential scaling
-        float healthModifier = Mathf.Pow(1 + healthScalingFactor, currentWave);
-        float moveSpeedModifier = Mathf.Pow(1 + moveSpeedScalingFactor, currentWave);
-        float attackDamageModifier = Mathf.Pow(1 + attackDamageScalingFactor, currentWave);
-        float rewardModifier = Mathf.Pow(1 + rewardScalingFactor, currentWave);
-
-        if (currentWave % bossSpawnRate == 0)
+        while (true)
         {
-            enemySpawner.SpawnBossEnemy(tower, healthModifier, moveSpeedModifier, attackDamageModifier);
+            currentWave++;
+            PrepareWaveSchedule();
+
+            isWaveActive = true;
+            inBreak = false;
+            waveStartTime = Time.time;
+            currentWaveTotalDuration = roundType.GetWaveDuration(currentWave);
+            waveEndTime = waveStartTime + currentWaveTotalDuration;
+
+            EventManager.TriggerEvent(EventNames.NewWaveStarted, currentWave);
+
+            if (roundType.bossEvery > 0 && currentWave % roundType.bossEvery == 0)
+                SpawnBossNow(spawner, tower);
+
+            scheduleIndex = 0;
+            while (Time.time < waveEndTime && isWaveActive && tower != null)
+            {
+                float elapsed = Time.time - waveStartTime;
+                while (scheduleIndex < schedule.Count && schedule[scheduleIndex].t <= elapsed)
+                {
+                    SpawnEnemy(spawner, tower, schedule[scheduleIndex].enemy);
+                    scheduleIndex++;
+                }
+                yield return null;
+            }
+
+            if (isWaveActive)
+                EventManager.TriggerEvent(EventNames.WaveCompleted, currentWave);
+
+            isWaveActive = false;
+            if (tower == null) yield break;
+
+            currentBreakTotalDuration = roundType.breakDuration;
+            inBreak = true;
+            breakEndTime = Time.time + currentBreakTotalDuration;
+            while (Time.time < breakEndTime && inBreak) yield return null;
+            inBreak = false;
+        }
+    }
+
+    private void PrepareWaveSchedule()
+    {
+        schedule.Clear();
+
+        currentWaveContext = new WaveContext
+        {
+            wave = currentWave,
+            healthMult = roundType.healthCurve.Evaluate(currentWave),
+            speedMult = roundType.speedCurve.Evaluate(currentWave),
+            damageMult = roundType.damageCurve.Evaluate(currentWave),
+            rewardMult = roundType.rewardCurve.Evaluate(currentWave),
+            rng = new System.Random(baseSeed + currentWave),
+            eliteChance = roundType.eliteChanceCurve.Evaluate(currentWave)
+        };
+
+        float duration = roundType.GetWaveDuration(currentWave);
+        float totalBudget = roundType.GetBudget(currentWave);
+
+        EnemyRosterBuilder.BuildTierPools(currentWave, enemyTypes, poolBasic, poolAdv, poolElite);
+
+        if (poolBasic.Count == 0 && poolAdv.Count == 0 && poolElite.Count == 0)
+        {
+            Debug.LogWarning("[WaveManager] No eligible enemies this wave.");
+            return;
         }
 
-        // Spawn enemies during the wave
-        while (Time.time < waveEndTime)
+        var (basicShare, advShare, eliteShare) = tierShareConfig
+            ? tierShareConfig.GetShares(currentWave)
+            : (basic:0.6f, advanced:0.3f, elite:0.1f);
+
+        float basicBudget = totalBudget * basicShare;
+        float advBudget   = totalBudget * advShare;
+        float eliteBudget = totalBudget * eliteShare;
+
+        BuildTierSchedule(poolBasic, basicBudget, duration, promoteBasics: true);
+        BuildTierSchedule(poolAdv, advBudget, duration);
+        BuildTierSchedule(poolElite, eliteBudget, duration);
+
+        schedule.Sort((a, b) => a.t.CompareTo(b.t));
+    }
+
+    private void BuildTierSchedule(
+        List<EnemyTypeDefinition> pool,
+        float tierBudget,
+        float duration,
+        bool promoteBasics = false)
+    {
+        if (tierBudget <= 0 || pool.Count == 0) return;
+
+        float totalWeight = 0f;
+        foreach (var d in pool) totalWeight += Mathf.Max(0.0001f, d.GetWeight(currentWaveContext.wave));
+
+        if (totalWeight <= 0f) return;
+
+        float spent = 0f;
+        float cursor = 0f;
+        float avgCost = 0f;
+        foreach (var d in pool) avgCost += d.budgetCost;
+        avgCost = Mathf.Max(1f, avgCost / pool.Count);
+        int estCount = Mathf.CeilToInt(tierBudget / avgCost);
+        float baseInterval = duration / Mathf.Max(1, estCount);
+
+        while (spent < tierBudget && cursor < duration)
         {
-            enemySpawner.SpawnBasicEnemy(tower, healthModifier, moveSpeedModifier, attackDamageModifier, rewardModifier);
+            double roll = currentWaveContext.rng.NextDouble() * totalWeight;
+            EnemyTypeDefinition chosen = null;
+            foreach (var d in pool)
+            {
+                roll -= Mathf.Max(0.0001f, d.GetWeight(currentWaveContext.wave));
+                if (roll <= 0) { chosen = d; break; }
+            }
+            chosen ??= pool[pool.Count - 1];
 
-            // Calculate dynamic spawn interval
-            // t = normalized wave progress [0..1]; caps scaling once we hit maxSpawnWaves
-            float t = Mathf.Clamp01((float)currentWave / maxSpawnWaves);
-            float spawnInterval = Mathf.Lerp(maxSpawnInterval, minSpawnInterval, t);
-            // Safety: keep within configured bounds even if values are mis-set at runtime
-            spawnInterval = Mathf.Clamp(spawnInterval, minSpawnInterval, maxSpawnInterval);
+            EnemyTypeDefinition final = chosen;
+            if (promoteBasics && chosen.tier == EnemyTier.Basic)
+                final = EnemyRosterBuilder.MaybePromote(currentWaveContext.wave, chosen, poolAdv, poolElite, currentWaveContext.rng);
 
-            yield return new WaitForSeconds(spawnInterval);
+            if (spent + final.budgetCost > tierBudget && (tierBudget - spent) < 1f)
+                break;
+
+            schedule.Add((cursor, final));
+            spent += final.budgetCost;
+
+            float jitter = Mathf.Lerp(0.8f, 1.2f, (float)currentWaveContext.rng.NextDouble());
+            cursor += baseInterval * jitter;
         }
+    }
 
-        EventManager.TriggerEvent(EventNames.WaveCompleted, currentWave);
+    private void SpawnEnemy(EnemySpawner spawner, Tower tower, EnemyTypeDefinition def)
+    {
+        if (!spawner || !tower || !def || !def.prefab) return;
+        var go = spawner.SpawnEnemy(def.prefab, tower);
+        if (!go) return;
+
+        var runtime = go.GetComponent<IEnemyRuntime>();
+        if (runtime == null)
+        {
+            Debug.LogWarning($"[WaveManager] Prefab '{def.prefab.name}' missing IEnemyRuntime.");
+            return;
+        }
+        def.ApplyToRuntime(currentWaveContext, runtime);
+        runtime.SetTarget(tower);
+        var enemyCmp = go.GetComponent<Enemy>();
+        if (enemyCmp) enemyCmp.SetDefinitionId(def.id);
+    }
+
+    private void SpawnBossNow(EnemySpawner spawner, Tower tower)
+    {
+        float hMult = currentWaveContext.healthMult * roundType.bossHealthMultiplier;
+        float dmgMult = currentWaveContext.damageMult;
+        spawner.SpawnBossEnemy(tower, hMult, currentWaveContext.speedMult, dmgMult);
+    }
+
+    public void EndAllWaves()
+    {
         isWaveActive = false;
-        yield return new WaitForSeconds(timeBetweenWaves);
-
-        // Increment the wave counter and start the next wave
-        StartWave(enemySpawner, tower); // Start the next wave
-    }
-
-    public int GetCurrentWave()
-    {
-        return currentWave;
-    }
-
-    public float GetWaveTimeRemaining()
-    {
-        if (isWaveActive)
-        {
-            float remainingTime = Mathf.Max(0, waveEndTime - Time.time);
-            return remainingTime;
-        }
-        return 0;
-    }
-
-    public float GetTimeBetweenWavesRemaining()
-    {
-        if (isWaveActive)
-        {
-            return 0; // No time between waves if a wave is active
-        }
-
-        float timeSinceWaveEnded = Time.time - waveEndTime;
-        float remainingTime = Mathf.Max(0, timeBetweenWaves - timeSinceWaveEnded);
-        return remainingTime;
-    }
-
-    public int GetEnemiesLeftToSpawn()
-    {
-        // This method should return the number of enemies left to spawn in the current wave
-        // For simplicity, we can assume a fixed number of enemies per wave
-        return Mathf.RoundToInt(currentWave * difficultyScalingFactor);
-    }
-
-    public bool IsWaveActive()
-    {
-        return isWaveActive;
-    }
-
-    public int EnemiesPerWave()
-    {
-        return Mathf.RoundToInt(currentWave * difficultyScalingFactor);
-    }
-
-    public void EndWaveProgression()
-    {
-        isWaveActive = false;
-        if (waveRoutine != null)
-        {
-            StopCoroutine(waveRoutine); // Stop the current wave routine
-            waveRoutine = null;
-        }
-
+        inBreak = false;
+        if (loopRoutine != null) { StopCoroutine(loopRoutine); loopRoutine = null; }
         if (subscribedTower != null)
         {
-            subscribedTower.TowerDestroyed -= EndWaveProgression; // Unsubscribe from the TowerDestroyed event
-            subscribedTower = null; // Clear the reference
+            subscribedTower.TowerDestroyed -= EndAllWaves;
+            subscribedTower = null;
         }
     }
-    
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+        Instance = this;
+    }
+
     private void OnDisable()
     {
-        if (waveRoutine != null)
-        {
-            StopCoroutine(waveRoutine); // Stop the wave routine when the WaveManager is disabled
-        }
-
-        if (subscribedTower != null)
-        {
-            subscribedTower.TowerDestroyed -= EndWaveProgression; // Unsubscribe from the TowerDestroyed event
-            subscribedTower = null; // Clear the reference
-        }
+        EndAllWaves();
+        if (Instance == this) Instance = null;
     }
 
+    public EnemyTypeDefinition[] EnemyDefinitions => enemyTypes;
 }

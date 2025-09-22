@@ -1,7 +1,7 @@
 using UnityEngine;
 
 public enum SkillCategory { Attack, Defence, Support, Turret }
-public enum ProgressionCurve { Linear, Exponential, Quadratic, Custom, PercentAdditive } // see SkillMath
+public enum ProgressionCurve { Linear, Exponential, Quadratic, Custom, PercentAdditive, Additive } // see SkillMath
 
 [CreateAssetMenu(menuName = "Game/Skill Definition")]
 public class SkillDefinition : ScriptableObject

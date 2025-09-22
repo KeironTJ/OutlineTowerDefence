@@ -101,6 +101,7 @@ public class PlayerCurrencyWallet : ICurrencyWallet
                 break;
         }
         saveCallback?.Invoke();
+        
     }
 
     /// <summary>

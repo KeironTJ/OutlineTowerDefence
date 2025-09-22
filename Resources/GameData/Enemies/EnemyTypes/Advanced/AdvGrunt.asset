@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2336ef87077c26a4784ea837953a7b87, type: 3}
+  m_Name: AdvGrunt
+  m_EditorClassIdentifier: 
+  id: Adv_Grunt
+  tier: 1
+  family: Grunt
+  traits: 0
+  unlockWave: 50
+  replaceFamilyFromWave: 0
+  weightByWave:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 100
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  prefab: {fileID: 913476891759774307, guid: b8b9855af8fcb17488ffc3bcbf769fa3, type: 3}
+  budgetCost: 1
+  baseHealth: 5
+  baseSpeed: 1.1
+  baseDamage: 2
+  baseFragments: 2
+  baseCores: 1
+  basePrisms: 0
+  baseLoops: 0
+  scalingProfile: 0

@@ -21,12 +21,11 @@ public class GameStatsPanel : MonoBehaviour
         // Currency section
         AddHeaderRow("Currency");
         AddStatRow("Fragments Earned", NumberManager.FormatLargeNumber(playerData.totalFragmentsEarned));
-        AddStatRow("Cores Earned", NumberManager.FormatLargeNumber(playerData.totalCoresEarned));
-        AddStatRow("Prisms Earned", NumberManager.FormatLargeNumber(playerData.totalPrismsEarned));
-        AddStatRow("Loops Earned", NumberManager.FormatLargeNumber(playerData.totalLoopsEarned));
+        AddStatRow("Cores Earned",      NumberManager.FormatLargeNumber(playerData.totalCoresEarned));
+        AddStatRow("Prisms Earned",     NumberManager.FormatLargeNumber(playerData.totalPrismsEarned));
+        AddStatRow("Loops Earned",      NumberManager.FormatLargeNumber(playerData.totalLoopsEarned));
 
         // Rounds Section:
-        
         AddHeaderRow("Round Stats");
 
         int totalRoundsCompleted = playerData.totalRoundsCompleted;
@@ -42,21 +41,32 @@ public class GameStatsPanel : MonoBehaviour
             AddStatRow($"Level {i}", playerData.difficultyMaxWaveAchieved[i].ToString());
         }
 
-        // Enemy rows
-        int totalEnemiesKilled = playerData.EnemiesDestroyed.Sum(e => e.Count);
+        // Enemy kills (new definition-based system)
+        var kills = playerData.enemyKills ?? new List<EnemyKillEntry>();
+        int totalEnemiesKilled = kills.Sum(k => k.count);
+        AddHeaderRow("Enemies Killed", NumberManager.FormatLargeNumber(totalEnemiesKilled, true));
 
-        AddHeaderRow("Enemies Destroyed", NumberManager.FormatLargeNumber(totalEnemiesKilled, true));
-        var groupedEnemies = playerData.EnemiesDestroyed.GroupBy(e => e.EnemyType);
-        foreach (var group in groupedEnemies)
+        if (totalEnemiesKilled == 0)
         {
-            // Type subheader
-            int typeTotal = group.Sum(e => e.Count);
-            AddHeaderRow(group.Key.ToString(), NumberManager.FormatLargeNumber(typeTotal, true), true);
-
-            // Subtype rows
-            foreach (var enemyData in group)
+            AddStatRow("No kills recorded", "-");
+        }
+        else
+        {
+            // Group by tier, then list each definition (ordered by count desc)
+            foreach (var tierGroup in kills
+                     .GroupBy(k => k.tier)
+                     .OrderBy(g => g.Key)) // basic -> boss (enum order)
             {
-                AddStatRow(enemyData.EnemySubtype.ToString(), NumberManager.FormatLargeNumber(enemyData.Count, true));
+                int tierTotal = tierGroup.Sum(k => k.count);
+                AddHeaderRow(tierGroup.Key.ToString(), NumberManager.FormatLargeNumber(tierTotal, true), true);
+
+                foreach (var entry in tierGroup
+                             .OrderByDescending(e => e.count)
+                             .ThenBy(e => e.definitionId))
+                {
+                    AddStatRow(entry.definitionId,
+                        NumberManager.FormatLargeNumber(entry.count, true));
+                }
             }
         }
     }
@@ -97,6 +107,21 @@ public class GameStatsPanel : MonoBehaviour
             valueText.fontStyle = TMPro.FontStyles.Bold;
             valueText.fontSize *= 1.1f;
         }
+    }
+
+    private void PopulateEnemyKills(PlayerData data)
+    {
+        // (Deprecated helper – now integrated directly in PopulateStats)
+    }
+
+    private void AddEnemyKillLine(string text)
+    {
+        // Use a single-column stat row (label only)
+        GameObject statItem = Instantiate(statItemPrefab, contentParent);
+        var labelText = statItem.transform.Find("LabelText").GetComponent<TMPro.TMP_Text>();
+        var valueText = statItem.transform.Find("ValueText").GetComponent<TMPro.TMP_Text>();
+        labelText.text = text;
+        valueText.text = "";
     }
 
     private void OnEnable()

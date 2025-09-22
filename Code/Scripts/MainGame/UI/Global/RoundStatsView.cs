@@ -107,15 +107,10 @@ public class RoundStatsView : MonoBehaviour
 
         // Enemy breakdown section
         AddHeaderRow("Enemies Destroyed",NumberManager.FormatLargeNumber(record.enemiesKilled, true));
-        foreach (var type in record.enemyBreakdown)
+        foreach (var k in record.enemyKills)
         {
-            if (type.total <= 0) continue;
-            AddHeaderRow(type.type.ToString(), NumberManager.FormatLargeNumber(type.total, true), true);
-            foreach (var sub in type.subtypes)
-            {
-                if (sub.count <= 0) continue;
-                AddStatRow(sub.subtype.ToString(), NumberManager.FormatLargeNumber(sub.count, true));
-            }
+            // Example line: "{definitionId} x{count}"
+            AddStatRow($"{k.definitionId}", NumberManager.FormatLargeNumber(k.count, true));
         }
     }
 
@@ -159,5 +154,15 @@ public class RoundStatsView : MonoBehaviour
             valueText.fontStyle = TMPro.FontStyles.Bold;
             valueText.fontSize *= 1.1f;
         }
+    }
+
+    private void AddLine(string line)
+    {
+        GameObject statItem = Instantiate(statItemPrefab, statsTableContainer);
+        var labelText = statItem.transform.Find("LabelText").GetComponent<TMPro.TMP_Text>();
+        labelText.text = line;
+        // Optionally, you can disable the value text or set it to empty
+        var valueText = statItem.transform.Find("ValueText").GetComponent<TMPro.TMP_Text>();
+        valueText.gameObject.SetActive(false);
     }
 }
