@@ -21,17 +21,13 @@ public class CloudSyncDebugUI : MonoBehaviour
 
     private async System.Threading.Tasks.Task ForceUpload()
     {
-        await System.Threading.Tasks.Task.Yield(); // Fixes CS1998
-        if (CloudSyncService.main == null) return;
-        // Schedule immediate upload
-        typeof(CloudSyncService).GetMethod("ScheduleUpload",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.Invoke(CloudSyncService.main, null);
+        await System.Threading.Tasks.Task.Yield();
+        CloudSyncService.main?.ForceUploadNow();
     }
 
     private async System.Threading.Tasks.Task ForceDownload()
     {
-        await System.Threading.Tasks.Task.Yield(); // Fixes CS1998
-        if (CloudSyncService.main == null) return;
-        // Force attempt adopt now (call private via reflection or expose a public wrapper instead)
+        await System.Threading.Tasks.Task.Yield();
+        CloudSyncService.main?.ForceDownloadNow();
     }
 }

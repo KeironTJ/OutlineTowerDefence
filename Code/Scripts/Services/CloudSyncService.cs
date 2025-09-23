@@ -90,7 +90,10 @@ public class CloudSyncService : MonoBehaviour
         return false;
     }
 
-    private async Task TryAdoptNewer()
+    public async void ForceUploadNow() => await UploadNow();
+    public async void ForceDownloadNow() => await TryAdoptNewer(true);
+
+    private async Task TryAdoptNewer(bool force = false)
     {
         if (!await EnsureAuthReady())
         {
@@ -101,42 +104,45 @@ public class CloudSyncService : MonoBehaviour
         var slot = SaveManager.main.SlotId;
         var fresh = SaveManager.main.FreshCreate;
 
-        var (exists, cloudPayload) = await cloud.TryLoad(slot);
+        var (exists, cloudPayload, cloudRev) = await cloud.TryLoadWithRevision(slot);
         if (!exists || cloudPayload == null)
         {
-            Debug.Log($"[CloudSync] No cloud data found for slot={slot}. fresh={fresh} -> scheduling upload.");
+            Debug.Log($"[CloudSync] No cloud data for slot={slot}. scheduling upload.");
             ScheduleUpload();
             return;
         }
 
         var local = SaveManager.main.Current;
-        var localTime = Parse(local.lastSaveIsoUtc);
-        var cloudTime = Parse(cloudPayload.lastSaveIsoUtc);
+        int localRev = local?.revision ?? -1;
 
-        Debug.Log($"[CloudSync] Adoption check slot={slot} fresh={fresh} localTime={localTime:O} cloudTime={cloudTime:O}");
+        Debug.Log($"[CloudSync] ConflictCheck localRev={localRev} cloudRev={cloudRev} fresh={fresh}");
 
-        if (fresh)
+        if (fresh || localRev < cloudRev || force)
         {
-            Debug.Log("[CloudSync] Fresh placeholder -> adopting cloud.");
+            Debug.Log("[CloudSync] Adopting cloud payload.");
             suppressOneUpload = true;
-            SaveManager.main.ReplaceCurrent(cloudPayload);
+            SaveManager.main.AdoptFromCloud(cloudPayload);
             PlayerManager.main?.ForceResyncFromCurrentSave();
             adoptionSucceeded = true;
             return;
         }
 
-        if (cloudTime > localTime)
+        if (localRev > cloudRev)
         {
-            Debug.Log("[CloudSync] Cloud newer -> adopting.");
-            suppressOneUpload = true;
-            SaveManager.main.ReplaceCurrent(cloudPayload);
-            PlayerManager.main?.ForceResyncFromCurrentSave();
-            adoptionSucceeded = true;
+            Debug.Log("[CloudSync] Local newer -> upload.");
+            ScheduleUpload();
+            return;
+        }
+
+        // Revisions equal: compare hash (optional)
+        if (local.lastHash != cloudPayload.lastHash)
+        {
+            Debug.LogWarning("[CloudSync] Revision equal but hash differs -> keeping local & uploading.");
+            ScheduleUpload();
         }
         else
         {
-            Debug.Log("[CloudSync] Keeping local (>= cloud) -> will upload.");
-            ScheduleUpload();
+            Debug.Log("[CloudSync] In sync (equal rev & hash).");
         }
     }
 

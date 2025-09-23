@@ -1,3 +1,4 @@
+// filepath: c:\Users\keiro\Outline - Tower Defence\Assets\Code\Scripts\Persistence\CloudSaveProvider.cs
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
@@ -13,6 +14,7 @@ public class CloudSaveProvider
 {
     private string DataKey(string slot) => $"player_{slot}_json";
     private string HashKey(string slot) => $"player_{slot}_hash";
+    private string RevisionKey(string slot) => $"player_{slot}_rev";
 
     private static string MD5Hash(string s)
     {
@@ -67,6 +69,30 @@ public class CloudSaveProvider
         }
     }
 
+    public async Task<(bool exists, PlayerSavePayload payload, int revision)> TryLoadWithRevision(string slot)
+    {
+        if (!await EnsureAuth()) return (false, null, 0);
+        try
+        {
+            var keys = new HashSet<string> { DataKey(slot), RevisionKey(slot) };
+            var dict = await Retry(() => CloudSaveService.Instance.Data.LoadAsync(keys));
+            if (dict != null && dict.TryGetValue(DataKey(slot), out var json) && !string.IsNullOrEmpty(json))
+            {
+                var payload = JsonUtility.FromJson<PlayerSavePayload>(json);
+                int rev = 0;
+                if (dict.TryGetValue(RevisionKey(slot), out var revStr))
+                    int.TryParse(revStr, out rev);
+                return (true, payload, rev);
+            }
+            return (false, null, 0);
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning("[CloudSync] Load failed: " + e.Message);
+            return (false, null, 0);
+        }
+    }
+
     public async Task<CloudUploadResult> UploadDetailed(string slot, PlayerSavePayload payload)
     {
         if (payload == null) return CloudUploadResult.Failed;
@@ -74,15 +100,22 @@ public class CloudSaveProvider
 
         var json = JsonUtility.ToJson(payload, false);
         var newHash = MD5Hash(json);
+        var rev = payload.revision;
 
         bool unchanged = false;
         try
         {
-            var hashDict = await CloudSaveService.Instance.Data.LoadAsync(
-                new HashSet<string> { HashKey(slot) });
-            if (hashDict != null && hashDict.TryGetValue(HashKey(slot), out var existing) &&
-                existing == newHash)
+            var keys = new HashSet<string> { HashKey(slot), RevisionKey(slot) };
+            var meta = await CloudSaveService.Instance.Data.LoadAsync(keys);
+            if (meta != null &&
+                meta.TryGetValue(HashKey(slot), out var existingHash) &&
+                existingHash == newHash &&
+                meta.TryGetValue(RevisionKey(slot), out var existingRevStr) &&
+                int.TryParse(existingRevStr, out var existingRev) &&
+                existingRev == rev)
+            {
                 unchanged = true;
+            }
         }
         catch { }
 
@@ -97,7 +130,8 @@ public class CloudSaveProvider
                     new Dictionary<string, object>
                     {
                         { DataKey(slot), json },
-                        { HashKey(slot), newHash }
+                        { HashKey(slot), newHash },
+                        { RevisionKey(slot), rev.ToString() }
                     });
                 return true;
             });
@@ -110,7 +144,6 @@ public class CloudSaveProvider
         }
     }
 
-    // Backwards compatibility if existing code still calls Upload()
     public async Task<bool> Upload(string slot, PlayerSavePayload payload)
     {
         var r = await UploadDetailed(slot, payload);

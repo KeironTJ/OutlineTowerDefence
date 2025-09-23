@@ -21,6 +21,7 @@ public class SaveManager : MonoBehaviour
     private float earliestSaveTime;
     private bool loading;
     private bool freshCreate;
+    private bool skipNextRevision;
     public bool FreshCreate => freshCreate;
 
     public string SlotId => slotId;
@@ -95,7 +96,9 @@ public class SaveManager : MonoBehaviour
         dirty = false;
         OnBeforeSave?.Invoke(Current);
         Current.lastSaveIsoUtc = DateTime.UtcNow.ToString("o");
-        // Provider is always local here
+        if (!skipNextRevision) Current.revision++;
+        skipNextRevision = false;
+        Current.lastHash = ComputeHash(Current);
         ((LocalFileSaveProvider)provider).SaveSync(slotId, Current);
     }
 
@@ -122,5 +125,23 @@ public class SaveManager : MonoBehaviour
     public void ClearFreshFlag()
     {
         freshCreate = false;
+    }
+
+    private string ComputeHash(PlayerSavePayload payload)
+    {
+        var json = JsonUtility.ToJson(payload, false);
+        using var md5 = System.Security.Cryptography.MD5.Create();
+        var bytes = md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(json));
+        return BitConverter.ToString(bytes).Replace("-", "");
+    }
+
+    public void AdoptFromCloud(PlayerSavePayload payload)
+    {
+        if (payload == null) return;
+        Current = payload;
+        freshCreate = false;
+        skipNextRevision = true; // prevent artificial revision bump
+        OnAfterLoad?.Invoke(Current);
+        QueueImmediateSave(); // persist locally
     }
 }
