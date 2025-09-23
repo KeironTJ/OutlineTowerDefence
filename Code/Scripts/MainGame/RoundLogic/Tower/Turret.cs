@@ -259,6 +259,7 @@ public class Turret : MonoBehaviour
         {
             bulletScript.SetTarget(currentTarget);
             bulletScript.SetSpeed(GetSkillValue(bulletSpeedSkillId));
+            bulletScript.SetOriginAndMaxRange(firingPoint.position, runtimeRange);
 
             // Use runtimeDamage composed from SkillService/definition/slot multipliers
             float baseDamage = runtimeDamage;

@@ -89,7 +89,8 @@ public class PlayerData
         Username = UUID;
         unlockedTowerVisuals = new List<string> { "0001", "0002", "0003" };
         selectedTowerVisualId = "0001";
+        unlockedTurretIds = new List<string> { "STD" };
         if (selectedTurretIds == null) selectedTurretIds = new List<string> { "", "", "", "" };
-        unlockedTurretIds = new List<string> { "MSB" };
+        selectedTurretIds[0] = "STD";
     }
 }

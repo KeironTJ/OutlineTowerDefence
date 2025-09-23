@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8100d78ffae20fc4e891afe5a449f50b, type: 3}
+  m_Name: Standard Turret
+  m_EditorClassIdentifier: 
+  id: STD
+  turretName: Standard Turret
+  turretDescription: There is nothing special about this turret. Nothing!
+  turretPrefab: {fileID: 4304509950014231380, guid: 74f25559655e4734a90ad13f28d745e4, type: 3}
+  previewSprite: {fileID: 3007339533555982569, guid: 0797b190b614d4e43b81f6648e634de0, type: 3}
+  baseRotationSpeed: 360
+  skillSuffixDamage: damage
+  skillSuffixFireRate: fireRate
+  skillSuffixRange: range
+  skillSuffixRotation: rotation

@@ -22,6 +22,7 @@ public class EnemyTypeDefinition : ScriptableObject
     public float baseHealth = 10;
     public float baseSpeed = 2;
     public float baseDamage = 1;
+    public float damageInterval = 1f;
 
     [Header("Base Rewards (pre-scaling)")]
     public int baseFragments = 1;
@@ -43,16 +44,18 @@ public class EnemyTypeDefinition : ScriptableObject
         float h = baseHealth * ctx.healthMult;
         float s = baseSpeed * ctx.speedMult;
         float d = baseDamage * ctx.damageMult;
+        float di = damageInterval;
+        
 
         switch (scalingProfile)
         {
-            case ScalingProfile.Tank:  h *= 1.6f; s *= 0.85f; break;
-            case ScalingProfile.Fast:  s *= 1.45f; h *= 0.85f; break;
+            case ScalingProfile.Tank: h *= 1.6f; s *= 0.85f; break;
+            case ScalingProfile.Fast: s *= 1.45f; h *= 0.85f; break;
             case ScalingProfile.Glass: h *= 0.55f; s *= 1.25f; d *= 1.25f; break;
             case ScalingProfile.Elite: h *= 2.2f; d *= 1.7f; break;
         }
 
-        runtime.InitStats(h, s, d);
+        runtime.InitStats(h, s, d, di);
 
         // ---- Rewards ----
         // Multiply all rewards by rewardMult (round down but keep at least base if >0)

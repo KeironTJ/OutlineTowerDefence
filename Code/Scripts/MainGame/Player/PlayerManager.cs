@@ -101,6 +101,25 @@ public class PlayerManager : MonoBehaviour
 
     private void OnEnable()
     {
+        if (SaveManager.main != null)
+            SaveManager.main.OnAfterLoad += OnSaveLoaded;
+
+        // CloudSyncService already calls ForceResyncFromCurrentSave() on adopt,
+        // but subscribe as a fallback if you want to trigger a refresh when SyncCompleted fires.
+        if (CloudSyncService.main != null)
+        {
+            CloudSyncService.main.SyncCompleted.ContinueWith(_ =>
+            {
+                // ensure main thread: schedule a Unity thread action
+                // here we assume ForceResyncFromCurrentSave is safe to call from Unity thread only.
+                // If ContinueWith runs off-thread you can set a flag and call ForceResyncFromCurrentSave in Update().
+                UnityEngine.WSA.Application.InvokeOnAppThread(() =>
+                {
+                    ForceResyncFromCurrentSave();
+                }, false);
+            });
+        }
+
         EventManager.StartListening(EventNames.EnemyDestroyedDefinition, OnEnemyDestroyedDefinition);
         EventManager.StartListening(EventNames.RoundRecordCreated, new Action<object>(OnRoundRecordUpdated));
         EventManager.StartListening(EventNames.WaveCompleted, new Action<object>(OnWaveCompleted));
@@ -109,6 +128,10 @@ public class PlayerManager : MonoBehaviour
 
     private void OnDisable()
     {
+
+        if (SaveManager.main != null)
+            SaveManager.main.OnAfterLoad -= OnSaveLoaded;
+
         // Unsubscribe from the EnemyDestroyed event via EventManager
         EventManager.StopListening(EventNames.EnemyDestroyedDefinition, OnEnemyDestroyedDefinition);
         EventManager.StopListening(EventNames.RoundRecordCreated, new Action<object>(OnRoundRecordUpdated));

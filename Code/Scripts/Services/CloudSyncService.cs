@@ -23,6 +23,11 @@ public class CloudSyncService : MonoBehaviour
     public bool InitialAdoptAttempted { get; private set; }
     private bool adoptionSucceeded;
 
+    // Add these fields/properties so other systems (Loader, PlayerManager) can await real completion
+    private TaskCompletionSource<bool> syncTcs = new TaskCompletionSource<bool>();
+    public Task SyncCompleted => syncTcs.Task;
+    public bool InitialAdoptCompleted { get; private set; } = false;
+
     private void Awake()
     {
         if (main != null && main != this) { Destroy(gameObject); return; }
@@ -93,6 +98,16 @@ public class CloudSyncService : MonoBehaviour
     public async void ForceUploadNow() => await UploadNow();
     public async void ForceDownloadNow() => await TryAdoptNewer(true);
 
+    // Add helper to mark completion once a final decision was made (adopt/upload/keep)
+    private void MarkInitialAdoptCompleted()
+    {
+        if (!InitialAdoptCompleted)
+        {
+            InitialAdoptCompleted = true;
+            try { syncTcs.TrySetResult(true); } catch { /* swallow */ }
+        }
+    }
+
     private async Task TryAdoptNewer(bool force = false)
     {
         if (!await EnsureAuthReady())
@@ -123,7 +138,9 @@ public class CloudSyncService : MonoBehaviour
             suppressOneUpload = true;
             SaveManager.main.AdoptFromCloud(cloudPayload);
             PlayerManager.main?.ForceResyncFromCurrentSave();
-            adoptionSucceeded = true;
+
+            // final decision -> mark completion
+            MarkInitialAdoptCompleted();
             return;
         }
 
@@ -131,6 +148,9 @@ public class CloudSyncService : MonoBehaviour
         {
             Debug.Log("[CloudSync] Local newer -> upload.");
             ScheduleUpload();
+
+            // final decision -> mark completion
+            MarkInitialAdoptCompleted();
             return;
         }
 
@@ -139,10 +159,17 @@ public class CloudSyncService : MonoBehaviour
         {
             Debug.LogWarning("[CloudSync] Revision equal but hash differs -> keeping local & uploading.");
             ScheduleUpload();
+
+            // final decision -> mark completion
+            MarkInitialAdoptCompleted();
+            return;
         }
         else
         {
             Debug.Log("[CloudSync] In sync (equal rev & hash).");
+            // final decision -> mark completion
+            MarkInitialAdoptCompleted();
+            return;
         }
     }
 

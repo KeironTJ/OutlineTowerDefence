@@ -422,7 +422,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 314611c7ab2cf404c98fa683e144d9ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  projectilePrefab: {fileID: 6019418362768665789, guid: 395a873e1ae347249ab1cae3066ab090, type: 3}
+  projectilePrefab: {fileID: 6019418362768665789, guid: 1fb7ad9923be1714188fb207d83fc061, type: 3}
   firingPoint: {fileID: 7482245513065443401}
   enemyMask:
     serializedVersion: 2

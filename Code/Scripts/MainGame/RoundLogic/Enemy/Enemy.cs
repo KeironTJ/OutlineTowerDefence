@@ -42,11 +42,12 @@ public class Enemy : MonoBehaviour, IEnemyRuntime
     }
 
     // IEnemyRuntime
-    public void InitStats(float health, float speed, float damage)
+    public void InitStats(float health, float speed, float damage, float damageInterval)
     {
         this.health = health;
         moveSpeed = speed;
         attackDamage = damage;
+        this.damageInterval = damageInterval;
     }
 
     public void SetRewards(int fragments, int cores, int prisms, int loops)

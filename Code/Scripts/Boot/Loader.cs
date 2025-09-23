@@ -9,17 +9,30 @@ public class Loader : MonoBehaviour
     [SerializeField] float minShowSeconds = 3f;
     [SerializeField] UnityEngine.UI.Slider progressBar;
     [SerializeField] TextMeshProUGUI statusText;
+    [SerializeField] float cloudWaitTimeoutSeconds = 8f;
 
     private IEnumerator Start()
     {
         var startTime = Time.unscaledTime;
+
         // Wait local load
         while (SaveManager.main == null || !SaveManager.main.InitialLoadComplete)
             yield return null;
 
-        // Wait cloud adoption attempt
-        while (CloudSyncService.main == null || !CloudSyncService.main.InitialAdoptAttempted)
+        // Wait for CloudSyncService to exist
+        while (CloudSyncService.main == null)
             yield return null;
+
+        var cloud = CloudSyncService.main;
+
+        // Wait for cloud adoption to actually complete (prefer explicit completed flag / Task),
+        // but don't block forever — use timeout.
+        float waitStart = Time.unscaledTime;
+        while (!cloud.InitialAdoptCompleted && (cloud.SyncCompleted == null || !cloud.SyncCompleted.IsCompleted) && Time.unscaledTime - waitStart < cloudWaitTimeoutSeconds)
+            yield return null;
+
+        if (!cloud.InitialAdoptCompleted && (cloud.SyncCompleted == null || !cloud.SyncCompleted.IsCompleted))
+            UnityEngine.Debug.LogWarning("[Loader] Cloud adoption did not complete in time; continuing with current payload.");
 
         // Optional tiny delay to keep splash visible
         while (Time.unscaledTime - startTime < minShowSeconds)

@@ -128,14 +128,14 @@ public class MainUpgradeScreen : MonoBehaviour
 
             if (!isUnlocked)
             {
-                // 3) Locked but visible: show unlock panel with cores cost; disable main upgrade button
+                // use cached refs on MenuSkill instead of hierarchy search
                 btn.interactable = false;
-                ShowUnlockPanel(go, def);
+                menuSkill.ShowUnlockUI(def, playerManager, skillService, () => ShowCategory(currentCategory));
             }
             else
             {
-                // 4) Unlocked: hide unlock panel if present
-                HideUnlockPanel(go);
+                // Unlocked: hide unlock UI if present
+                menuSkill.HideUnlockUI();
             }
 
             built++;
@@ -159,12 +159,30 @@ public class MainUpgradeScreen : MonoBehaviour
         var costTextTf = unlockPanel.Find("UnlockCostText");
         var costText = costTextTf ? costTextTf.GetComponent<TextMeshProUGUI>() : null;
 
+        // optional: UnlockCostIcon (Image) next to the text if you want an icon shown
+        var costIconTf = unlockPanel.Find("UnlockCostIcon");
+        var costIcon = costIconTf ? costIconTf.GetComponent<UnityEngine.UI.Image>() : null;
+        if (costIcon != null) costIcon.gameObject.SetActive(true);
+
         var btnTf = unlockPanel.Find("UnlockButton");
-        var unlockBtn = btnTf ? btnTf.GetComponent<Button>() : null;
+        var unlockBtn = btnTf ? btnTf.GetComponent<UnityEngine.UI.Button>() : null;
 
         float cost = Mathf.Max(0f, def.coresToUnlock);
+
+        // Format display: "123 Cores" or "FREE"
         if (costText)
-            costText.text = cost > 0f ? NumberManager.FormatLargeNumber(cost) : "FREE";
+        {
+            if (cost > 0f)
+            {
+                // prefer integer display when whole number
+                string costStr = (Mathf.Approximately(cost, Mathf.Round(cost))) ? ((long)Mathf.Round(cost)).ToString() : NumberManager.FormatLargeNumber(cost);
+                costText.text = $"{costStr} Cores";
+            }
+            else
+            {
+                costText.text = "FREE";
+            }
+        }
 
         if (unlockBtn)
         {

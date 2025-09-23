@@ -1,9 +1,12 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System;
 
 public class MenuSkill : MonoBehaviour
 {
+
+
     [Header("Refs")]
     [SerializeField] private Image backgroundImage;
     [SerializeField] private TextMeshProUGUI skillHeaderText;
@@ -17,6 +20,13 @@ public class MenuSkill : MonoBehaviour
     [Header("Icons")]
     [SerializeField] private Sprite fragmentsIcon;
     [SerializeField] private Sprite coresIcon;
+
+    // assign these on the prefab so we don't search at runtime
+    [Header("Unlock UI (assign in prefab)")]
+    [SerializeField] private GameObject unlockPanel;
+    [SerializeField] private Button unlockButton;
+    [SerializeField] private TextMeshProUGUI unlockCostText;
+    [SerializeField] private Image unlockCostIcon;
 
     private string skillId;
     private ICurrencyWallet wallet;
@@ -280,5 +290,44 @@ public class MenuSkill : MonoBehaviour
             if (button) button.interactable = available >= capPreview.cost;
             if (currencyImage) currencyImage.enabled = true;
         }
+    }
+
+    // called from MainUpgradeScreen instead of doing Find
+    public void ShowUnlockUI(SkillDefinition def, PlayerManager pm, SkillService skillService, Action onUnlocked = null)
+    {
+        if (unlockPanel) unlockPanel.SetActive(true);
+        if (unlockCostIcon) unlockCostIcon.gameObject.SetActive(true);
+
+        float cost = Mathf.Max(0f, def.coresToUnlock);
+        if (unlockCostText)
+        {
+            unlockCostText.text = cost > 0f
+                ? ((Mathf.Approximately(cost, Mathf.Round(cost))) ? ((long)Mathf.Round(cost)).ToString() : NumberManager.FormatLargeNumber(cost)) + " Cores"
+                : "FREE";
+        }
+
+        if (unlockButton)
+        {
+            unlockButton.onClick.RemoveAllListeners();
+            unlockButton.onClick.AddListener(() =>
+            {
+                if (skillService.TryUnlockPersistent(def.id, pm.Wallet))
+                {
+                    onUnlocked?.Invoke();
+                }
+                else
+                {
+                    bool canAfford = skillService.CanUnlockPersistent(def.id, pm.Wallet);
+                    if (unlockCostText) unlockCostText.color = canAfford ? Color.white : Color.red;
+                }
+            });
+
+            unlockButton.interactable = skillService.CanUnlockPersistent(def.id, pm.Wallet);
+        }
+    }
+
+    public void HideUnlockUI()
+    {
+        if (unlockPanel) unlockPanel.SetActive(false);
     }
 }
