@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Unity.Services.Authentication;
+using System.Threading.Tasks;
 
 public class AccountPanel : MonoBehaviour
 {
@@ -15,102 +16,56 @@ public class AccountPanel : MonoBehaviour
 
     [Header("Options")]
     [SerializeField] private bool autoHideIfLinked = false;
-    [SerializeField] private bool simulateGoogle = true;   // turn off after real setup
+    [SerializeField] private bool simulateGoogle = true;   // development stub
 
     private void Awake()
     {
-        if (linkGoogleButton)    linkGoogleButton.onClick.AddListener(OnLinkGoogle);
-        if (forceUploadButton)   forceUploadButton.onClick.AddListener(() => CloudSyncService.main?.ForceUploadNow());
+        if (linkGoogleButton) linkGoogleButton.onClick.AddListener(OnLinkGoogleClicked);
+        if (forceUploadButton) forceUploadButton.onClick.AddListener(() => CloudSyncService.main?.ForceUploadNow());
         if (forceDownloadButton) forceDownloadButton.onClick.AddListener(() => CloudSyncService.main?.ForceDownloadNow());
-        if (refreshButton)       refreshButton.onClick.AddListener(Refresh);
-        if (signOutButton)       signOutButton.onClick.AddListener(DebugSignOut);
+        if (refreshButton) refreshButton.onClick.AddListener(Refresh);
+        if (signOutButton) signOutButton.onClick.AddListener(OnSignOutClicked);
     }
 
     private void OnEnable() => Refresh();
 
-    public void Refresh()
+    private void Refresh()
     {
-        if (GameServicesInitializer.main == null)
-        {
-            SetStatus("Auth system not present.");
-            SetInteractable(false);
-            return;
-        }
+        if (AuthenticationService.Instance != null && AuthenticationService.Instance.IsSignedIn)
+            statusText.text = $"Signed in: {AuthenticationService.Instance.PlayerId}";
+        else
+            statusText.text = "Not signed in (editor placeholder)";
 
-        if (!GameServicesInitializer.main.SignedIn)
-        {
-            SetStatus("Signing in...");
-            SetInteractable(false);
-            return;
-        }
-
-        var playerId = AuthenticationService.Instance.PlayerId;
-        bool googleLinked = GameServicesInitializer.main.HasProvider(GameServicesInitializer.ProviderGooglePlayGames);
-
-        SetStatus(googleLinked
-            ? $"Linked: Google\nPlayerId:\n{playerId}"
-            : $"Guest (Not Linked)\nPlayerId:\n{playerId}");
-
-        if (linkGoogleButton) linkGoogleButton.interactable = !googleLinked;
-        if (autoHideIfLinked && googleLinked) gameObject.SetActive(false);
-        SetInteractable(true);
+        if (autoHideIfLinked && AuthenticationService.Instance != null && AuthenticationService.Instance.IsSignedIn)
+            gameObject.SetActive(false);
     }
 
-    private void SetStatus(string txt)
+    // Development-friendly stub: no native Google Play calls here.
+    private async void OnLinkGoogleClicked()
     {
-        if (statusText) statusText.text = txt;
-    }
-
-    private void SetInteractable(bool state)
-    {
-        if (linkGoogleButton)    linkGoogleButton.interactable = state && linkGoogleButton.interactable;
-        if (forceUploadButton)   forceUploadButton.interactable = state;
-        if (forceDownloadButton) forceDownloadButton.interactable = state;
-        if (refreshButton)       refreshButton.interactable = state;
-        if (signOutButton)       signOutButton.interactable = state;
-    }
-
-    private async void OnLinkGoogle()
-    {
-        if (GameServicesInitializer.main == null) return;
-
-        // TODO: integrate actual Google Play Games SDK to get a server auth code
-        string serverAuthCode = await AcquireGoogleServerAuthCode();
-        if (string.IsNullOrEmpty(serverAuthCode))
-        {
-            SetStatus("Google auth code failed (stub).");
-            return;
-        }
-
-        SetStatus("Linking Google...");
-        bool ok = await GameServicesInitializer.main.LinkGoogle(serverAuthCode);
-        SetStatus(ok ? "Google linked." : "Link failed.");
-        Refresh();
-    }
-
-    private async System.Threading.Tasks.Task<string> AcquireGoogleServerAuthCode()
-    {
-#if UNITY_ANDROID && !UNITY_EDITOR
-        if (!simulateGoogle)
-        {
-            var (ok, code) = await GooglePlayAuthBridge.SignInAndGetServerAuthCode();
-            return ok ? code : "";
-        }
-#endif
         if (simulateGoogle)
         {
-            await System.Threading.Tasks.Task.Delay(200);
-            return "SIMULATED_AUTH_CODE";
+            // simulate a successful link (editor/dev)
+            statusText.text = "Google Link: simulated (dev)";
+            // Optionally trigger a cloud sync sign-in flow or set flags here
+            return;
         }
-        return "";
+
+        // If you later add real Android bridge, implement guarded call here:
+        // #if UNITY_ANDROID
+        //    var (ok, code) = await GooglePlayAuthBridge.SignInAndGetServerAuthCode();
+        //    if (ok) { /* handle code */ }
+        // #endif
+
+        statusText.text = "Google linking not implemented in editor build.";
     }
 
-    private void DebugSignOut()
+    private void OnSignOutClicked()
     {
-        if (AuthenticationService.Instance.IsSignedIn)
+        if (AuthenticationService.Instance != null && AuthenticationService.Instance.IsSignedIn)
         {
             AuthenticationService.Instance.SignOut();
-            SetStatus("Signed out (debug). Restart auth flow.");
+            statusText.text = "Signed out (editor)";
         }
     }
 }

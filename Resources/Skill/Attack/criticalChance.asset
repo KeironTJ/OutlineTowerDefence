@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: Critical Chance
   displayName: Critical Chance
+  description: 
   category: 0
   startsUnlocked: 0
+  upgradableInRound: 1
   maxLevel: 99
   maxResearchLevel: 99
   baseValue: 1
@@ -23,7 +25,8 @@ MonoBehaviour:
   baseFragmentsCost: 5
   baseCoresCost: 10
   prerequisiteSkillId: 
-  coresToUnlock: 1
+  coresToUnlock: 1000
+  requiredTurretId: 
   valueCurve: 0
   valueGrowth: 1
   fragmentsCostCurve: 1

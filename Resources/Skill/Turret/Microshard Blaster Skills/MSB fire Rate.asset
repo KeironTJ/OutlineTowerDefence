@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: MSB Attack Speed Multiplier
   description: TEST
   category: 3
-  startsUnlocked: 1
+  startsUnlocked: 0
   upgradableInRound: 1
   maxLevel: 50
   maxResearchLevel: 10

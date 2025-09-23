@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: MSB Rotation Speed Multiplier
   description: 
   category: 3
-  startsUnlocked: 1
+  startsUnlocked: 0
   upgradableInRound: 1
   maxLevel: 50
   maxResearchLevel: 10

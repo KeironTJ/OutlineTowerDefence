@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: Attack Speed
   displayName: Attack Speed
+  description: 
   category: 0
   startsUnlocked: 1
+  upgradableInRound: 1
   maxLevel: 100
   maxResearchLevel: 99
   baseValue: 1
@@ -24,6 +26,7 @@ MonoBehaviour:
   baseCoresCost: 40
   prerequisiteSkillId: 
   coresToUnlock: 500
+  requiredTurretId: 
   valueCurve: 4
   valueGrowth: 0.1
   fragmentsCostCurve: 1

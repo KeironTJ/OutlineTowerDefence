@@ -16,7 +16,7 @@ MonoBehaviour:
   tier: 0
   family: Scout
   traits: 1
-  unlockWave: 10
+  unlockWave: 5
   replaceFamilyFromWave: 0
   weightByWave:
     serializedVersion: 2
@@ -49,7 +49,7 @@ MonoBehaviour:
   baseDamage: 1
   damageInterval: 1
   baseFragments: 2
-  baseCores: 0
+  baseCores: 1
   basePrisms: 0
   baseLoops: 0
   scalingProfile: 2

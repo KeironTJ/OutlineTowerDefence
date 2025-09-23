@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections; // added for IEnumerator
 using UnityEngine;
 
 public class PlayerManager : MonoBehaviour
@@ -22,6 +23,8 @@ public class PlayerManager : MonoBehaviour
 
     private bool initialized;
     private readonly Dictionary<string,int> enemyDestructionCounts = new();
+
+    private Coroutine cloudWaitCoroutine; // added
 
     public bool IsInitialized => initialized;
 
@@ -104,21 +107,9 @@ public class PlayerManager : MonoBehaviour
         if (SaveManager.main != null)
             SaveManager.main.OnAfterLoad += OnSaveLoaded;
 
-        // CloudSyncService already calls ForceResyncFromCurrentSave() on adopt,
-        // but subscribe as a fallback if you want to trigger a refresh when SyncCompleted fires.
-        if (CloudSyncService.main != null)
-        {
-            CloudSyncService.main.SyncCompleted.ContinueWith(_ =>
-            {
-                // ensure main thread: schedule a Unity thread action
-                // here we assume ForceResyncFromCurrentSave is safe to call from Unity thread only.
-                // If ContinueWith runs off-thread you can set a flag and call ForceResyncFromCurrentSave in Update().
-                UnityEngine.WSA.Application.InvokeOnAppThread(() =>
-                {
-                    ForceResyncFromCurrentSave();
-                }, false);
-            });
-        }
+        // start coroutine to wait for cloud adoption completion on the Unity thread
+        if (cloudWaitCoroutine == null)
+            cloudWaitCoroutine = StartCoroutine(WaitForCloudAdoptionAndResync());
 
         EventManager.StartListening(EventNames.EnemyDestroyedDefinition, OnEnemyDestroyedDefinition);
         EventManager.StartListening(EventNames.RoundRecordCreated, new Action<object>(OnRoundRecordUpdated));
@@ -128,15 +119,44 @@ public class PlayerManager : MonoBehaviour
 
     private void OnDisable()
     {
-
         if (SaveManager.main != null)
             SaveManager.main.OnAfterLoad -= OnSaveLoaded;
+
+        // stop the cloud wait coroutine if running
+        if (cloudWaitCoroutine != null)
+        {
+            StopCoroutine(cloudWaitCoroutine);
+            cloudWaitCoroutine = null;
+        }
 
         // Unsubscribe from the EnemyDestroyed event via EventManager
         EventManager.StopListening(EventNames.EnemyDestroyedDefinition, OnEnemyDestroyedDefinition);
         EventManager.StopListening(EventNames.RoundRecordCreated, new Action<object>(OnRoundRecordUpdated));
         EventManager.StopListening(EventNames.WaveCompleted, new Action<object>(OnWaveCompleted));
         EventManager.StopListening(EventNames.RoundEnded, new Action<object>(OnRoundEnded));
+    }
+
+    private IEnumerator WaitForCloudAdoptionAndResync()
+    {
+        // wait for CloudSyncService to exist
+        while (CloudSyncService.main == null)
+            yield return null;
+
+        var cloud = CloudSyncService.main;
+
+        // prefer explicit Task if available, otherwise poll the completion flag
+        float timeout = 8f;
+        float start = Time.unscaledTime;
+        while (!(cloud.InitialAdoptCompleted || (cloud.SyncCompleted != null && cloud.SyncCompleted.IsCompleted)) &&
+               Time.unscaledTime - start < timeout)
+        {
+            yield return null;
+        }
+
+        // resync on main thread
+        ForceResyncFromCurrentSave();
+
+        cloudWaitCoroutine = null;
     }
 
     private void QueueSave() => SaveManager.main?.QueueImmediateSave();

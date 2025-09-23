@@ -49,7 +49,7 @@ MonoBehaviour:
   baseDamage: 2
   damageInterval: 1
   baseFragments: 4
-  baseCores: 0
+  baseCores: 2
   basePrisms: 0
   baseLoops: 0
   scalingProfile: 1

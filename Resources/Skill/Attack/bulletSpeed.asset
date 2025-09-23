@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: Bullet Speed
   displayName: Bullet Speed
+  description: 
   category: 0
   startsUnlocked: 0
+  upgradableInRound: 1
   maxLevel: 16
   maxResearchLevel: 10
   baseValue: 6
@@ -23,7 +25,8 @@ MonoBehaviour:
   baseFragmentsCost: 500
   baseCoresCost: 1000
   prerequisiteSkillId: Critical Multiplier
-  coresToUnlock: 5000
+  coresToUnlock: 50000
+  requiredTurretId: 
   valueCurve: 1
   valueGrowth: 1.1
   fragmentsCostCurve: 0
