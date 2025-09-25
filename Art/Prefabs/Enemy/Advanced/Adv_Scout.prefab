@@ -30,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 5.56, y: 5.84, z: 0}
-  m_LocalScale: {x: 0.4, y: 0.4, z: 1}
+  m_LocalScale: {x: 0.2, y: 0.8, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -193,7 +193,8 @@ MonoBehaviour:
   rewardCores: 0
   rewardPrisms: 0
   rewardLoops: 0
-  type: 1
-  subtype: 1
-  deathEffectPrefab: {fileID: 4495084802596646429, guid: 10fb575e932fcb54c8d75e89b9f916d4, type: 3}
   definitionId: 
+  cachedTier: 0
+  cachedFamily: 
+  cachedTraits: 0
+  deathEffectPrefab: {fileID: 4495084802596646429, guid: 10fb575e932fcb54c8d75e89b9f916d4, type: 3}

@@ -10,13 +10,13 @@ GameObject:
   m_Component:
   - component: {fileID: 6144321762093960639}
   - component: {fileID: 5298577608715944579}
-  - component: {fileID: 76966599065338782}
-  - component: {fileID: 4906587990935971561}
+  - component: {fileID: 7764929145050514648}
+  - component: {fileID: 6812287195921597885}
   - component: {fileID: 6157140753299713342}
   m_Layer: 8
-  m_Name: Elite_Scout
+  m_Name: Basic_Boss_Leader
   m_TagString: Untagged
-  m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
+  m_Icon: {fileID: -1412012063857583412, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -30,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 5.56, y: 5.84, z: 0}
-  m_LocalScale: {x: 0.2, y: 0.8, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -79,8 +79,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 3625043607559282579, guid: 045b15ec09bba42448d89db77fa6f20a, type: 3}
-  m_Color: {r: 1, g: 0.047517993, b: 0, a: 1}
+  m_Sprite: {fileID: 2747690628134850419, guid: a9716c16a44a94eed9b5c90fbf4d9bdd, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -90,7 +90,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!50 &76966599065338782
+--- !u!50 &7764929145050514648
 Rigidbody2D:
   serializedVersion: 5
   m_ObjectHideFlags: 0
@@ -100,7 +100,7 @@ Rigidbody2D:
   m_GameObject: {fileID: 913476891759774307}
   m_BodyType: 0
   m_Simulated: 1
-  m_UseFullKinematicContacts: 0
+  m_UseFullKinematicContacts: 1
   m_UseAutoMass: 0
   m_Mass: 1
   m_LinearDamping: 0
@@ -117,7 +117,7 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 0
---- !u!60 &4906587990935971561
+--- !u!60 &6812287195921597885
 PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -155,7 +155,7 @@ PolygonCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 0.5}
+    oldSize: {x: 1, y: 0.8828125}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -163,14 +163,33 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: -0.02734375, y: 0.25}
-      - {x: -0.5, y: 0.02734375}
-      - {x: -0.5, y: -0.015625}
-      - {x: -0.0703125, y: -0.25}
-      - {x: 0.02734375, y: -0.25}
+    - - {x: 0.3671875, y: -0.26171875}
+      - {x: 0.39453125, y: -0.21484375}
+      - {x: 0.42578125, y: -0.16015625}
+      - {x: 0.484375, y: -0.05859375}
       - {x: 0.5, y: -0.02734375}
-      - {x: 0.5, y: 0.015625}
-      - {x: 0.0703125, y: 0.25}
+      - {x: 0.5, y: 0.03125}
+      - {x: 0.484375, y: 0.05859375}
+      - {x: 0.3671875, y: 0.26171875}
+      - {x: 0.265625, y: 0.4375}
+      - {x: 0.2578125, y: 0.44140625}
+      - {x: -0.2578125, y: 0.44140625}
+      - {x: -0.265625, y: 0.4375}
+      - {x: -0.29296875, y: 0.390625}
+      - {x: -0.30859375, y: 0.36328125}
+      - {x: -0.3671875, y: 0.26171875}
+      - {x: -0.39453125, y: 0.21484375}
+      - {x: -0.42578125, y: 0.16015625}
+      - {x: -0.5, y: 0.03125}
+      - {x: -0.5, y: -0.03125}
+      - {x: -0.484375, y: -0.05859375}
+      - {x: -0.41015625, y: -0.1875}
+      - {x: -0.265625, y: -0.4375}
+      - {x: -0.2578125, y: -0.44140625}
+      - {x: 0.2578125, y: -0.44140625}
+      - {x: 0.265625, y: -0.4375}
+      - {x: 0.29296875, y: -0.390625}
+      - {x: 0.30859375, y: -0.36328125}
   m_UseDelaunayMesh: 0
 --- !u!114 &6157140753299713342
 MonoBehaviour:
@@ -184,17 +203,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e8a8318b57e9ac4a99a215e3cc88184, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rb: {fileID: 76966599065338782}
+  rb: {fileID: 7764929145050514648}
   health: 0
   moveSpeed: 0
-  attackDamage: 0
-  damageInterval: 0
+  attackDamage: 1
+  damageInterval: 1
   rewardFragments: 0
   rewardCores: 0
   rewardPrisms: 0
   rewardLoops: 0
   definitionId: 
-  cachedTier: 0
+  cachedTier: 3
   cachedFamily: 
   cachedTraits: 0
   deathEffectPrefab: {fileID: 4495084802596646429, guid: 10fb575e932fcb54c8d75e89b9f916d4, type: 3}

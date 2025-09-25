@@ -68,6 +68,11 @@ public class Enemy : MonoBehaviour, IEnemyRuntime
     {
         if (!tower || !target) return;
         Vector2 dir = (target.position - transform.position).normalized;
+
+        // Face the tower – sprites are authored pointing up, so align transform.up with the target direction
+        if (dir.sqrMagnitude > 0.0001f)
+            transform.up = dir;
+
 #if UNITY_2022_2_OR_NEWER
         if (rb) rb.linearVelocity = dir * moveSpeed;
 #else
@@ -149,6 +154,11 @@ public class Enemy : MonoBehaviour, IEnemyRuntime
                 EmitCurrencyParticles(ps, rewardLoops,     GetCurrencyColor(CurrencyType.Loops));
             }
         }
+
+        // ensure immediate removal from live threat tracking so UI updates instantly
+        if (EnemyManager.Instance != null)
+            EnemyManager.Instance.UnregisterEnemy(gameObject);
+
         Destroy(gameObject);
     }
 
@@ -179,4 +189,5 @@ public class Enemy : MonoBehaviour, IEnemyRuntime
     public int Cores => rewardCores;
     public int Prisms => rewardPrisms;
     public int Loops => rewardLoops;
+
 }

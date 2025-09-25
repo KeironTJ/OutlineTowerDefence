@@ -49,6 +49,8 @@ public class WaveManager : MonoBehaviour
     public float TimeProgress => isWaveActive && currentWaveTotalDuration > 0f
         ? 1f - (GetWaveTimeRemaining() / currentWaveTotalDuration) : 0f;
 
+    private float currentWaveBudget = 0f; // total budget for the current wave
+
     public void StartWaveSystem(EnemySpawner spawner, Tower coreTower)
     {
         if (loopRoutine != null) StopCoroutine(loopRoutine);
@@ -128,6 +130,9 @@ public class WaveManager : MonoBehaviour
 
         float duration = roundType.GetWaveDuration(currentWave);
         float totalBudget = roundType.GetBudget(currentWave);
+
+        // store total budget for threat calculations / UI
+        currentWaveBudget = Mathf.Max(0.0001f, totalBudget);
 
         EnemyRosterBuilder.BuildTierPools(currentWave, enemyTypes, poolBasic, poolAdv, poolElite);
 
@@ -211,10 +216,19 @@ public class WaveManager : MonoBehaviour
             Debug.LogWarning($"[WaveManager] Prefab '{def.prefab.name}' missing IEnemyRuntime.");
             return;
         }
+
         def.ApplyToRuntime(currentWaveContext, runtime);
         runtime.SetTarget(tower);
         var enemyCmp = go.GetComponent<Enemy>();
         if (enemyCmp) enemyCmp.SetDefinitionId(def.id);
+
+        // Register spawned enemy with EnemyManager using budgetCost scaled by current health multiplier
+        float healthMult = 1f;
+        if (!currentWaveContext.Equals(default(WaveContext)))
+            healthMult = currentWaveContext.healthMult;
+        float threatValue = def.budgetCost * healthMult;
+        if (EnemyManager.Instance != null)
+            EnemyManager.Instance.RegisterEnemy(go, threatValue);
     }
 
     private void SpawnBossNow(EnemySpawner spawner, Tower tower)
@@ -287,4 +301,55 @@ public class WaveManager : MonoBehaviour
     }
 
     public EnemyTypeDefinition[] EnemyDefinitions => enemyTypes;
+
+    // Add or update helper APIs for threat to include active enemies
+    public float GetRemainingScheduledBudget()
+    {
+        if (schedule == null || schedule.Count == 0) return 0f;
+        float remaining = 0f;
+        for (int i = scheduleIndex; i < schedule.Count; i++)
+            remaining += Mathf.Max(0f, schedule[i].enemy?.budgetCost ?? 0f);
+        return remaining;
+    }
+
+    public float GetCurrentWaveBudget() => currentWaveBudget;
+
+    /// <summary>
+    /// Returns the current active threat, scheduled (incoming) threat, and total budget baseline.
+    /// </summary>
+    public void GetThreatSnapshot(out float activeThreat, out float scheduledThreat, out float totalBudget)
+    {
+        activeThreat = EnemyManager.Instance != null ? EnemyManager.Instance.GetActiveThreat() : 0f;
+        scheduledThreat = GetRemainingScheduledBudget();
+        totalBudget = Mathf.Max(0.0001f, currentWaveBudget);
+
+        // If budget is smaller than the sum (e.g. promotions), clamp up so UI stays 0..100%
+        float combined = activeThreat + scheduledThreat;
+        if (combined > totalBudget) totalBudget = combined;
+    }
+
+    public float GetThreatNormalized() => GetThreatRemainingNormalized();
+
+    public float GetThreatRemainingNormalized()
+    {
+        float total = currentWaveBudget;
+        if (total <= 0f) return 0f;
+        float active = EnemyManager.Instance != null ? EnemyManager.Instance.GetActiveThreat() : 0f;
+        float scheduled = GetRemainingScheduledBudget();
+        return Mathf.Clamp01((active + scheduled) / total);
+    }
+
+    public float GetActiveThreatNormalized()
+    {
+        float total = currentWaveBudget;
+        if (total <= 0f) return 0f;
+        float active = EnemyManager.Instance != null ? EnemyManager.Instance.GetActiveThreat() : 0f;
+        return Mathf.Clamp01(active / total);
+    }
+
+    public float GetActiveThreatAbsolute() =>
+        EnemyManager.Instance != null ? EnemyManager.Instance.GetActiveThreat() : 0f;
+
+    public float GetRemainingThreatAbsolute() =>
+        GetRemainingScheduledBudget() + GetActiveThreatAbsolute();
 }
