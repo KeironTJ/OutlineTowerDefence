@@ -149,7 +149,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainSceneName: MainMenu
-  minShowSeconds: 1
+  minShowSeconds: 0.5
   progressBar: {fileID: 1811329750}
   statusText: {fileID: 2112000732}
   cloudWaitTimeoutSeconds: 8

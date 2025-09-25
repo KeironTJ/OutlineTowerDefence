@@ -4,9 +4,6 @@ using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
-    [Header("Boss Prefabs (direct)")]
-    [SerializeField] private GameObject[] bossPrefabs;
-
     [Header("Spawn Area (Off-Screen)")]
     [Tooltip("Extra world units beyond the camera bounds to spawn enemies.")]
     [SerializeField] private float offscreenPadding = 2f;
@@ -25,16 +22,6 @@ public class EnemySpawner : MonoBehaviour
         if (!prefab) return null;
         Vector3 pos = GetRandomSpawnPosition(tower ? tower.transform.position : transform.position);
         return Instantiate(prefab, pos, Quaternion.identity);
-    }
-
-    public void SpawnBossEnemy(Tower tower, float healthModifier, float moveSpeedModifier, float attackDamageModifier)
-    {
-        if (bossPrefabs == null || bossPrefabs.Length == 0) return;
-        var prefab = bossPrefabs[Random.Range(0, bossPrefabs.Length)];
-        var go = Instantiate(prefab, GetRandomSpawnPosition(tower ? tower.transform.position : transform.position), Quaternion.identity);
-        var runtime = go.GetComponent<IEnemyRuntime>();
-        if (runtime != null && tower)
-            runtime.SetTarget(tower);
     }
 
     private Vector3 GetRandomSpawnPosition(Vector3 center)

@@ -4752,6 +4752,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2979f7f5f868ed847a5c09f6fed881c2, type: 2}
   - {fileID: 11400000, guid: 646198679081a8344ac74dfd5db34678, type: 2}
   - {fileID: 11400000, guid: eec3410a35e272548a1f69feb0f75647, type: 2}
+  - {fileID: 11400000, guid: 30f7fcb145e25b84e83d7871eaf2dc13, type: 2}
   tierShareConfig: {fileID: 11400000, guid: 9e9c746fa20946f4ebcd3ebe4e649f9e, type: 2}
   baseSeed: 12345
   currentWave: 0
@@ -4786,8 +4787,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e13e6db2aeb7db4b932b83e149b76a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bossPrefabs:
-  - {fileID: 913476891759774307, guid: 4ccb980b10b4e9744861d711e9924527, type: 3}
+  offscreenPadding: 2
+  fallbackRadius: 25
+  minDistanceFromTower: 8
+  fixedZ: 0
+  debugGizmos: 0
 --- !u!114 &1226402245
 MonoBehaviour:
   m_ObjectHideFlags: 0

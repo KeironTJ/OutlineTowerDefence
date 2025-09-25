@@ -219,9 +219,47 @@ public class WaveManager : MonoBehaviour
 
     private void SpawnBossNow(EnemySpawner spawner, Tower tower)
     {
-        float hMult = currentWaveContext.healthMult * roundType.bossHealthMultiplier;
-        float dmgMult = currentWaveContext.damageMult;
-        spawner.SpawnBossEnemy(tower, hMult, currentWaveContext.speedMult, dmgMult);
+        // find boss definitions in the configured list
+        var bosses = System.Array.FindAll(enemyTypes, e => e != null && e.tier == EnemyTier.Boss);
+        if (bosses == null || bosses.Length == 0)
+        {
+            Debug.LogWarning("[WaveManager] No Boss-type EnemyTypeDefinition found in enemyTypes array. Falling back to SpawnBossEnemy.");
+            return;
+        }
+
+        var def = bosses[Random.Range(0, bosses.Length)];
+        if (!def || def.prefab == null)
+        {
+            Debug.LogWarning("[WaveManager] Selected boss definition missing prefab.");
+            return;
+        }
+
+        var go = spawner.SpawnEnemy(def.prefab, tower);
+        if (!go) return;
+
+        var runtime = go.GetComponent<IEnemyRuntime>();
+        if (runtime == null)
+        {
+            Debug.LogWarning($"[WaveManager] Boss prefab '{def.prefab.name}' missing IEnemyRuntime.");
+            return;
+        }
+
+        // Build a temporary WaveContext for boss scaling (reuse currentWaveContext.rng etc.)
+        var bossContext = new WaveContext
+        {
+            wave = currentWave,
+            healthMult = currentWaveContext.healthMult * roundType.bossHealthMultiplier,
+            speedMult  = currentWaveContext.speedMult,
+            damageMult = currentWaveContext.damageMult,
+            rng        = currentWaveContext.rng,
+            eliteChance = currentWaveContext.eliteChance
+        };
+
+        def.ApplyToRuntime(bossContext, runtime);
+        runtime.SetTarget(tower);
+
+        var enemyCmp = go.GetComponent<Enemy>();
+        if (enemyCmp) enemyCmp.SetDefinitionId(def.id);
     }
 
     public void EndAllWaves()
