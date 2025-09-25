@@ -27,8 +27,8 @@ public class RoundType : ScriptableObject
 
     [Header("Boss")]
     public int bossEvery = 10;
-    public float bossHealthMultiplier = 40f;
-    public float bossRewardMultiplier = 25f;
+    public float bossHealthMultiplier = 1.1f;
+    public float bossRewardMultiplier = 1.1f;
 
     [Header("Elites")]
     public AnimationCurve eliteChanceCurve = AnimationCurve.Linear(1, 0f, 100, 0.3f);

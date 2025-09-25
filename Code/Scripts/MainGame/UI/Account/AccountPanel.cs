@@ -40,23 +40,20 @@ public class AccountPanel : MonoBehaviour
             gameObject.SetActive(false);
     }
 
-    // Development-friendly stub: no native Google Play calls here.
+    // Called from UI
     private async void OnLinkGoogleClicked()
     {
+        // ensure method stays asynchronous (prevents CS1998 in editor/dev stub)
+        await Task.Yield();
+
         if (simulateGoogle)
         {
             // simulate a successful link (editor/dev)
             statusText.text = "Google Link: simulated (dev)";
-            // Optionally trigger a cloud sync sign-in flow or set flags here
             return;
         }
 
-        // If you later add real Android bridge, implement guarded call here:
-        // #if UNITY_ANDROID
-        //    var (ok, code) = await GooglePlayAuthBridge.SignInAndGetServerAuthCode();
-        //    if (ok) { /* handle code */ }
-        // #endif
-
+        // real platform path (guarded when added)
         statusText.text = "Google linking not implemented in editor build.";
     }
 

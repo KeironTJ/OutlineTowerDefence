@@ -106,11 +106,33 @@ public class RoundStatsView : MonoBehaviour
             AddStatRow(c.type.ToString(), NumberManager.FormatLargeNumber(c.amount));
 
         // Enemy breakdown section
-        AddHeaderRow("Enemies Destroyed",NumberManager.FormatLargeNumber(record.enemiesKilled, true));
-        foreach (var k in record.enemyKills)
+        AddHeaderRow("Enemies Destroyed", NumberManager.FormatLargeNumber(record.enemiesKilled, true));
+
+        var kills = record.enemyKills != null
+            ? record.enemyKills.ConvertAll(k => new EnemyKillEntry { definitionId = k.definitionId, tier = k.tier, count = k.count })
+            : new List<EnemyKillEntry>();
+
+        if (record.enemiesKilled == 0)
         {
-            // Example line: "{definitionId} x{count}"
-            AddStatRow($"{k.definitionId}", NumberManager.FormatLargeNumber(k.count, true));
+            AddStatRow("No kills recorded", "-");
+            return;
+        }
+
+        // Group by tier, then list each definition (ordered by count desc)
+        foreach (var tierGroup in kills
+                    .GroupBy(k => k.tier)
+                    .OrderBy(g => g.Key)) // basic -> boss (enum order)
+        {
+            int tierTotal = tierGroup.Sum(k => k.count);
+            AddHeaderRow(tierGroup.Key.ToString(), NumberManager.FormatLargeNumber(tierTotal, true), true);
+
+            foreach (var entry in tierGroup
+                            .OrderByDescending(e => e.count)
+                            .ThenBy(e => e.definitionId))
+            {
+                AddStatRow(entry.definitionId,
+                    NumberManager.FormatLargeNumber(entry.count, true));
+            }
         }
     }
 

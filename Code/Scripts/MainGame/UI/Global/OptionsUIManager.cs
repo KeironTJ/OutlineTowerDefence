@@ -112,7 +112,7 @@ public class OptionsUIManager : MonoBehaviour
     public void OnRewardsButton()
     {
         if (rewardsController == null)
-            rewardsController = FindObjectOfType<RewardsUIController>();
+            rewardsController = FindFirstObjectByType<RewardsUIController>();
         if (rewardsController != null)
             rewardsController.Toggle();
         else

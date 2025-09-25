@@ -38,7 +38,7 @@ public class RewardsUIController : MonoBehaviour
             Transform parent = uiParent;
             if (parent == null)
             {
-                var canv = FindObjectOfType<Canvas>();
+                var canv = FindFirstObjectByType<Canvas>();
                 if (canv != null) parent = canv.transform;
             }
 

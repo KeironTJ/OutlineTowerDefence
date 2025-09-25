@@ -390,7 +390,7 @@ public class DailyObjectiveManager : MonoBehaviour
         EnsureInitIfNeeded();
         if (data is not EnemyDestroyedDefinitionEvent e) return;
 
-        bool anyMatched = false;
+        // 'anyMatched' not required here — remove to silence warning
 
         foreach (var rt in activeDaily)
         {
@@ -403,7 +403,7 @@ public class DailyObjectiveManager : MonoBehaviour
             if (match)
             {
                 Progress(rt, 1f);
-                anyMatched = true;
+                //anyMatched = true;
             }
         }
     }

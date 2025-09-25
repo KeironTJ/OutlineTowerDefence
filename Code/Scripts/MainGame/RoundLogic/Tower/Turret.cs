@@ -148,7 +148,7 @@ public class Turret : MonoBehaviour
         runtimeRotationSpeed = baseRotationSpeed * turretRotationMultiplier;
 
         // diagnostics
-        Debug.Log($"[Turret] RecomputeRuntimeStats dmg={runtimeDamage:F2} fireRate={runtimeFireRate:F2} range={runtimeRange:F2} rotSpeed={runtimeRotationSpeed:F2}");
+        //Debug.Log($"[Turret] RecomputeRuntimeStats dmg={runtimeDamage:F2} fireRate={runtimeFireRate:F2} range={runtimeRange:F2} rotSpeed={runtimeRotationSpeed:F2}");
         // start ready to fire after stat recompute
         cooldownRemaining = 0f;
     }

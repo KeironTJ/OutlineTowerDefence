@@ -7,7 +7,6 @@ public class ThreatMeter : MonoBehaviour
 {
     [SerializeField] private Slider threatSlider;
     [SerializeField] private TextMeshProUGUI threatText;
-    [SerializeField] private float decayRate = 3f; // how quickly the slider decays when threat drops
     [SerializeField] private Color safeColor = new Color(0.2f, 0.8f, 0.3f);
     [SerializeField] private Color warningColor = new Color(0.95f, 0.75f, 0.25f);
     [SerializeField] private Color dangerColor = new Color(0.85f, 0.25f, 0.25f);
@@ -15,7 +14,7 @@ public class ThreatMeter : MonoBehaviour
     private float displayedValue;
 
     private Image sliderFill;
-    private float vel; // add near displayedValue
+    private float vel;
 
     private void Awake()
     {

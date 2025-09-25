@@ -48,6 +48,9 @@ public class Enemy : MonoBehaviour, IEnemyRuntime
         moveSpeed = speed;
         attackDamage = damage;
         this.damageInterval = damageInterval;
+
+        Debug.Log($"[Enemy] InitStats: H={health} S={speed} D={damage} DI={damageInterval}");
+
     }
 
     public void SetRewards(int fragments, int cores, int prisms, int loops)
@@ -56,6 +59,8 @@ public class Enemy : MonoBehaviour, IEnemyRuntime
         rewardCores = cores;
         rewardPrisms = prisms;
         rewardLoops = loops;
+
+        //Debug.Log($"[Enemy] SetRewards: Fragments={fragments} Cores={cores} Prisms={prisms} Loops={loops}");
     }
 
     public void SetTarget(Tower tower)
