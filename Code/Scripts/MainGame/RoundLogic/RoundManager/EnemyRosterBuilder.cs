@@ -74,4 +74,18 @@ public static class EnemyRosterBuilder
     }
 
     private static float Clamp01(float v) => v < 0f ? 0f : (v > 1f ? 1f : v);
+
+    public static EnemyTypeDefinition[] GetEligibleBosses(int wave, EnemyTypeDefinition[] all)
+    {
+        if (all == null) return System.Array.Empty<EnemyTypeDefinition>();
+        var list = new List<EnemyTypeDefinition>();
+        foreach (var def in all)
+        {
+            if (def == null) continue;
+            if (def.tier != EnemyTier.Boss) continue;
+            if (wave < def.unlockWave) continue;
+            list.Add(def);
+        }
+        return list.ToArray();
+    }
 }

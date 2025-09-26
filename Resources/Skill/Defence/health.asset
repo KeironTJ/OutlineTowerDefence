@@ -14,13 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: Health
   displayName: Health
+  description: 
   category: 1
   startsUnlocked: 1
+  upgradableInRound: 1
   maxLevel: 999
   maxResearchLevel: 99
   baseValue: 10
-  baseFragmentsCost: 7
+  valueFormat: 
+  baseFragmentsCost: 2
   baseCoresCost: 40
+  prerequisiteSkillId: 
+  coresToUnlock: 500
+  requiredTurretId: 
   valueCurve: 1
   valueGrowth: 1.2
   fragmentsCostCurve: 1

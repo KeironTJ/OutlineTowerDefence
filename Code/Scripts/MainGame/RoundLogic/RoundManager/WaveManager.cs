@@ -234,10 +234,11 @@ public class WaveManager : MonoBehaviour
     private void SpawnBossNow(EnemySpawner spawner, Tower tower)
     {
         // find boss definitions in the configured list
-        var bosses = System.Array.FindAll(enemyTypes, e => e != null && e.tier == EnemyTier.Boss);
+        var bosses = EnemyRosterBuilder.GetEligibleBosses(currentWave, enemyTypes);
+
         if (bosses == null || bosses.Length == 0)
         {
-            Debug.LogWarning("[WaveManager] No Boss-type EnemyTypeDefinition found in enemyTypes array. Falling back to SpawnBossEnemy.");
+            Debug.LogWarning("[WaveManager] No eligible Boss-type EnemyTypeDefinition found for this wave.");
             return;
         }
 
@@ -258,16 +259,9 @@ public class WaveManager : MonoBehaviour
             return;
         }
 
-        // Build a temporary WaveContext for boss scaling (reuse currentWaveContext.rng etc.)
-        var bossContext = new WaveContext
-        {
-            wave = currentWave,
-            healthMult = currentWaveContext.healthMult * roundType.bossHealthMultiplier,
-            speedMult  = currentWaveContext.speedMult,
-            damageMult = currentWaveContext.damageMult,
-            rng        = currentWaveContext.rng,
-            eliteChance = currentWaveContext.eliteChance
-        };
+        // Use the same WaveContext as normal enemies so bosses scale identically
+        var bossContext = currentWaveContext;
+        bossContext.wave = currentWave;
 
         def.ApplyToRuntime(bossContext, runtime);
         runtime.SetTarget(tower);
