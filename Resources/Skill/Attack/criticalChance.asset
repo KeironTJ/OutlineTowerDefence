@@ -24,8 +24,8 @@ MonoBehaviour:
   valueFormat: '%'
   baseFragmentsCost: 5
   baseCoresCost: 10
-  prerequisiteSkillId: 
-  coresToUnlock: 1000
+  prerequisiteSkillId: Targeting Range
+  coresToUnlock: 100
   requiredTurretId: 
   valueCurve: 0
   valueGrowth: 1

@@ -16,7 +16,7 @@ MonoBehaviour:
   period: 0
   type: 0
   rarity: 0
-  targetAmount: 250
+  targetAmount: 500
   anyEnemy: 0
   targetDefinitionId: 
   useTierFilter: 1
@@ -28,7 +28,7 @@ MonoBehaviour:
   currencyType: 1
   skillId: 
   rewardType: 1
-  rewardAmount: 1000
+  rewardAmount: 50
   manualClaim: 1
-  description: Destory 250 Basic Enemies.
+  description: Destory 500 Basic Enemies.
   debugMatch: 1

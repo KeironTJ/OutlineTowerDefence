@@ -31,9 +31,9 @@ public class PlayerData
     public string UUID;
     public string Username;
 
-    [Header("Tower Visuals")]
-    public List<string> unlockedTowerVisuals = new List<string>();
-    public string selectedTowerVisualId = "0001";
+    [Header("Tower Bases")]
+    public List<string> unlockedTowerBases = new List<string>();
+    public string selectedTowerBaseId = "0001";
 
     [Header("Turrets")]
     public List<string> unlockedTurretIds = new List<string>();
@@ -87,8 +87,8 @@ public class PlayerData
     {
         UUID = Guid.NewGuid().ToString();
         Username = UUID;
-        unlockedTowerVisuals = new List<string> { "0001", "0002", "0003" };
-        selectedTowerVisualId = "0001";
+        unlockedTowerBases = new List<string> { "0001", "0002", "0003" };
+        selectedTowerBaseId = "0001";
         unlockedTurretIds = new List<string> { "STD" };
         if (selectedTurretIds == null) selectedTurretIds = new List<string> { "", "", "", "" };
         selectedTurretIds[0] = "STD";

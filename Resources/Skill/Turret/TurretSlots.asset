@@ -23,7 +23,7 @@ MonoBehaviour:
   baseValue: 1
   valueFormat: 
   baseFragmentsCost: 0
-  baseCoresCost: 10000
+  baseCoresCost: 7500
   prerequisiteSkillId: 
   coresToUnlock: 0
   requiredTurretId: 

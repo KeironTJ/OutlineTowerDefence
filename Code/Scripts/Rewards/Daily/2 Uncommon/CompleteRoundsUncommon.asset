@@ -17,13 +17,18 @@ MonoBehaviour:
   type: 1
   rarity: 1
   targetAmount: 3
-  anyEnemyType: 0
-  enemyType: 0
-  anyEnemySubtype: 0
-  enemySubtype: 0
-  currencyType: 0
+  anyEnemy: 1
+  targetDefinitionId: 
+  useTierFilter: 0
+  targetTier: 0
+  useFamilyFilter: 0
+  targetFamily: 
+  useTraitFilter: 0
+  targetTraits: 0
+  currencyType: 1
   skillId: 
   rewardType: 1
-  rewardAmount: 2500
+  rewardAmount: 75
   manualClaim: 1
   description: 'Complete 3 Rounds. '
+  debugMatch: 0

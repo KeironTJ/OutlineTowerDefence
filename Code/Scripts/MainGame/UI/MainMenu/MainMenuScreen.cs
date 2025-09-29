@@ -10,8 +10,9 @@ public class MainMenuScreen : MonoBehaviour
     [Header("Player Information")]
     [SerializeField] private TextMeshProUGUI playerUsernameText;
 
-    [Header("Tower Visual")]
-    [SerializeField] private Image towerVisualImage;
+    [Header("Tower Base")]
+    [SerializeField] private Image towerBaseImage;
+    [SerializeField] private TextMeshProUGUI towerBaseDescription;
 
     [Header("Change Username Section")]
     [SerializeField] private GameObject changeUsernamePanel;
@@ -51,7 +52,7 @@ public class MainMenuScreen : MonoBehaviour
         SetPlayerDifficulty(1);
         TriggerDifficultyButtons();
 
-        SetTowerVisualImage();
+        SetTowerBaseImage();
 
         UpdateSlotButtons();
     }
@@ -59,7 +60,7 @@ public class MainMenuScreen : MonoBehaviour
     private void OnEnable()
     {
         DisplayPlayerUsername();
-        SetTowerVisualImage();
+        SetTowerBaseImage();
         UpdateSlotButtons();
     }
 
@@ -99,17 +100,18 @@ public class MainMenuScreen : MonoBehaviour
             changeUsernameErrorText.text = "Failed to update username.";
     }
 
-    // ================= TOWER VISUAL =================
-    public void SetTowerVisualImage()
+    // ================= TOWER BASE =================
+    public void SetTowerBaseImage()
     {
-        if (!towerVisualImage || playerManager?.playerData == null) return;
-        var selectedId = playerManager.playerData.selectedTowerVisualId;
-        var visuals = TowerVisualManager.Instance.allVisuals;
-        foreach (var v in visuals)
+        if (!towerBaseImage || playerManager?.playerData == null) return;
+        var selectedId = playerManager.playerData.selectedTowerBaseId;
+        var towerBases = TowerBaseManager.Instance.allBases;
+        foreach (var towerBase in towerBases)
         {
-            if (v.id == selectedId)
+            if (towerBase.id == selectedId)
             {
-                towerVisualImage.sprite = v.previewSprite;
+                towerBaseImage.sprite = towerBase.previewSprite;
+                towerBaseDescription.text = towerBase.description;
                 break;
             }
         }

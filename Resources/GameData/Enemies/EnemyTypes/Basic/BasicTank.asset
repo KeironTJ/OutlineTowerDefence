@@ -16,7 +16,7 @@ MonoBehaviour:
   tier: 0
   family: Tank
   traits: 2
-  unlockWave: 25
+  unlockWave: 20
   replaceFamilyFromWave: 0
   weightByWave:
     serializedVersion: 2
@@ -43,10 +43,10 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   prefab: {fileID: 913476891759774307, guid: d51f811bf23ebb74bb6bccd8f18c33c7, type: 3}
-  budgetCost: 4
-  baseHealth: 8
+  budgetCost: 3
+  baseHealth: 10
   baseSpeed: 0.75
-  baseDamage: 2
+  baseDamage: 1.25
   damageInterval: 1
   baseFragments: 4
   baseCores: 2

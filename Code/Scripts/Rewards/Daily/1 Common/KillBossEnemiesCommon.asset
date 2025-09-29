@@ -28,7 +28,7 @@ MonoBehaviour:
   currencyType: 1
   skillId: 
   rewardType: 1
-  rewardAmount: 1000
+  rewardAmount: 50
   manualClaim: 1
   description: Destroy 5 Bosses.
   debugMatch: 0

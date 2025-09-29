@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: Armor
   displayName: Armor
+  description: 
   category: 1
   startsUnlocked: 0
+  upgradableInRound: 1
   maxLevel: 99
   maxResearchLevel: 99
   baseValue: 1
@@ -23,7 +25,8 @@ MonoBehaviour:
   baseFragmentsCost: 5
   baseCoresCost: 10
   prerequisiteSkillId: 
-  coresToUnlock: 500
+  coresToUnlock: 50
+  requiredTurretId: 
   valueCurve: 4
   valueGrowth: 0.5
   fragmentsCostCurve: 1

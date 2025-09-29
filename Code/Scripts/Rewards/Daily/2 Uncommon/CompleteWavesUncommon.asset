@@ -16,14 +16,19 @@ MonoBehaviour:
   period: 0
   type: 2
   rarity: 1
-  targetAmount: 250
-  anyEnemyType: 0
-  enemyType: 0
-  anyEnemySubtype: 0
-  enemySubtype: 0
-  currencyType: 0
+  targetAmount: 150
+  anyEnemy: 1
+  targetDefinitionId: 
+  useTierFilter: 0
+  targetTier: 0
+  useFamilyFilter: 0
+  targetFamily: 
+  useTraitFilter: 0
+  targetTraits: 0
+  currencyType: 1
   skillId: 
   rewardType: 1
-  rewardAmount: 2500
+  rewardAmount: 75
   manualClaim: 1
-  description: Complete 250 Waves.
+  description: Complete 150 Waves.
+  debugMatch: 0

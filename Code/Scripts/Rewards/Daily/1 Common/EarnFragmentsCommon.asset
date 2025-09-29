@@ -16,14 +16,19 @@ MonoBehaviour:
   period: 0
   type: 5
   rarity: 0
-  targetAmount: 10000
-  anyEnemyType: 0
-  enemyType: 0
-  anyEnemySubtype: 0
-  enemySubtype: 0
+  targetAmount: 5000
+  anyEnemy: 1
+  targetDefinitionId: 
+  useTierFilter: 0
+  targetTier: 0
+  useFamilyFilter: 0
+  targetFamily: 
+  useTraitFilter: 0
+  targetTraits: 0
   currencyType: 0
   skillId: 
   rewardType: 1
-  rewardAmount: 1000
+  rewardAmount: 50
   manualClaim: 1
-  description: Earn 10k Fragments from killing enemies.
+  description: Earn 5k Fragments from killing enemies.
+  debugMatch: 0

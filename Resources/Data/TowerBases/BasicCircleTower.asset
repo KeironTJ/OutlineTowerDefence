@@ -9,12 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bdef8d1414dadfe48822a7684617996d, type: 3}
+  m_Script: {fileID: 11500000, guid: 0d5698ef7f07e934a80445bca4bb6fcc, type: 3}
   m_Name: BasicCircleTower
   m_EditorClassIdentifier: 
-  id: 0002
-  displayName: Basic Circle Tower
+  id: 0001
+  displayName: Basic Circle Base
+  description: A basic tower that holds 5 turrets. Meh..
   previewSprite: {fileID: -2413806693520163455, guid: 69da9ad0974ee2246bc386f1fca7d127, type: 3}
-  visualPrefab: {fileID: 3098058871314541354, guid: 0bcf26ca9b7b4cc439c0f2b86eb081e5, type: 3}
+  towerBasePrefab: {fileID: 3098058871314541354, guid: 0bcf26ca9b7b4cc439c0f2b86eb081e5, type: 3}
   unlockCost: 0
   isPurchasable: 0

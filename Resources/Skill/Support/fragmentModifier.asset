@@ -25,10 +25,10 @@ MonoBehaviour:
   baseFragmentsCost: 5
   baseCoresCost: 10
   prerequisiteSkillId: 
-  coresToUnlock: 500
+  coresToUnlock: 100
   requiredTurretId: 
   valueCurve: 5
-  valueGrowth: 0.05
+  valueGrowth: 0.02
   fragmentsCostCurve: 1
   fragmentsCostGrowth: 1.25
   coresCostCurve: 1

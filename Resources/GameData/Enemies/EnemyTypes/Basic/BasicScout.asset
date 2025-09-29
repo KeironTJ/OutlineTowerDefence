@@ -46,8 +46,8 @@ MonoBehaviour:
   budgetCost: 2
   baseHealth: 2
   baseSpeed: 1.25
-  baseDamage: 1
-  damageInterval: 1
+  baseDamage: 0.75
+  damageInterval: 0.75
   baseFragments: 2
   baseCores: 1
   basePrisms: 0

@@ -28,7 +28,7 @@ MonoBehaviour:
   currencyType: 1
   skillId: 
   rewardType: 1
-  rewardAmount: 2500
+  rewardAmount: 75
   manualClaim: 1
   description: Kill 250 Basic Scouts
   debugMatch: 0

@@ -9,12 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bdef8d1414dadfe48822a7684617996d, type: 3}
+  m_Script: {fileID: 11500000, guid: 0d5698ef7f07e934a80445bca4bb6fcc, type: 3}
   m_Name: BasicSquareTower
   m_EditorClassIdentifier: 
-  id: 0003
-  displayName: Basic Square Tower
+  id: 0002
+  displayName: Basic Square Base
+  description: Like the circle... but more... square...
   previewSprite: {fileID: 7482667652216324306, guid: 628e99be5679c4e4cb46fbe223e1d493, type: 3}
-  visualPrefab: {fileID: 3098058871314541354, guid: ffff1148dca3fa945bbe2fca5c925c0a, type: 3}
+  towerBasePrefab: {fileID: 3098058871314541354, guid: ffff1148dca3fa945bbe2fca5c925c0a, type: 3}
   unlockCost: 0
   isPurchasable: 0

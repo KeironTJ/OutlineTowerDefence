@@ -28,7 +28,7 @@ MonoBehaviour:
   currencyType: 1
   skillId: 
   rewardType: 1
-  rewardAmount: 2500
+  rewardAmount: 75
   manualClaim: 1
   description: Kill 1000 Basic Grunts.
   debugMatch: 0

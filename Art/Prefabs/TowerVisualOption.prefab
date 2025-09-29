@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2906205186003957180}
   - component: {fileID: 8371332607326091520}
   m_Layer: 5
-  m_Name: DescriptionText
+  m_Name: TowerBaseDescription
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -297,6 +297,7 @@ GameObject:
   - component: {fileID: 4428162677900525489}
   - component: {fileID: 3577114035067766433}
   - component: {fileID: 1685980658116686227}
+  - component: {fileID: 8655762614178775180}
   m_Layer: 5
   m_Name: TowerVisualOption
   m_TagString: Untagged
@@ -366,6 +367,21 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &8655762614178775180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5878292377582172567}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 0, g: 1, b: 1, a: 1}
+  m_EffectDistance: {x: 5, y: 5}
+  m_UseGraphicAlpha: 1
 --- !u!1 &8764091665591679955
 GameObject:
   m_ObjectHideFlags: 0

@@ -15,15 +15,20 @@ MonoBehaviour:
   id: 1200
   period: 0
   type: 2
-  difficulty: 0
+  rarity: 0
   targetAmount: 50
-  anyEnemyType: 0
-  enemyType: 0
-  anyEnemySubtype: 0
-  enemySubtype: 0
-  currencyType: 0
+  anyEnemy: 1
+  targetDefinitionId: 
+  useTierFilter: 0
+  targetTier: 0
+  useFamilyFilter: 0
+  targetFamily: 
+  useTraitFilter: 0
+  targetTraits: 0
+  currencyType: 1
   skillId: 
   rewardType: 1
-  rewardAmount: 1000
+  rewardAmount: 50
   manualClaim: 1
   description: Complete 50 waves.
+  debugMatch: 0

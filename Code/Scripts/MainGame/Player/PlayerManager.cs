@@ -195,20 +195,20 @@ public class PlayerManager : MonoBehaviour
 
 
 
-    // ===== Tower Visuals =====
-    public void UnlockTowerVisual(string id)
+    // ===== Tower Bases =====
+    public void UnlockTowerBase(string id)
     {
-        if (!playerData.unlockedTowerVisuals.Contains(id))
+        if (!playerData.unlockedTowerBases.Contains(id))
         {
-            playerData.unlockedTowerVisuals.Add(id);
+            playerData.unlockedTowerBases.Add(id);
             SavePlayerData();
         }
     }
 
-    public bool SelectTowerVisual(string id)
+    public bool SelectTowerBase(string id)
     {
-        if (!playerData.unlockedTowerVisuals.Contains(id)) return false;
-        playerData.selectedTowerVisualId = id;
+        if (!playerData.unlockedTowerBases.Contains(id)) return false;
+        playerData.selectedTowerBaseId = id;
         SavePlayerData();
         return true;
     }

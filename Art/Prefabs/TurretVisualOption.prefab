@@ -92,8 +92,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 18
-  m_fontSizeBase: 18
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -284,7 +284,7 @@ GameObject:
   - component: {fileID: 4920916564326171692}
   - component: {fileID: 426667666470999683}
   m_Layer: 5
-  m_Name: Bakcground
+  m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -434,8 +434,9 @@ GameObject:
   - component: {fileID: 3577114035067766433}
   - component: {fileID: 1685980658116686227}
   - component: {fileID: 7107194160671596314}
+  - component: {fileID: 1627770610561224016}
   m_Layer: 5
-  m_Name: TurretVisualOption
+  m_Name: TurretBaseOption
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -522,6 +523,21 @@ MonoBehaviour:
   actionButton: {fileID: 945278894554286886}
   actionButtonText: {fileID: 5041744087836573252}
   footerText: {fileID: 2506310154661390486}
+--- !u!114 &1627770610561224016
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5878292377582172567}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 0, g: 1, b: 1, a: 1}
+  m_EffectDistance: {x: 5, y: 5}
+  m_UseGraphicAlpha: 1
 --- !u!1 &8764091665591679955
 GameObject:
   m_ObjectHideFlags: 0

@@ -16,14 +16,19 @@ MonoBehaviour:
   period: 0
   type: 5
   rarity: 1
-  targetAmount: 1000
-  anyEnemyType: 0
-  enemyType: 0
-  anyEnemySubtype: 0
-  enemySubtype: 0
+  targetAmount: 250
+  anyEnemy: 1
+  targetDefinitionId: 
+  useTierFilter: 0
+  targetTier: 0
+  useFamilyFilter: 0
+  targetFamily: 
+  useTraitFilter: 0
+  targetTraits: 0
   currencyType: 1
   skillId: 
   rewardType: 1
-  rewardAmount: 2500
+  rewardAmount: 75
   manualClaim: 1
-  description: 'Earn 1000 Cores from killing enemies. '
+  description: 'Earn 250 Cores from killing enemies. '
+  debugMatch: 0

@@ -28,20 +28,20 @@ public class TowerSpawner : MonoBehaviour
             while (playerData.selectedTurretIds.Count < 5) playerData.selectedTurretIds.Add("");
         }
 
-        Debug.Log($"[TowerSpawner] Spawning tower visual '{playerData.selectedTowerVisualId}' with turret ids: [{string.Join(",", playerData.selectedTurretIds)}]");
+        Debug.Log($"[TowerSpawner] Spawning tower base '{playerData.selectedTowerBaseId}' with turret ids: [{string.Join(",", playerData.selectedTurretIds)}]");
 
-        // use the selected chassis visual id (existing system)
-        var visual = TowerVisualManager.Instance?.GetVisualById(playerData.selectedTowerVisualId);
-        if (visual == null || visual.visualPrefab == null)
+        // use the selected chassis base id (existing system)
+        var towerBase = TowerBaseManager.Instance?.GetBaseById(playerData.selectedTowerBaseId);
+        if (towerBase == null || towerBase.towerBasePrefab == null)
         {
-            Debug.LogError($"[TowerSpawner] Selected tower visual missing for id '{playerData.selectedTowerVisualId}'.");
+            Debug.LogError($"[TowerSpawner] Selected tower base missing for id '{playerData.selectedTowerBaseId}'.");
             return null;
         }
 
         // cleanup existing
         DestroyTower();
 
-        activeTowerInstance = Instantiate(visual.visualPrefab, spawnPoint.position, spawnPoint.rotation);
+        activeTowerInstance = Instantiate(towerBase.towerBasePrefab, spawnPoint.position, spawnPoint.rotation);
         var spawnedTower = activeTowerInstance.GetComponent<Tower>();
         if (spawnedTower == null) Debug.LogWarning("[TowerSpawner] Spawned chassis prefab has no Tower component.");
 

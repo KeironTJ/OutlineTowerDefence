@@ -2859,7 +2859,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   threatSlider: {fileID: 1011823992}
   threatText: {fileID: 1420271711}
-  decayRate: 3
   safeColor: {r: 0.2, g: 0.8, b: 0.3, a: 1}
   warningColor: {r: 0.95, g: 0.75, b: 0.25, a: 1}
   dangerColor: {r: 0.85, g: 0.25, b: 0.25, a: 1}
@@ -9615,7 +9614,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2455267051949274334, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 20
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2661378497680988711, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
       propertyPath: m_AnchorMax.y
@@ -9641,13 +9640,25 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2864176003136434140, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1583948374}
+    - target: {fileID: 2864176003136434140, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: ViewStats
+      objectReference: {fileID: 0}
+    - target: {fileID: 2864176003136434140, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: UIManager, Assembly-CSharp
+      objectReference: {fileID: 0}
     - target: {fileID: 3189147603583273033, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
       propertyPath: m_Name
       value: RoundStatViewer
       objectReference: {fileID: 0}
     - target: {fileID: 3189147603583273033, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3244293510384776282, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
       propertyPath: m_AnchorMax.y
@@ -9717,21 +9728,13 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7354222542915723752, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
-      propertyPath: statItemPrefab
-      value: 
-      objectReference: {fileID: 8450985653791507526, guid: cc2b69105558d154f8cdcc5ccd70f84f, type: 3}
-    - target: {fileID: 7354222542915723752, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
-      propertyPath: statsTableContainer
-      value: 
-      objectReference: {fileID: 403904828603292065}
     - target: {fileID: 7768513400203000510, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
       propertyPath: m_SizeDelta.x
       value: -250
       objectReference: {fileID: 0}
     - target: {fileID: 7768513400203000510, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
       propertyPath: m_SizeDelta.y
-      value: -850
+      value: -950
       objectReference: {fileID: 0}
     - target: {fileID: 7768513400203000510, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -9825,14 +9828,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 8280345884208725720, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: -91.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 8280345884208725720, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -100
-      objectReference: {fileID: 0}
     - target: {fileID: 8378816651309941261, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -9885,40 +9880,11 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 8784699974983643228, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 4380684649631698400, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 403904828603292067}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
---- !u!224 &403904828603292065 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 2455267051949274334, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
-  m_PrefabInstance: {fileID: 403904828603292064}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &403904828603292066 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4380684649631698400, guid: 1c81e723efb1362468e33548b612a89d, type: 3}
-  m_PrefabInstance: {fileID: 403904828603292064}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &403904828603292067
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 403904828603292066}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_EffectColor: {r: 0, g: 1, b: 1, a: 1}
-  m_EffectDistance: {x: 5, y: 5}
-  m_UseGraphicAlpha: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -25,7 +25,7 @@ MonoBehaviour:
   baseFragmentsCost: 7
   baseCoresCost: 40
   prerequisiteSkillId: 
-  coresToUnlock: 100
+  coresToUnlock: 50
   requiredTurretId: 
   valueCurve: 4
   valueGrowth: 0.025
