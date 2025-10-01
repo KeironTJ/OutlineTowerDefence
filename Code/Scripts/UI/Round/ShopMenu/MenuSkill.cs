@@ -314,7 +314,7 @@ public class MenuSkill : MonoBehaviour
         if (unlockCostText)
         {
             unlockCostText.text = cost > 0f
-                ? ((Mathf.Approximately(cost, Mathf.Round(cost))) ? ((long)Mathf.Round(cost)).ToString() : NumberManager.FormatLargeNumber(cost)) + " Cores"
+                ? $"{NumberManager.FormatLargeNumber(cost)} to unlock {def.displayName}"
                 : "FREE";
         }
 

@@ -6,6 +6,7 @@ public class Bullet : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private Rigidbody2D rb;
+    private Collider2D col; // cache own collider
 
     private Vector2 moveDirection;
     private float bulletSpeed;
@@ -28,6 +29,12 @@ public class Bullet : MonoBehaviour
     
     // For homing projectiles
     private Transform homingTarget;
+
+    private void Awake()
+    {
+        col = GetComponent<Collider2D>();
+        if (rb == null) rb = GetComponent<Rigidbody2D>();
+    }
 
     public void SetTarget(Transform target)
     {
@@ -153,7 +160,8 @@ public class Bullet : MonoBehaviour
         enemy.TakeDamage(finalDamage);
         hitEnemies.Add(enemy);
 
-        //Debug.Log($"Bullet hit: {baseDamage} base, {(isCrit ? "CRIT x" + critMultiplier : "no crit")} => {finalDamage} damage.");
+        // Ensure bullet continues with intended velocity to reduce deflection
+        rb.linearVelocity = moveDirection * bulletSpeed;
 
         // Apply trait effects
         if (projectileDefinition != null)
@@ -172,6 +180,12 @@ public class Bullet : MonoBehaviour
             if (maxPenetrations == 0 || penetrationCount < maxPenetrations)
             {
                 shouldDestroy = false;
+
+                // Make the bullet ignore collisions with this enemy so it actually passes through (prevents physics deflection)
+                if (col != null && other.collider != null)
+                {
+                    Physics2D.IgnoreCollision(col, other.collider);
+                }
             }
         }
         

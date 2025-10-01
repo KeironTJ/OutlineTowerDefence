@@ -2762,7 +2762,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
@@ -3216,7 +3216,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
@@ -4066,7 +4066,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   towerBaseImage: {fileID: 2040023542}
   towerBaseDescription: {fileID: 1469703420}
-  turretSelectionPanel: {fileID: 903205293}
+  turretSelectionPanel: {fileID: 536810022}
   slotButtons:
   - {fileID: 1262920445}
   - {fileID: 2717563890201639354}
@@ -5839,7 +5839,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
@@ -6184,6 +6184,9 @@ MonoBehaviour:
     - 
     - 
     - 
+    unlockedProjectileIds:
+    - STD_BULLET
+    selectedProjectilesBySlot: []
     skillStates: []
     cores: 0
     prisms: 0

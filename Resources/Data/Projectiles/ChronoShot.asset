@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d06be1658c462a63dcd42fc5384880aa, type: 3}
+  m_Name: ChronoShot
+  m_EditorClassIdentifier: 
+  id: CHRONOSHOT
+  projectileName: Chrono Shot
+  description: Energy shot that slows down the enemy on impact
+  projectileType: 2
+  traits: 8
+  projectilePrefab: {fileID: 6019418362768665789, guid: 39506d496c1366d4d83dc738d80e3e33, type: 3}
+  icon: {fileID: 1626171979774973835, guid: 1b209a9000c2f5a49a58fe151dfc5aaf, type: 3}
+  damageMultiplier: 1
+  speedMultiplier: 1
+  maxPenetrations: 0
+  piercingDamagePercent: 10
+  piercingDuration: 3
+  piercingTickRate: 1
+  explosionRadius: 1.5
+  explosionDamageMultiplier: 0.5
+  slowMultiplier: 0.5
+  slowDuration: 2
+  rewardMultiplier: 1.5
+  homingTurnRate: 180
+  maxChainTargets: 3
+  chainRange: 2
+  chainDamageMultiplier: 0.8
+  unlockWave: 1
