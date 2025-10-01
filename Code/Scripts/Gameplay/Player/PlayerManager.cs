@@ -466,16 +466,17 @@ public class PlayerManager : MonoBehaviour
 
     public string GetSelectedProjectileForSlot(int slotIndex)
     {
-        if (playerData == null || playerData.selectedProjectileIdsBySlot == null) return string.Empty;
-        playerData.selectedProjectileIdsBySlot.TryGetValue(slotIndex, out string projectileId);
-        return projectileId ?? string.Empty;
+        if (playerData == null || playerData.selectedProjectilesBySlot == null) return string.Empty;
+        
+        var assignment = playerData.selectedProjectilesBySlot.Find(x => x.slotIndex == slotIndex);
+        return assignment?.projectileId ?? string.Empty;
     }
 
     public void SetSelectedProjectileForSlot(int slotIndex, string projectileId)
     {
         if (playerData == null) return;
-        if (playerData.selectedProjectileIdsBySlot == null) 
-            playerData.selectedProjectileIdsBySlot = new Dictionary<int, string>();
+        if (playerData.selectedProjectilesBySlot == null) 
+            playerData.selectedProjectilesBySlot = new List<ProjectileSlotAssignment>();
 
         // Validate projectile is unlocked
         if (!string.IsNullOrEmpty(projectileId) && !IsProjectileUnlocked(projectileId))
@@ -501,7 +502,21 @@ public class PlayerManager : MonoBehaviour
             }
         }
 
-        playerData.selectedProjectileIdsBySlot[slotIndex] = projectileId ?? string.Empty;
+        // Find or create assignment
+        var assignment = playerData.selectedProjectilesBySlot.Find(x => x.slotIndex == slotIndex);
+        if (assignment != null)
+        {
+            assignment.projectileId = projectileId ?? string.Empty;
+        }
+        else
+        {
+            playerData.selectedProjectilesBySlot.Add(new ProjectileSlotAssignment 
+            { 
+                slotIndex = slotIndex, 
+                projectileId = projectileId ?? string.Empty 
+            });
+        }
+        
         SavePlayerData();
         Debug.Log($"SetSelectedProjectileForSlot({slotIndex}) = {projectileId}");
     }
