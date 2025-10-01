@@ -27,6 +27,9 @@ public class MenuSkill : MonoBehaviour
     [SerializeField] private Button unlockButton;
     [SerializeField] private TextMeshProUGUI unlockCostText;
     [SerializeField] private Image unlockCostIcon;
+    
+    [Header("Standard Upgrade Panel (optional - for clarity)")]
+    [SerializeField] private GameObject standardPanel;
 
     private string skillId;
     private ICurrencyWallet wallet;
@@ -296,7 +299,16 @@ public class MenuSkill : MonoBehaviour
     public void ShowUnlockUI(SkillDefinition def, PlayerManager pm, SkillService skillService, Action onUnlocked = null)
     {
         if (unlockPanel) unlockPanel.SetActive(true);
-        if (unlockCostIcon) unlockCostIcon.gameObject.SetActive(true);
+        // Hide standard upgrade panel when showing unlock panel for clarity
+        if (standardPanel) standardPanel.SetActive(false);
+        
+        // Ensure the unlock cost icon shows the cores icon (since unlocking always uses cores)
+        if (unlockCostIcon)
+        {
+            unlockCostIcon.gameObject.SetActive(true);
+            if (coresIcon != null)
+                unlockCostIcon.sprite = coresIcon;
+        }
 
         float cost = Mathf.Max(0f, def.coresToUnlock);
         if (unlockCostText)
@@ -322,12 +334,16 @@ public class MenuSkill : MonoBehaviour
                 }
             });
 
-            unlockButton.interactable = skillService.CanUnlockPersistent(def.id, pm.Wallet);
+            bool canAfford = skillService.CanUnlockPersistent(def.id, pm.Wallet);
+            unlockButton.interactable = canAfford;
+            if (unlockCostText) unlockCostText.color = canAfford ? Color.white : Color.red;
         }
     }
 
     public void HideUnlockUI()
     {
         if (unlockPanel) unlockPanel.SetActive(false);
+        // Show standard upgrade panel when hiding unlock panel
+        if (standardPanel) standardPanel.SetActive(true);
     }
 }
