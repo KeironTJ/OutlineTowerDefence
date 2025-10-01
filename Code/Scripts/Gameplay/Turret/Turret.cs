@@ -74,6 +74,9 @@ public class Turret : MonoBehaviour
         // compute initial runtime stats (composition)
         RecomputeRuntimeStats();
 
+        // start ready to fire after initialization
+        cooldownRemaining = 0f;
+
         // subscribe to skill upgrades to refresh if needed
         if (skillService != null)
             skillService.SkillUpgraded += OnSkillUpgraded;
@@ -95,7 +98,6 @@ public class Turret : MonoBehaviour
             runtimeFireRate = 0.0001f;
             runtimeRange = 0.01f;
             runtimeRotationSpeed = baseRotationSpeed;
-            cooldownRemaining = 0f; // ready to fire
             return;
         }
 
@@ -149,8 +151,6 @@ public class Turret : MonoBehaviour
 
         // diagnostics
         //Debug.Log($"[Turret] RecomputeRuntimeStats dmg={runtimeDamage:F2} fireRate={runtimeFireRate:F2} range={runtimeRange:F2} rotSpeed={runtimeRotationSpeed:F2}");
-        // start ready to fire after stat recompute
-        cooldownRemaining = 0f;
     }
 
     // called when any skill upgrades - we check prefix match and recompute
