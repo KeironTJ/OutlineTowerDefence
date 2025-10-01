@@ -171,10 +171,7 @@ public class DailyObjectiveManager : MonoBehaviour
 
     private string CurrentSlotKey()
     {
-        DateTime now = DateTime.UtcNow;
-        int slotIndex = now.Hour / slotLengthHours;
-        int slotStartHour = slotIndex * slotLengthHours;
-        return now.ToString("yyyyMMdd") + "-" + slotStartHour.ToString("00");
+        return SlotTimeUtility.CurrentSlotKey(slotLengthHours);
     }
 
     // REPLACE old EvaluateSlot with multi-slot catch-up
@@ -192,7 +189,7 @@ public class DailyObjectiveManager : MonoBehaviour
             return;
         }
 
-        if (!TryParseSlotKey(stored, out DateTime lastSlotStartUtc))
+        if (!SlotTimeUtility.TryParseSlotKey(stored, slotLengthHours, out DateTime lastSlotStartUtc))
         {
             // Fallback: reset baseline to current
             PlayerData.lastDailyObjectiveSlotKey = CurrentSlotKey();
@@ -202,7 +199,7 @@ public class DailyObjectiveManager : MonoBehaviour
         }
 
         DateTime now = DateTime.UtcNow;
-        DateTime currentSlotStart = GetSlotStartForTime(now);
+        DateTime currentSlotStart = SlotTimeUtility.GetSlotStartForTime(now, slotLengthHours);
 
         // If still inside the stored slot: nothing to do
         if (lastSlotStartUtc == currentSlotStart) return;
@@ -232,7 +229,7 @@ public class DailyObjectiveManager : MonoBehaviour
         }
 
         // Update stored key to current slot
-        string newKey = SlotKeyFromStart(currentSlotStart);
+        string newKey = SlotTimeUtility.SlotKeyFromStart(currentSlotStart);
         if (PlayerData.lastDailyObjectiveSlotKey != newKey)
         {
             PlayerData.lastDailyObjectiveSlotKey = newKey;
@@ -285,7 +282,7 @@ public class DailyObjectiveManager : MonoBehaviour
             };
             PlayerData.dailyObjectives.Add(data);
             activeDaily.Add(new ObjectiveRuntime { definition = chosen, progressData = data });
-            //Debug.Log($"[DailyObjectiveManager] Added objective {chosen.id} (slot {SlotKeyFromStart(slotStartUtc)})");
+            //Debug.Log($"[DailyObjectiveManager] Added objective {chosen.id} (slot {SlotTimeUtility.SlotKeyFromStart(slotStartUtc)})");
         }
     }
 
@@ -390,8 +387,6 @@ public class DailyObjectiveManager : MonoBehaviour
         EnsureInitIfNeeded();
         if (data is not EnemyDestroyedDefinitionEvent e) return;
 
-        // 'anyMatched' not required here — remove to silence warning
-
         foreach (var rt in activeDaily)
         {
             var def = rt.definition;
@@ -403,7 +398,6 @@ public class DailyObjectiveManager : MonoBehaviour
             if (match)
             {
                 Progress(rt, 1f);
-                //anyMatched = true;
             }
         }
     }
@@ -493,80 +487,35 @@ public class DailyObjectiveManager : MonoBehaviour
     // Start (UTC) of the current slot
     public DateTime GetCurrentSlotStartUtc()
     {
-        var now = DateTime.UtcNow;
-        int slotStartHour = (now.Hour / slotLengthHours) * slotLengthHours;
-        return new DateTime(now.Year, now.Month, now.Day, slotStartHour, 0, 0, DateTimeKind.Utc);
+        return SlotTimeUtility.GetSlotStartForTime(DateTime.UtcNow, slotLengthHours);
     }
 
     // Start (UTC) of the next slot
     public DateTime GetNextSlotStartUtc()
     {
-        var start = GetCurrentSlotStartUtc();
-        var next = start.AddHours(slotLengthHours);
-        if (slotLengthHours <= 0) return start; // safety
-        return next;
+        var currentStart = GetCurrentSlotStartUtc();
+        return SlotTimeUtility.GetNextSlotStart(currentStart, slotLengthHours);
     }
 
     // Time remaining until next slot
     public TimeSpan GetTimeUntilNextSlot()
     {
-        return GetNextSlotStartUtc() - DateTime.UtcNow;
+        return SlotTimeUtility.GetTimeUntilNextSlot(DateTime.UtcNow, slotLengthHours);
     }
 
     // Seconds remaining (clamped >= 0)
     public double GetSecondsUntilNextSlot()
     {
-        var ts = GetTimeUntilNextSlot();
-        return Math.Max(0, ts.TotalSeconds);
+        return Math.Max(0, GetTimeUntilNextSlot().TotalSeconds);
     }
 
     // Formatted countdown "HH:MM:SS" (UTC based)
     public string GetNextSlotCountdownString()
     {
-        var remain = GetTimeUntilNextSlot();
-        if (remain.TotalSeconds < 0) remain = TimeSpan.Zero;
-        return $"{(int)remain.TotalHours:00}:{remain.Minutes:00}:{remain.Seconds:00}";
+        return SlotTimeUtility.FormatTimeRemaining(GetTimeUntilNextSlot());
     }
 
     // Current slot key (public if UI wants it)
     public string GetCurrentSlotKey() => CurrentSlotKey();
-
-    // Helper: compute slot start for arbitrary UTC time
-    private DateTime GetSlotStartForTime(DateTime utc)
-    {
-        int slotStartHour = (utc.Hour / slotLengthHours) * slotLengthHours;
-        return new DateTime(utc.Year, utc.Month, utc.Day, slotStartHour, 0, 0, DateTimeKind.Utc);
-    }
-
-    private string SlotKeyFromStart(DateTime slotStartUtc)
-    {
-        return slotStartUtc.ToString("yyyyMMdd") + "-" + slotStartUtc.Hour.ToString("00");
-    }
-
-    private bool TryParseSlotKey(string key, out DateTime slotStartUtc)
-    {
-        slotStartUtc = DateTime.MinValue;
-        if (string.IsNullOrEmpty(key)) return false;
-
-        // Expected format: yyyyMMdd-HH
-        var parts = key.Split('-');
-        if (parts.Length != 2) return false;
-
-        if (!DateTime.TryParseExact(parts[0],
-                "yyyyMMdd",
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
-                out DateTime day))
-            return false;
-
-        if (!int.TryParse(parts[1], out int hour)) return false;
-        if (hour < 0 || hour >= 24) return false;
-
-        // Snap hour to slot boundary just in case (defensive)
-        int slotStartHour = (hour / slotLengthHours) * slotLengthHours;
-
-        slotStartUtc = new DateTime(day.Year, day.Month, day.Day, slotStartHour, 0, 0, DateTimeKind.Utc);
-        return true;
-    }
 }
 
