@@ -19,16 +19,12 @@ public class MainMenuUIManager : MonoBehaviour
     [SerializeField] private GameObject mainScreenUI;
     [SerializeField] private GameObject loadoutScreenUI;
     [SerializeField] private GameObject upgradeScreenUI;
-    [SerializeField] private GameObject rewardScreenUI;
-    [SerializeField] private GameObject researchScreenUI;
     [SerializeField] private GameObject settingsScreenUI;
 
     [Header("Main Menu Footer Buttons")]
     [SerializeField] private GameObject mainButton;
     [SerializeField] private GameObject loadoutButton;
     [SerializeField] private GameObject upgradeButton;
-    [SerializeField] private GameObject rewardButton;
-    [SerializeField] private GameObject researchButton;
     [SerializeField] private GameObject settingsButton;
 
     [Header("Services")]
@@ -81,8 +77,6 @@ public class MainMenuUIManager : MonoBehaviour
         mainScreenUI.SetActive(screenType == ScreenType.Main);
         loadoutScreenUI.SetActive(screenType == ScreenType.Loadout);
         upgradeScreenUI.SetActive(screenType == ScreenType.Upgrade);
-        rewardScreenUI.SetActive(screenType == ScreenType.Reward);
-        researchScreenUI.SetActive(screenType == ScreenType.Research);
         settingsScreenUI.SetActive(screenType == ScreenType.Settings);
 
         ResetScreenButtonColors();
@@ -91,8 +85,6 @@ public class MainMenuUIManager : MonoBehaviour
             case ScreenType.Main:      ChangeButtonColor(mainButton, Color.black); break;
             case ScreenType.Loadout:   ChangeButtonColor(loadoutButton, Color.black); break;
             case ScreenType.Upgrade:   ChangeButtonColor(upgradeButton, Color.black); break;
-            case ScreenType.Reward:    ChangeButtonColor(rewardButton, Color.black); break;
-            case ScreenType.Research:  ChangeButtonColor(researchButton, Color.black); break;
             case ScreenType.Settings:  ChangeButtonColor(settingsButton, Color.black); break;
         }
     }
@@ -102,16 +94,12 @@ public class MainMenuUIManager : MonoBehaviour
         ChangeButtonColor(mainButton, Color.blue);
         ChangeButtonColor(loadoutButton, Color.blue);
         ChangeButtonColor(upgradeButton, Color.blue);
-        ChangeButtonColor(rewardButton, Color.blue);
-        ChangeButtonColor(researchButton, Color.blue);
         ChangeButtonColor(settingsButton, Color.blue);
     }
 
     public void SelectMainScreen()     => SelectScreen(ScreenType.Main);
     public void SelectLoadoutScreen()  => SelectScreen(ScreenType.Loadout);
     public void SelectUpgradeScreen()  => SelectScreen(ScreenType.Upgrade);
-    public void SelectRewardScreen()   => SelectScreen(ScreenType.Reward);
-    public void SelectResearchScreen() => SelectScreen(ScreenType.Research);
     public void SelectSettingsScreen() => SelectScreen(ScreenType.Settings);
 
     // ================= SCENE / QUIT =================
