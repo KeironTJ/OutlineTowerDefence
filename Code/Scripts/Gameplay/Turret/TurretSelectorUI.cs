@@ -10,10 +10,10 @@ public class TurretSelectorUI : MonoBehaviour
     [SerializeField] private GameObject optionPrefab;
 
     private int slotIndex;
-    private MainMenuScreen mainMenu; // optional owner to refresh after pick
+    private LoadoutScreen loadoutScreen; // optional owner to refresh after pick
 
     public void SetSlotIndex(int index) => slotIndex = index;
-    public void SetMainMenu(MainMenuScreen mm) => mainMenu = mm;
+    public void SetLoadoutScreen(LoadoutScreen ls) => loadoutScreen = ls;
 
     public void PopulateOptions()
     {
@@ -55,7 +55,7 @@ public class TurretSelectorUI : MonoBehaviour
                         {
                             // optional: auto-assign on unlock, then close
                             pm.SetSelectedTurretForSlot(slotIndex, def.id);
-                            mainMenu?.UpdateSlotButtons();
+                            loadoutScreen?.UpdateSlotButtons();
                             gameObject.SetActive(false);
                         });
                 }
@@ -71,12 +71,12 @@ public class TurretSelectorUI : MonoBehaviour
 
     private void OnPicked(string id)
     {
-        // refresh main slots and close
-        if (mainMenu != null) mainMenu.UpdateSlotButtons();
+        // refresh loadout slots and close
+        if (loadoutScreen != null) loadoutScreen.UpdateSlotButtons();
         else
         {
-            var screen = FindFirstObjectByType<MainMenuScreen>();
-            if (screen) screen.UpdateSlotButtons();
+            var lScreen = FindFirstObjectByType<LoadoutScreen>();
+            if (lScreen) lScreen.UpdateSlotButtons();
         }
         gameObject.SetActive(false);
     }
