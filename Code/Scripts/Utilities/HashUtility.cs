@@ -17,3 +17,4 @@ public static class HashUtility
         return BitConverter.ToString(hash).Replace("-", string.Empty);
     }
 }
+
