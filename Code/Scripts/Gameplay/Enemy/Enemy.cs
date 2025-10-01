@@ -31,6 +31,8 @@ public class Enemy : MonoBehaviour, IEnemyRuntime
     private Transform target;
     private Coroutine damageCoroutine;
     private bool isDestroyed;
+    private float damageMultiplier = 1f; // Increases over time while attacking
+    private float timeAttacking = 0f; // Tracks how long enemy has been attacking
 
     public string DefinitionId => definitionId;
     public void SetDefinitionId(string id) => definitionId = id;
@@ -100,14 +102,27 @@ public class Enemy : MonoBehaviour, IEnemyRuntime
     private void StartDamage()
     {
         if (damageCoroutine == null)
+        {
+            timeAttacking = 0f;
+            damageMultiplier = 1f;
             damageCoroutine = StartCoroutine(ApplyDamageOverTime(attackDamage, damageInterval));
+        }
     }
 
     private IEnumerator ApplyDamageOverTime(float dmg, float interval)
     {
         while (true)
         {
-            if (tower) tower.TakeDamage(dmg);
+            if (tower)
+            {
+                // Apply damage with current multiplier
+                tower.TakeDamage(dmg * damageMultiplier);
+                
+                // Increase time attacking and scale damage
+                timeAttacking += interval;
+                // Damage increases by 10% every 2 seconds of attacking, capped at 2x damage
+                damageMultiplier = Mathf.Min(1f + (timeAttacking / 2f) * 0.1f, 2f);
+            }
             yield return new WaitForSeconds(interval);
         }
     }
@@ -118,6 +133,8 @@ public class Enemy : MonoBehaviour, IEnemyRuntime
         {
             StopCoroutine(damageCoroutine);
             damageCoroutine = null;
+            timeAttacking = 0f;
+            damageMultiplier = 1f;
         }
     }
 
