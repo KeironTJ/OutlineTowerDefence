@@ -17,6 +17,7 @@ public class MainMenuUIManager : MonoBehaviour
 
     [Header("Main Menu Footer Screens")]
     [SerializeField] private GameObject mainScreenUI;
+    [SerializeField] private GameObject loadoutScreenUI;
     [SerializeField] private GameObject upgradeScreenUI;
     [SerializeField] private GameObject rewardScreenUI;
     [SerializeField] private GameObject researchScreenUI;
@@ -24,6 +25,7 @@ public class MainMenuUIManager : MonoBehaviour
 
     [Header("Main Menu Footer Buttons")]
     [SerializeField] private GameObject mainButton;
+    [SerializeField] private GameObject loadoutButton;
     [SerializeField] private GameObject upgradeButton;
     [SerializeField] private GameObject rewardButton;
     [SerializeField] private GameObject researchButton;
@@ -72,11 +74,12 @@ public class MainMenuUIManager : MonoBehaviour
     }
 
     // ================= FOOTER NAV =================
-    public enum ScreenType { Main, Upgrade, Reward, Research, Settings }
+    public enum ScreenType { Main, Loadout, Upgrade, Reward, Research, Settings }
 
     public void SelectScreen(ScreenType screenType)
     {
         mainScreenUI.SetActive(screenType == ScreenType.Main);
+        loadoutScreenUI.SetActive(screenType == ScreenType.Loadout);
         upgradeScreenUI.SetActive(screenType == ScreenType.Upgrade);
         rewardScreenUI.SetActive(screenType == ScreenType.Reward);
         researchScreenUI.SetActive(screenType == ScreenType.Research);
@@ -86,6 +89,7 @@ public class MainMenuUIManager : MonoBehaviour
         switch (screenType)
         {
             case ScreenType.Main:      ChangeButtonColor(mainButton, Color.black); break;
+            case ScreenType.Loadout:   ChangeButtonColor(loadoutButton, Color.black); break;
             case ScreenType.Upgrade:   ChangeButtonColor(upgradeButton, Color.black); break;
             case ScreenType.Reward:    ChangeButtonColor(rewardButton, Color.black); break;
             case ScreenType.Research:  ChangeButtonColor(researchButton, Color.black); break;
@@ -96,6 +100,7 @@ public class MainMenuUIManager : MonoBehaviour
     private void ResetScreenButtonColors()
     {
         ChangeButtonColor(mainButton, Color.blue);
+        ChangeButtonColor(loadoutButton, Color.blue);
         ChangeButtonColor(upgradeButton, Color.blue);
         ChangeButtonColor(rewardButton, Color.blue);
         ChangeButtonColor(researchButton, Color.blue);
@@ -103,6 +108,7 @@ public class MainMenuUIManager : MonoBehaviour
     }
 
     public void SelectMainScreen()     => SelectScreen(ScreenType.Main);
+    public void SelectLoadoutScreen()  => SelectScreen(ScreenType.Loadout);
     public void SelectUpgradeScreen()  => SelectScreen(ScreenType.Upgrade);
     public void SelectRewardScreen()   => SelectScreen(ScreenType.Reward);
     public void SelectResearchScreen() => SelectScreen(ScreenType.Research);

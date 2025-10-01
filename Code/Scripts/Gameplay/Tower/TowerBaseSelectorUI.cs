@@ -58,10 +58,10 @@ public class TowerBaseSelectorUI : MonoBehaviour
                 if (isUnlocked)
                 {
                     PlayerManager.main.SelectTowerBase(id);
-                    // Update MainMenuScreen image
-                    var mainMenu = UnityEngine.Object.FindFirstObjectByType<MainMenuScreen>();
-                    if (mainMenu != null)
-                        mainMenu.SetTowerBaseImage();
+                    // Update LoadoutScreen image
+                    var loadoutScreen = UnityEngine.Object.FindFirstObjectByType<LoadoutScreen>();
+                    if (loadoutScreen != null)
+                        loadoutScreen.SetTowerBaseImage();
                     CloseTowerBaseSelection(); // Close the panel after selection
                 }
                 else
