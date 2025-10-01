@@ -18,6 +18,8 @@ MonoBehaviour:
   turretPrefab: {fileID: 4304509950014231380, guid: 74f25559655e4734a90ad13f28d745e4, type: 3}
   previewSprite: {fileID: 3007339533555982569, guid: 0797b190b614d4e43b81f6648e634de0, type: 3}
   baseRotationSpeed: 360
+  allowedProjectileTypes: 00000000
+  defaultProjectileId: STD_BULLET
   skillSuffixDamage: damage
   skillSuffixFireRate: fireRate
   skillSuffixRange: range

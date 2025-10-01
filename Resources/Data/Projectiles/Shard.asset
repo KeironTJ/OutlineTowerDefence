@@ -21,7 +21,7 @@ MonoBehaviour:
   icon: {fileID: 1889554605544027027, guid: d8f8d014acf962a41bd9cba18f758d7f, type: 3}
   damageMultiplier: 1
   speedMultiplier: 1
-  maxPenetrations: 0
+  maxPenetrations: 3
   piercingDamagePercent: 10
   piercingDuration: 3
   piercingTickRate: 1

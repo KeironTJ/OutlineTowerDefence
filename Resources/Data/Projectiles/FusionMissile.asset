@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: FUSIONMISSILE
   projectileName: Fusion Missile
-  description: Missile capable of causing damage to multiple enemies.
+  description: Missile capable of causing area of effect damage to multiple enemies.
   projectileType: 3
   traits: 4
   projectilePrefab: {fileID: 6019418362768665789, guid: afa803460a7a4354aab53a8e582d6d3c, type: 3}

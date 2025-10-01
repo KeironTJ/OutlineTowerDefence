@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: STD_BULLET
   projectileName: Standard Bullet
-  description: 
+  description: A basic bullet.
   projectileType: 0
   traits: 0
   projectilePrefab: {fileID: 6019418362768665789, guid: c4b6090a5c6244248b94e9e2b1a5052a, type: 3}
