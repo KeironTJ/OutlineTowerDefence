@@ -260,10 +260,7 @@ public class WaveManager : MonoBehaviour
         }
 
         // Use the same WaveContext as normal enemies so bosses scale identically
-        var bossContext = currentWaveContext;
-        bossContext.wave = currentWave;
-
-        def.ApplyToRuntime(bossContext, runtime);
+        def.ApplyToRuntime(currentWaveContext, runtime);
         runtime.SetTarget(tower);
 
         var enemyCmp = go.GetComponent<Enemy>();

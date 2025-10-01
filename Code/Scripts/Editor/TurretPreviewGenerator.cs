@@ -60,7 +60,7 @@ public static class TurretPreviewGenerator
         var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
         pru.AddSingleGO(instance);
 
-        Bounds b = CalculateBounds(instance);
+        Bounds b = RenderUtility.CalculateBounds(instance);
         if (b.size == Vector3.zero) b = new Bounds(instance.transform.position, Vector3.one);
         float half = Mathf.Max(b.extents.x, b.extents.y);
         pru.camera.orthographicSize = half * 1.2f;
@@ -75,19 +75,10 @@ public static class TurretPreviewGenerator
         Texture2D tex = pru.EndStaticPreview();
 
         // cleanup
-        if (instance) Object.DestroyImmediate(instance);
-        if (lightGO) Object.DestroyImmediate(lightGO);
+        if (instance != null) Object.DestroyImmediate(instance);
+        if (lightGO != null) Object.DestroyImmediate(lightGO);
         pru.Cleanup();
         return tex;
-    }
-
-    private static Bounds CalculateBounds(GameObject go)
-    {
-        var renderers = go.GetComponentsInChildren<Renderer>(true);
-        if (renderers.Length == 0) return new Bounds(go.transform.position, Vector3.zero);
-        var b = renderers[0].bounds;
-        for (int i = 1; i < renderers.Length; i++) b.Encapsulate(renderers[i].bounds);
-        return b;
     }
 }
 #endif

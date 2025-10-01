@@ -1,8 +1,6 @@
 // filepath: c:\Users\keiro\Outline - Tower Defence\Assets\Code\Scripts\Persistence\CloudSaveProvider.cs
 using System;
 using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Unity.Services.CloudSave;
@@ -15,30 +13,6 @@ public class CloudSaveProvider
     private string DataKey(string slot) => $"player_{slot}_json";
     private string HashKey(string slot) => $"player_{slot}_hash";
     private string RevisionKey(string slot) => $"player_{slot}_rev";
-
-    private static string MD5Hash(string s)
-    {
-        if (string.IsNullOrEmpty(s)) return "";
-        using var md5 = MD5.Create();
-        return BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(s))).Replace("-", "");
-    }
-
-    private async Task<T> Retry<T>(Func<Task<T>> op, int attempts = 3, int delayMs = 400)
-    {
-        int d = delayMs;
-        for (int i = 1; i <= attempts; i++)
-        {
-            try { return await op(); }
-            catch (Exception ex)
-            {
-                if (i == attempts) throw;
-                Debug.LogWarning($"[CloudSync] Retry {i} failed: {ex.Message}");
-                await Task.Delay(d);
-                d *= 2;
-            }
-        }
-        return default;
-    }
 
     private async Task<bool> EnsureAuth()
     {
@@ -56,8 +30,9 @@ public class CloudSaveProvider
         if (!await EnsureAuth()) return (false, null);
         try
         {
-            var dict = await Retry(() => CloudSaveService.Instance.Data.LoadAsync(
-                new HashSet<string> { DataKey(slot) }));
+            var dict = await RetryUtility.RetryAsync(
+                () => CloudSaveService.Instance.Data.LoadAsync(new HashSet<string> { DataKey(slot) }),
+                logPrefix: "CloudSync");
             if (dict != null && dict.TryGetValue(DataKey(slot), out var json) && !string.IsNullOrEmpty(json))
                 return (true, JsonUtility.FromJson<PlayerSavePayload>(json));
             return (false, null);
@@ -75,7 +50,9 @@ public class CloudSaveProvider
         try
         {
             var keys = new HashSet<string> { DataKey(slot), RevisionKey(slot) };
-            var dict = await Retry(() => CloudSaveService.Instance.Data.LoadAsync(keys));
+            var dict = await RetryUtility.RetryAsync(
+                () => CloudSaveService.Instance.Data.LoadAsync(keys),
+                logPrefix: "CloudSync");
             if (dict != null && dict.TryGetValue(DataKey(slot), out var json) && !string.IsNullOrEmpty(json))
             {
                 var payload = JsonUtility.FromJson<PlayerSavePayload>(json);
@@ -99,7 +76,7 @@ public class CloudSaveProvider
         if (!await EnsureAuth()) return CloudUploadResult.Failed;
 
         var json = JsonUtility.ToJson(payload, false);
-        var newHash = MD5Hash(json);
+        var newHash = HashUtility.MD5Hash(json);
         var rev = payload.revision;
 
         bool unchanged = false;
@@ -124,7 +101,7 @@ public class CloudSaveProvider
 
         try
         {
-            await Retry(async () =>
+            await RetryUtility.RetryAsync(async () =>
             {
                 await CloudSaveService.Instance.Data.ForceSaveAsync(
                     new Dictionary<string, object>
@@ -134,7 +111,7 @@ public class CloudSaveProvider
                         { RevisionKey(slot), rev.ToString() }
                     });
                 return true;
-            });
+            }, logPrefix: "CloudSync");
             return CloudUploadResult.Uploaded;
         }
         catch (Exception e)
