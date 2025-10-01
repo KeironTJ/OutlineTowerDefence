@@ -75,8 +75,8 @@ public static class TurretPreviewGenerator
         Texture2D tex = pru.EndStaticPreview();
 
         // cleanup
-        if (instance) Object.DestroyImmediate(instance);
-        if (lightGO) Object.DestroyImmediate(lightGO);
+        if (instance != null) Object.DestroyImmediate(instance);
+        if (lightGO != null) Object.DestroyImmediate(lightGO);
         pru.Cleanup();
         return tex;
     }

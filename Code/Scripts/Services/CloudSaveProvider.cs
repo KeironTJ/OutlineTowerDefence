@@ -26,18 +26,21 @@ public class CloudSaveProvider
     private async Task<T> Retry<T>(Func<Task<T>> op, int attempts = 3, int delayMs = 400)
     {
         int d = delayMs;
+        Exception lastException = null;
         for (int i = 1; i <= attempts; i++)
         {
             try { return await op(); }
             catch (Exception ex)
             {
+                lastException = ex;
                 if (i == attempts) throw;
                 Debug.LogWarning($"[CloudSync] Retry {i} failed: {ex.Message}");
                 await Task.Delay(d);
                 d *= 2;
             }
         }
-        return default;
+        // This should never be reached due to throw above, but for safety
+        throw lastException ?? new Exception("Retry failed with unknown error");
     }
 
     private async Task<bool> EnsureAuth()
