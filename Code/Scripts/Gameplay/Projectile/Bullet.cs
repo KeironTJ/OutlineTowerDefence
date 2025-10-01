@@ -20,9 +20,19 @@ public class Bullet : MonoBehaviour
     private float critMultiplier = 1f; // ≥1
     private bool critRolled;
     private bool isCrit;
+    
+    // Projectile Definition & Traits
+    private ProjectileDefinition projectileDefinition;
+    private int penetrationCount = 0;
+    private List<Enemy> hitEnemies = new List<Enemy>();
+    
+    // For homing projectiles
+    private Transform homingTarget;
 
     public void SetTarget(Transform target)
     {
+        homingTarget = target;
+        
         // Calculate direction once at spawn
         moveDirection = (target.position - transform.position).normalized;
 
@@ -69,6 +79,18 @@ public class Bullet : MonoBehaviour
             critRolled = false; // roll on hit
         }
     }
+    
+    // Set the projectile definition for trait-based behavior
+    public void SetProjectileDefinition(ProjectileDefinition definition)
+    {
+        projectileDefinition = definition;
+        if (definition != null)
+        {
+            // Apply damage and speed multipliers from definition
+            baseDamage *= definition.damageMultiplier;
+            bulletSpeed *= definition.speedMultiplier;
+        }
+    }
 
     public void SetOriginAndMaxRange(Vector3 origin, float maxRange)
     {
@@ -78,6 +100,19 @@ public class Bullet : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // Homing behavior
+        if (projectileDefinition != null && projectileDefinition.HasTrait(ProjectileTrait.Homing) && homingTarget != null)
+        {
+            Vector2 targetDir = (homingTarget.position - transform.position).normalized;
+            moveDirection = Vector2.MoveTowards(moveDirection, targetDir, 
+                projectileDefinition.homingTurnRate * Mathf.Deg2Rad * Time.fixedDeltaTime);
+            moveDirection.Normalize();
+            
+            // Update rotation to match direction
+            float angle = Mathf.Atan2(moveDirection.y, moveDirection.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.AngleAxis(angle - 90f, Vector3.forward);
+        }
+        
         rb.linearVelocity = moveDirection * bulletSpeed;
 
         // destroy when bullet exceeds the firing turret's range
@@ -104,6 +139,9 @@ public class Bullet : MonoBehaviour
     {
         var enemy = other.gameObject.GetComponent<Enemy>();
         if (enemy == null) return;
+        
+        // Check if we already hit this enemy (for penetration)
+        if (hitEnemies.Contains(enemy)) return;
 
         if (!critRolled)
         {
@@ -113,12 +151,156 @@ public class Bullet : MonoBehaviour
 
         float finalDamage = baseDamage * (isCrit ? critMultiplier : 1f);
         enemy.TakeDamage(finalDamage);
+        hitEnemies.Add(enemy);
 
         //Debug.Log($"Bullet hit: {baseDamage} base, {(isCrit ? "CRIT x" + critMultiplier : "no crit")} => {finalDamage} damage.");
 
-        // TODO: trigger crit VFX/SFX if (isCrit)
+        // Apply trait effects
+        if (projectileDefinition != null)
+        {
+            ApplyTraitEffects(enemy, finalDamage);
+        }
 
-        Destroy(gameObject);
+        // Check for penetration trait
+        bool shouldDestroy = true;
+        if (projectileDefinition != null && projectileDefinition.HasTrait(ProjectileTrait.Penetrate))
+        {
+            penetrationCount++;
+            int maxPenetrations = projectileDefinition.maxPenetrations;
+            
+            // 0 means infinite penetration
+            if (maxPenetrations == 0 || penetrationCount < maxPenetrations)
+            {
+                shouldDestroy = false;
+            }
+        }
+        
+        if (shouldDestroy)
+        {
+            Destroy(gameObject);
+        }
+    }
+    
+    private void ApplyTraitEffects(Enemy enemy, float damage)
+    {
+        if (projectileDefinition == null) return;
+        
+        // Piercing - damage over time
+        if (projectileDefinition.HasTrait(ProjectileTrait.Piercing))
+        {
+            ApplyPiercingEffect(enemy, damage);
+        }
+        
+        // Explosive - area damage
+        if (projectileDefinition.HasTrait(ProjectileTrait.Explosive))
+        {
+            ApplyExplosiveEffect(damage);
+        }
+        
+        // Slow - reduce enemy speed
+        if (projectileDefinition.HasTrait(ProjectileTrait.Slow))
+        {
+            ApplySlowEffect(enemy);
+        }
+        
+        // Chain - jump to nearby enemies
+        if (projectileDefinition.HasTrait(ProjectileTrait.Chain))
+        {
+            ApplyChainEffect(enemy, damage);
+        }
+        
+        // Note: IncoreCores and IncFragment would be handled by the enemy on death
+        // We could add a flag to the enemy or use an event system
+    }
+    
+    private void ApplyPiercingEffect(Enemy enemy, float baseDamage)
+    {
+        if (enemy == null) return;
+        
+        float dotDamage = baseDamage * (projectileDefinition.piercingDamagePercent / 100f);
+        float duration = projectileDefinition.piercingDuration;
+        float tickRate = projectileDefinition.piercingTickRate;
+        
+        // Start a coroutine on the enemy to apply DoT
+        var dotEffect = enemy.gameObject.AddComponent<PiercingEffect>();
+        dotEffect.Initialize(dotDamage, duration, tickRate, enemy);
+    }
+    
+    private void ApplyExplosiveEffect(float damage)
+    {
+        float radius = projectileDefinition.explosionRadius;
+        float aoeDamage = damage * projectileDefinition.explosionDamageMultiplier;
+        
+        // Find all enemies in radius
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, radius);
+        foreach (var hit in hits)
+        {
+            var enemy = hit.GetComponent<Enemy>();
+            if (enemy != null && !hitEnemies.Contains(enemy))
+            {
+                enemy.TakeDamage(aoeDamage);
+            }
+        }
+        
+        // TODO: Spawn explosion VFX
+    }
+    
+    private void ApplySlowEffect(Enemy enemy)
+    {
+        if (enemy == null) return;
+        
+        float slowMult = projectileDefinition.slowMultiplier;
+        float duration = projectileDefinition.slowDuration;
+        
+        var slowEffect = enemy.gameObject.AddComponent<SlowEffect>();
+        slowEffect.Initialize(slowMult, duration, enemy);
+    }
+    
+    private void ApplyChainEffect(Enemy sourceEnemy, float damage)
+    {
+        int maxTargets = projectileDefinition.maxChainTargets;
+        float chainRange = projectileDefinition.chainRange;
+        float damageMultiplier = projectileDefinition.chainDamageMultiplier;
+        
+        List<Enemy> chainedEnemies = new List<Enemy> { sourceEnemy };
+        Enemy currentSource = sourceEnemy;
+        float currentDamage = damage * damageMultiplier;
+        
+        for (int i = 0; i < maxTargets && currentSource != null; i++)
+        {
+            // Find nearest enemy not yet chained
+            Collider2D[] hits = Physics2D.OverlapCircleAll(currentSource.transform.position, chainRange);
+            Enemy nextTarget = null;
+            float closestDist = float.MaxValue;
+            
+            foreach (var hit in hits)
+            {
+                var enemy = hit.GetComponent<Enemy>();
+                if (enemy != null && !chainedEnemies.Contains(enemy))
+                {
+                    float dist = Vector2.Distance(currentSource.transform.position, enemy.transform.position);
+                    if (dist < closestDist)
+                    {
+                        closestDist = dist;
+                        nextTarget = enemy;
+                    }
+                }
+            }
+            
+            if (nextTarget != null)
+            {
+                nextTarget.TakeDamage(currentDamage);
+                chainedEnemies.Add(nextTarget);
+                currentSource = nextTarget;
+                currentDamage *= damageMultiplier;
+                
+                // TODO: Create visual chain effect between enemies
+            }
+            else
+            {
+                break;
+            }
+        }
     }
 
     private void OnBecameInvisible()

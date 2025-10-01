@@ -4,10 +4,14 @@ using UnityEngine;
 public class Turret : MonoBehaviour
 {
     [Header("Firing")]
-    public GameObject projectilePrefab;   // prefab with Bullet/Projectile script
+    public GameObject projectilePrefab;   // prefab with Bullet/Projectile script (LEGACY - use projectileDefinitionId)
     public Transform firingPoint;         // assigned in turret prefab
     public LayerMask enemyMask;
     [SerializeField] private Transform turretHead;
+    
+    [Header("Projectile System")]
+    [Tooltip("ID of the projectile definition to use. Overrides projectilePrefab if set.")]
+    public string projectileDefinitionId = "";
 
     // runtime stats (final values used while firing/rotating)
     private float runtimeDamage;
@@ -250,10 +254,36 @@ public class Turret : MonoBehaviour
 
     private void Shoot()
     {
-        if (!projectilePrefab || !firingPoint || !currentTarget) return;
+        if (!firingPoint || !currentTarget) return;
+        
+        // Get projectile definition and prefab
+        ProjectileDefinition projDef = null;
+        GameObject prefabToUse = projectilePrefab;
+        
+        // First try to use projectileDefinitionId if set
+        if (!string.IsNullOrEmpty(projectileDefinitionId) && ProjectileDefinitionManager.Instance != null)
+        {
+            projDef = ProjectileDefinitionManager.Instance.GetById(projectileDefinitionId);
+            if (projDef != null && projDef.projectilePrefab != null)
+            {
+                prefabToUse = projDef.projectilePrefab;
+            }
+        }
+        // Fallback to definition's default if available
+        else if (activeDefinition != null && !string.IsNullOrEmpty(activeDefinition.defaultProjectileId) 
+                 && ProjectileDefinitionManager.Instance != null)
+        {
+            projDef = ProjectileDefinitionManager.Instance.GetById(activeDefinition.defaultProjectileId);
+            if (projDef != null && projDef.projectilePrefab != null)
+            {
+                prefabToUse = projDef.projectilePrefab;
+            }
+        }
+        
+        if (!prefabToUse) return;
 
         // Instantiate oriented to the firingPoint so projectile faces barrel direction
-        GameObject bulletObj = Instantiate(projectilePrefab, firingPoint.position, firingPoint.rotation);
+        GameObject bulletObj = Instantiate(prefabToUse, firingPoint.position, firingPoint.rotation);
         Bullet bulletScript = bulletObj.GetComponent<Bullet>();
         if (bulletScript)
         {
@@ -268,6 +298,12 @@ public class Turret : MonoBehaviour
 
             // Pass damage and crit params to bullet; crit is resolved on hit
             bulletScript.ConfigureDamage(baseDamage, critChance, critMult, rollNow: false);
+            
+            // Set projectile definition for trait-based behavior
+            if (projDef != null)
+            {
+                bulletScript.SetProjectileDefinition(projDef);
+            }
         }
 
         EventManager.TriggerEvent(EventNames.BulletFired, bulletScript);
@@ -400,6 +436,33 @@ public class Turret : MonoBehaviour
         // use GetValueSafe so missing keys return sensible default (implementation-specific)
         return (skillService != null) ? skillService.GetValueSafe(id) : 0f;
     }
+    
+    // --- Projectile Management ---
+    public void SetProjectileDefinition(string definitionId)
+    {
+        // Validate that this turret accepts the projectile type
+        if (activeDefinition != null && ProjectileDefinitionManager.Instance != null)
+        {
+            var projDef = ProjectileDefinitionManager.Instance.GetById(definitionId);
+            if (projDef != null)
+            {
+                if (activeDefinition.AcceptsProjectileType(projDef.projectileType))
+                {
+                    projectileDefinitionId = definitionId;
+                }
+                else
+                {
+                    Debug.LogWarning($"Turret '{activeDefinition.id}' does not accept projectile type '{projDef.projectileType}'");
+                }
+            }
+        }
+        else
+        {
+            projectileDefinitionId = definitionId;
+        }
+    }
+    
+    public string GetProjectileDefinitionId() => projectileDefinitionId;
 
     public void SetActive(bool v) => active = v;
 }

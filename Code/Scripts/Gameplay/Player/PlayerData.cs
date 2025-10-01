@@ -2,6 +2,13 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+// Helper class for serializing projectile slot assignments
+[Serializable]
+public class ProjectileSlotAssignment
+{
+    public int slotIndex;
+    public string projectileId;
+}
 
 [Serializable]
 public class SkillData
@@ -38,6 +45,11 @@ public class PlayerData
     [Header("Turrets")]
     public List<string> unlockedTurretIds = new List<string>();
     public List<string> selectedTurretIds = new List<string> { "", "", "", "" };
+    
+    [Header("Projectiles")]
+    public List<string> unlockedProjectileIds = new List<string>();
+    // Serializable list instead of Dictionary for Unity compatibility
+    public List<ProjectileSlotAssignment> selectedProjectilesBySlot = new List<ProjectileSlotAssignment>();
 
     [Header("Skills")]
     public List<PersistentSkillState> skillStates = new List<PersistentSkillState>();
@@ -92,5 +104,9 @@ public class PlayerData
         unlockedTurretIds = new List<string> { "STD" };
         if (selectedTurretIds == null) selectedTurretIds = new List<string> { "", "", "", "" };
         selectedTurretIds[0] = "STD";
+        
+        // Initialize projectile data
+        unlockedProjectileIds = new List<string> { "STD_BULLET" };
+        selectedProjectilesBySlot = new List<ProjectileSlotAssignment>();
     }
 }

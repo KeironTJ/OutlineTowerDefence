@@ -436,4 +436,88 @@ public class PlayerManager : MonoBehaviour
         SavePlayerData();
         Debug.Log($"SetSelectedTurretForSlot({index}) = {id}");
     }
+    
+    // --- Projectile Management API ---
+    public bool IsProjectileUnlocked(string projectileId)
+    {
+        if (string.IsNullOrEmpty(projectileId) || playerData == null) return false;
+        return playerData.unlockedProjectileIds != null && playerData.unlockedProjectileIds.Contains(projectileId);
+    }
+
+    public void UnlockProjectile(string projectileId)
+    {
+        if (string.IsNullOrEmpty(projectileId) || playerData == null) return;
+        if (playerData.unlockedProjectileIds == null) playerData.unlockedProjectileIds = new List<string>();
+        if (!playerData.unlockedProjectileIds.Contains(projectileId))
+        {
+            playerData.unlockedProjectileIds.Add(projectileId);
+            SavePlayerData();
+        }
+    }
+
+    public void LockProjectile(string projectileId)
+    {
+        if (string.IsNullOrEmpty(projectileId) || playerData == null || playerData.unlockedProjectileIds == null) return;
+        if (playerData.unlockedProjectileIds.Remove(projectileId))
+        {
+            SavePlayerData();
+        }
+    }
+
+    public string GetSelectedProjectileForSlot(int slotIndex)
+    {
+        if (playerData == null || playerData.selectedProjectilesBySlot == null) return string.Empty;
+        
+        var assignment = playerData.selectedProjectilesBySlot.Find(x => x.slotIndex == slotIndex);
+        return assignment?.projectileId ?? string.Empty;
+    }
+
+    public void SetSelectedProjectileForSlot(int slotIndex, string projectileId)
+    {
+        if (playerData == null) return;
+        if (playerData.selectedProjectilesBySlot == null) 
+            playerData.selectedProjectilesBySlot = new List<ProjectileSlotAssignment>();
+
+        // Validate projectile is unlocked
+        if (!string.IsNullOrEmpty(projectileId) && !IsProjectileUnlocked(projectileId))
+        {
+            Debug.LogWarning($"Cannot assign projectile '{projectileId}' - not unlocked");
+            return;
+        }
+
+        // Validate projectile type matches turret requirements
+        string turretId = GetSelectedTurretForSlot(slotIndex);
+        if (!string.IsNullOrEmpty(turretId) && !string.IsNullOrEmpty(projectileId))
+        {
+            var turretDef = TurretDefinitionManager.Instance?.GetById(turretId);
+            var projDef = ProjectileDefinitionManager.Instance?.GetById(projectileId);
+            
+            if (turretDef != null && projDef != null)
+            {
+                if (!turretDef.AcceptsProjectileType(projDef.projectileType))
+                {
+                    Debug.LogWarning($"Turret '{turretId}' does not accept projectile type '{projDef.projectileType}'");
+                    return;
+                }
+            }
+        }
+
+        // Find or create assignment
+        var assignment = playerData.selectedProjectilesBySlot.Find(x => x.slotIndex == slotIndex);
+        if (assignment != null)
+        {
+            assignment.projectileId = projectileId ?? string.Empty;
+        }
+        else
+        {
+            playerData.selectedProjectilesBySlot.Add(new ProjectileSlotAssignment 
+            { 
+                slotIndex = slotIndex, 
+                projectileId = projectileId ?? string.Empty 
+            });
+        }
+        
+        SavePlayerData();
+        Debug.Log($"SetSelectedProjectileForSlot({slotIndex}) = {projectileId}");
+    }
 }
