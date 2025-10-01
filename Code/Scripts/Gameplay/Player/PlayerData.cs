@@ -38,6 +38,11 @@ public class PlayerData
     [Header("Turrets")]
     public List<string> unlockedTurretIds = new List<string>();
     public List<string> selectedTurretIds = new List<string> { "", "", "", "" };
+    
+    [Header("Projectiles")]
+    public List<string> unlockedProjectileIds = new List<string>();
+    // Maps turret slot index to projectile ID
+    public Dictionary<int, string> selectedProjectileIdsBySlot = new Dictionary<int, string>();
 
     [Header("Skills")]
     public List<PersistentSkillState> skillStates = new List<PersistentSkillState>();
@@ -92,5 +97,9 @@ public class PlayerData
         unlockedTurretIds = new List<string> { "STD" };
         if (selectedTurretIds == null) selectedTurretIds = new List<string> { "", "", "", "" };
         selectedTurretIds[0] = "STD";
+        
+        // Initialize projectile data
+        unlockedProjectileIds = new List<string> { "STD_BULLET" };
+        selectedProjectileIdsBySlot = new Dictionary<int, string>();
     }
 }
