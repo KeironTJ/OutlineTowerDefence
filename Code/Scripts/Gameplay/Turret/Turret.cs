@@ -302,7 +302,13 @@ public class Turret : MonoBehaviour
             // Set projectile definition for trait-based behavior
             if (projDef != null)
             {
-                bulletScript.SetProjectileDefinition(projDef);
+                // Get upgrade level from PlayerManager if available
+                int upgradeLevel = 0;
+                if (PlayerManager.main != null && !string.IsNullOrEmpty(projectileDefinitionId))
+                {
+                    upgradeLevel = PlayerManager.main.GetProjectileUpgradeLevel(projectileDefinitionId);
+                }
+                bulletScript.SetProjectileDefinition(projDef, upgradeLevel);
             }
         }
 

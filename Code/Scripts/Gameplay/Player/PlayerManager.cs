@@ -520,4 +520,100 @@ public class PlayerManager : MonoBehaviour
         SavePlayerData();
         Debug.Log($"SetSelectedProjectileForSlot({slotIndex}) = {projectileId}");
     }
+    
+    // --- Projectile Upgrade Management API ---
+    public int GetProjectileUpgradeLevel(string projectileId)
+    {
+        if (string.IsNullOrEmpty(projectileId) || playerData == null) return 0;
+        if (playerData.projectileUpgradeLevels == null) return 0;
+        
+        var upgrade = playerData.projectileUpgradeLevels.Find(x => x.projectileId == projectileId);
+        return upgrade?.level ?? 0;
+    }
+    
+    public bool CanUpgradeProjectile(string projectileId, out string reason, out int cost)
+    {
+        reason = "";
+        cost = 0;
+        
+        if (string.IsNullOrEmpty(projectileId) || playerData == null)
+        {
+            reason = "Invalid projectile";
+            return false;
+        }
+        
+        // Check if projectile is unlocked
+        if (!IsProjectileUnlocked(projectileId))
+        {
+            reason = "Projectile not unlocked";
+            return false;
+        }
+        
+        // Get projectile definition
+        var projDef = ProjectileDefinitionManager.Instance?.GetById(projectileId);
+        if (projDef == null)
+        {
+            reason = "Projectile definition not found";
+            return false;
+        }
+        
+        // Check current level
+        int currentLevel = GetProjectileUpgradeLevel(projectileId);
+        if (currentLevel >= projDef.maxUpgradeLevel)
+        {
+            reason = "Max level reached";
+            return false;
+        }
+        
+        // Calculate cost
+        cost = projDef.GetUpgradeCost(currentLevel);
+        
+        // Check if player can afford
+        if (playerData.prisms < cost)
+        {
+            reason = $"Need {cost} Prisms";
+            return false;
+        }
+        
+        reason = "Available";
+        return true;
+    }
+    
+    public bool TryUpgradeProjectile(string projectileId, out string failReason)
+    {
+        failReason = "";
+        
+        if (!CanUpgradeProjectile(projectileId, out failReason, out int cost))
+            return false;
+        
+        // Spend currency
+        if (!TrySpend(CurrencyType.Prisms, cost))
+        {
+            failReason = "Failed to spend currency";
+            return false;
+        }
+        
+        // Initialize list if needed
+        if (playerData.projectileUpgradeLevels == null)
+            playerData.projectileUpgradeLevels = new List<ProjectileUpgradeLevel>();
+        
+        // Find or create upgrade entry
+        var upgrade = playerData.projectileUpgradeLevels.Find(x => x.projectileId == projectileId);
+        if (upgrade != null)
+        {
+            upgrade.level++;
+        }
+        else
+        {
+            playerData.projectileUpgradeLevels.Add(new ProjectileUpgradeLevel
+            {
+                projectileId = projectileId,
+                level = 1
+            });
+        }
+        
+        SavePlayerData();
+        Debug.Log($"Upgraded projectile {projectileId} to level {GetProjectileUpgradeLevel(projectileId)}");
+        return true;
+    }
 }

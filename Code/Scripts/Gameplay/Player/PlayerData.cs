@@ -10,6 +10,14 @@ public class ProjectileSlotAssignment
     public string projectileId;
 }
 
+// Helper class for tracking projectile upgrade levels
+[Serializable]
+public class ProjectileUpgradeLevel
+{
+    public string projectileId;
+    public int level;
+}
+
 [Serializable]
 public class SkillData
 {
@@ -50,6 +58,8 @@ public class PlayerData
     public List<string> unlockedProjectileIds = new List<string>();
     // Serializable list instead of Dictionary for Unity compatibility
     public List<ProjectileSlotAssignment> selectedProjectilesBySlot = new List<ProjectileSlotAssignment>();
+    // Track upgrade levels for each projectile (projectileId -> level)
+    public List<ProjectileUpgradeLevel> projectileUpgradeLevels = new List<ProjectileUpgradeLevel>();
 
     [Header("Skills")]
     public List<PersistentSkillState> skillStates = new List<PersistentSkillState>();
@@ -108,5 +118,6 @@ public class PlayerData
         // Initialize projectile data
         unlockedProjectileIds = new List<string> { "STD_BULLET" };
         selectedProjectilesBySlot = new List<ProjectileSlotAssignment>();
+        projectileUpgradeLevels = new List<ProjectileUpgradeLevel>();
     }
 }

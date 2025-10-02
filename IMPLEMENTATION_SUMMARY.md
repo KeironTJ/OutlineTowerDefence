@@ -286,6 +286,49 @@ var explosiveProjs = ProjectileDefinitionManager.Instance
 3. **Visual Effects**: No VFX/SFX integration yet
 4. **UI**: No in-game UI for projectile selection
 
+## Recent Enhancements (Upgrade & Unlock System)
+
+### Unlock Management
+- **ProjectileUnlockDefinition**: ScriptableObject for configuring unlock requirements
+  - Wave requirements, difficulty requirements
+  - Prerequisite projectiles
+  - Currency costs (Cores, Prisms, Loops)
+  - Default grants for starting projectiles
+  
+- **ProjectileUnlockManager**: Singleton managing unlock logic
+  - Auto-loads from Resources/Data/ProjectileUnlocks
+  - Validates unlock criteria
+  - Handles currency spending
+  - Pattern matches TurretUnlockManager for consistency
+
+### Upgrade System
+- **Projectile Upgrades**: Progressive stat improvements
+  - Max upgrade levels per projectile
+  - Damage and speed bonuses per level
+  - Scaling costs (Prisms-based by default)
+  - Stats calculated: GetDamageMultiplierAtLevel(), GetSpeedMultiplierAtLevel()
+  
+- **PlayerData Tracking**: ProjectileUpgradeLevel entries
+  - Persists upgrade levels per projectile
+  - Survives save/load cycles
+  
+- **PlayerManager API**:
+  - GetProjectileUpgradeLevel()
+  - CanUpgradeProjectile()
+  - TryUpgradeProjectile()
+
+### Benefits & Tradeoffs
+- **ProjectileDefinition Fields**:
+  - benefits: Text description of advantages
+  - tradeoffs: Text description of disadvantages
+  - overallRating: Numerical rating (-2 to +2)
+  - Helps players make informed choices
+
+### Integration
+- Turret.Shoot() retrieves upgrade level from PlayerManager
+- Bullet.SetProjectileDefinition() applies level-based multipliers
+- Backward compatible: defaults to level 0 if not upgraded
+
 ## Future Enhancements
 
 ### Short Term

@@ -88,14 +88,14 @@ public class Bullet : MonoBehaviour
     }
     
     // Set the projectile definition for trait-based behavior
-    public void SetProjectileDefinition(ProjectileDefinition definition)
+    public void SetProjectileDefinition(ProjectileDefinition definition, int upgradeLevel = 0)
     {
         projectileDefinition = definition;
         if (definition != null)
         {
-            // Apply damage and speed multipliers from definition
-            baseDamage *= definition.damageMultiplier;
-            bulletSpeed *= definition.speedMultiplier;
+            // Apply damage and speed multipliers from definition with upgrade level
+            baseDamage *= definition.GetDamageMultiplierAtLevel(upgradeLevel);
+            bulletSpeed *= definition.GetSpeedMultiplierAtLevel(upgradeLevel);
         }
     }
 

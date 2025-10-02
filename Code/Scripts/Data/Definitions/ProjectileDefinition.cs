@@ -64,7 +64,45 @@ public class ProjectileDefinition : ScriptableObject
     [Tooltip("Minimum wave required to unlock")]
     public int unlockWave = 1;
     
+    [Header("Upgrades")]
+    [Tooltip("Maximum upgrade level for this projectile")]
+    public int maxUpgradeLevel = 5;
+    [Tooltip("Base cost in Prisms to upgrade (cost increases per level)")]
+    public int baseUpgradeCost = 10;
+    [Tooltip("Damage bonus per upgrade level (%)")]
+    public float damagePerLevel = 5f;
+    [Tooltip("Speed bonus per upgrade level (%)")]
+    public float speedPerLevel = 3f;
+    
+    [Header("Benefits & Tradeoffs")]
+    [TextArea(2, 3)]
+    public string benefits = "Standard projectile";
+    [TextArea(2, 3)]
+    public string tradeoffs = "None";
+    [Tooltip("Overall rating: -2 (major drawback) to +2 (major benefit)")]
+    [Range(-2f, 2f)]
+    public float overallRating = 0f;
+    
     // Helper methods
     public bool HasTrait(ProjectileTrait trait) => (traits & trait) != 0;
     public bool IsType(ProjectileType type) => projectileType == type;
+    
+    // Calculate upgrade cost for a specific level
+    public int GetUpgradeCost(int fromLevel)
+    {
+        if (fromLevel >= maxUpgradeLevel) return 0;
+        // Cost increases: baseUpgradeCost * (level + 1)
+        return baseUpgradeCost * (fromLevel + 1);
+    }
+    
+    // Calculate stat multiplier for a given upgrade level
+    public float GetDamageMultiplierAtLevel(int level)
+    {
+        return damageMultiplier * (1f + (damagePerLevel * level / 100f));
+    }
+    
+    public float GetSpeedMultiplierAtLevel(int level)
+    {
+        return speedMultiplier * (1f + (speedPerLevel * level / 100f));
+    }
 }
