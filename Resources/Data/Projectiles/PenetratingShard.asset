@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PenetratingShard
   m_EditorClassIdentifier: 
   id: PENSHARD
-  projectileName: Shard
+  projectileName: Penetrating Shard
   description: Small projectile that penetrates and pierces the enemy causing damage
     over time.
   projectileType: 1

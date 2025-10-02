@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8ce029fd52b414fa3e4b1fb1a9a67d6, type: 3}
   m_Name: ProjectileUnlock_ChronoShot
   m_EditorClassIdentifier: 
-  projectileId: STD_BULLET
+  projectileId: CHRONOSHOT
   requiredHighestWave: 0
   requiredMaxDifficulty: 0
   prerequisiteProjectileIds: []
