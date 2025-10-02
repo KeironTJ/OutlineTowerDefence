@@ -35,4 +35,7 @@ public static class EventNames
     public const string SkillUnlocked = "SkillUnlocked";
     public const string SkillUpgraded = "SkillUpgraded";
 
+    // Achievement Events
+    public const string AchievementTierCompleted = "AchievementTierCompleted";
+
 }

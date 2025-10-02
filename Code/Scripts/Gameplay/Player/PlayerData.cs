@@ -102,6 +102,9 @@ public class PlayerData
     public string lastDailyObjectiveAddIsoUtc = "";
     public string lastDailyObjectiveSlotKey = "";
 
+    [Header("Achievement Progress")]
+    public List<AchievementProgressData> achievementProgress = new List<AchievementProgressData>();
+
     [Header("Loadout")]
     public string selectedLoadoutId = "";
 
