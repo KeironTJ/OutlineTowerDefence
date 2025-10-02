@@ -31,6 +31,17 @@ This document outlines planned features and design considerations for the projec
 - ✅ Overall rating system (-2 to +2)
 - ✅ Helps players make informed decisions
 
+### Achievement System
+- ✅ AchievementDefinition ScriptableObject for configuring achievements
+- ✅ Multi-tiered stackable achievements (Bronze, Silver, Gold, Platinum, etc.)
+- ✅ 10 achievement types: KillEnemies, ShootProjectiles, CompleteWaves, CompleteRounds, ReachDifficulty, EarnCurrency, SpendCurrency, UnlockTurret, UnlockProjectile, UpgradeProjectile
+- ✅ Achievement categories: Combat, Progression, Economy, Mastery
+- ✅ Multiple rewards per tier: Currency, Unlocks (Turrets, Projectiles, Tower Bases), Stat Bonuses
+- ✅ Event integration for automatic progress tracking
+- ✅ Save/load persistence via PlayerData
+- ✅ AchievementManager singleton for centralized management
+- ✅ Comprehensive documentation (ACHIEVEMENT_SYSTEM_GUIDE.md)
+
 ---
 
 ## Future Enhancements 🚀
@@ -293,26 +304,47 @@ Solution: Upgrade or switch to armor-piercing projectiles
 
 ### 9. Projectile Objectives & Achievements
 
+**Status:** ✅ **Implemented in Achievement System**
+
 **Concept:** Unlock bonuses by completing projectile-specific challenges
 
-#### Examples:
+The achievement system now supports projectile-specific achievements with the following features:
 
-**Achievement: "Chain Mastery"**
-- Requirement: Hit 5 enemies with one Chain projectile 100 times
-- Reward: +1 max chain target for all Chain projectiles
+#### Implementation:
+- **AchievementType.ShootProjectiles:** Track total projectiles fired
+- **AchievementType.UnlockProjectile:** Track projectile unlocks
+- **AchievementType.UpgradeProjectile:** Track projectile upgrades
+- **Filters:** Target specific projectile IDs or traits
+- **Multi-tier rewards:** Progressive bonuses for milestone achievements
+
+#### Examples Now Possible:
+
+**Achievement: "Trigger Happy"**
+- Type: ShootProjectiles
+- Tiers: 1000 / 10000 / 100000 / 1000000 shots
+- Rewards: Cores and eventual Loop rewards
 
 **Achievement: "Explosive Expert"**
-- Requirement: Kill 10,000 enemies with Explosive projectiles
-- Reward: +10% explosion radius permanently
+- Type: KillEnemies
+- Filter: targetProjectileTrait = Explosive (future enhancement)
+- Tiers: 100 / 1000 / 10000 kills
+- Rewards: Increased explosion radius (via stat bonus system)
 
-**Daily Objective: "Piercing Practice"**
-- Requirement: Apply 500 DoT ticks today
-- Reward: 100 Prisms
+**Achievement: "Projectile Master"**
+- Type: UnlockProjectile
+- Tiers: Unlock 5 / 10 / 20 / 30 projectiles
+- Rewards: Currency and special projectile unlocks
 
 #### Benefits:
-- Encourages variety in projectile usage
-- Provides goals beyond "max everything"
-- Adds replayability
+- ✅ Encourages variety in projectile usage
+- ✅ Provides goals beyond "max everything"
+- ✅ Adds replayability
+- ✅ Integrates with daily/weekly objective system
+
+#### Future Enhancements:
+- Trait-specific kill tracking (e.g., kills with Explosive projectiles)
+- Chain length achievements (hit X enemies with one Chain shot)
+- Projectile mastery bonuses (permanent stat boosts for achieving milestones)
 
 ---
 
@@ -383,7 +415,7 @@ Explosive Bolt
 3. Basic synergy system
 
 ### Phase 2: Player Engagement (Medium-term)
-4. Projectile objectives & achievements
+4. ✅ **Projectile objectives & achievements** (Implemented via Achievement System)
 5. Enhanced tower base integration
 6. Dynamic difficulty scaling
 
@@ -398,6 +430,9 @@ Explosive Bolt
 - Community-created projectiles
 - Seasonal/event projectiles
 - Multiplayer considerations
+- Achievement UI integration
+- Trait-specific kill tracking for achievements
+- Achievement mastery bonuses
 
 ---
 

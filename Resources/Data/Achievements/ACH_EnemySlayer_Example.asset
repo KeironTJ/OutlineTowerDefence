@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc54a2a18525429c97da9feb776019fe, type: 3}
+  m_Name: ACH_EnemySlayer_Example
+  m_EditorClassIdentifier: 
+  id: ACH_ENEMY_SLAYER
+  displayName: Enemy Eliminator
+  description: Destroy enemies to prove your combat prowess. Each tier rewards
+    you with increasing amounts of Cores!
+  category: 0
+  type: 0
+  tiers:
+  - tierLevel: 1
+    targetAmount: 10
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 100
+      currencyType: 1
+    tierName: Bronze
+    tierDescription: Kill 10 enemies
+  - tierLevel: 2
+    targetAmount: 100
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 500
+      currencyType: 1
+    tierName: Silver
+    tierDescription: Kill 100 enemies
+  - tierLevel: 3
+    targetAmount: 1000
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 2000
+      currencyType: 1
+    - rewardType: 2
+      rewardId: CHAIN_BULLET
+      amount: 0
+      currencyType: 1
+    tierName: Gold
+    tierDescription: Kill 1000 enemies
+  - tierLevel: 4
+    targetAmount: 10000
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 10000
+      currencyType: 1
+    - rewardType: 0
+      rewardId: 
+      amount: 50
+      currencyType: 3
+    tierName: Platinum
+    tierDescription: Kill 10000 enemies
+  targetDefinitionId: 
+  useTierFilter: 0
+  targetEnemyTier: 0
+  useFamilyFilter: 0
+  targetFamily: 
+  useTraitFilter: 0
+  targetTraits: 0
+  currencyType: 1
+  targetProjectileId: 
+  targetProjectileTrait: 0
+  icon: {fileID: 0}
+  isHidden: 0
