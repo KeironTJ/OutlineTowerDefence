@@ -14,5 +14,6 @@ public class RewardsBootstrap : MonoBehaviour
             yield return null;
 
         DailyObjectiveManager.main?.EnsureInitialized();
+        WeeklyObjectiveManager.main?.EnsureInitialized();
     }
 }

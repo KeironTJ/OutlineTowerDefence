@@ -44,7 +44,10 @@ public class ObjectivePanelUI : MonoBehaviour
         claimButton.onClick.RemoveAllListeners();
         claimButton.onClick.AddListener(() =>
         {
-            DailyObjectiveManager.main?.Claim(runtime);
+            if (def.period == ObjectivePeriod.Daily)
+                DailyObjectiveManager.main?.Claim(runtime);
+            else if (def.period == ObjectivePeriod.Weekly)
+                WeeklyObjectiveManager.main?.Claim(runtime);
             UpdateProgressVisual();
             UpdateStateVisuals();
         });
