@@ -10,13 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d06be1658c462a63dcd42fc5384880aa, type: 3}
-  m_Name: Shard
+  m_Name: PenetratingShard
   m_EditorClassIdentifier: 
-  id: SHARD
+  id: PENSHARD
   projectileName: Shard
-  description: Small projectile that pierces the enemy causing damage over time.
+  description: Small projectile that penetrates and pierces the enemy causing damage
+    over time.
   projectileType: 1
-  traits: 2
+  traits: 3
   projectilePrefab: {fileID: 6019418362768665789, guid: 1fb7ad9923be1714188fb207d83fc061, type: 3}
   icon: {fileID: 1889554605544027027, guid: d8f8d014acf962a41bd9cba18f758d7f, type: 3}
   damageMultiplier: 1

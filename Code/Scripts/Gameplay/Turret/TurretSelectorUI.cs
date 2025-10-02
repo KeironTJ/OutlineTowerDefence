@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.UI;
 using TMPro;
 
@@ -17,6 +18,12 @@ public class TurretSelectorUI : MonoBehaviour
 
     public void PopulateOptions()
     {
+        if (contentParent == null || optionPrefab == null)
+        {
+            Debug.LogError("[TurretSelectorUI] Content parent or option prefab is not assigned.");
+            return;
+        }
+
         for (int i = contentParent.childCount - 1; i >= 0; i--)
             Destroy(contentParent.GetChild(i).gameObject);
 
@@ -30,43 +37,80 @@ public class TurretSelectorUI : MonoBehaviour
 
         string currentId = pm != null ? pm.GetSelectedTurretForSlot(slotIndex) : string.Empty;
 
+        var optionData = new List<TurretOptionData>();
+
         foreach (var def in defs)
         {
-            var go = Instantiate(optionPrefab, contentParent);
-            var tile = go.GetComponent<TurretButton>();
-            if (tile == null) { Debug.LogWarning("optionPrefab missing TurretButton"); continue; }
-
             bool isUnlocked = pm?.playerData?.unlockedTurretIds != null && pm.playerData.unlockedTurretIds.Contains(def.id);
             bool isCurrent  = !string.IsNullOrEmpty(currentId) && currentId == def.id;
 
-            tile.Configure(def, slotIndex, isUnlocked, OnPicked, isCurrent);
+            string lockReason = "Not available";
+            TurretUnlockManager.CurrencyCost cost = default;
+            bool canUnlockNow = false;
 
             if (!isUnlocked)
             {
-                string reason = "";
-                TurretUnlockManager.CurrencyCost cost = default;
-                bool canUnlock = unlocks != null && unlocks.CanUnlock(pm, def.id, out reason, out cost);
-
-                if (canUnlock)
+                if (unlocks != null)
                 {
-                    tile.ConfigureForUnlock(def, cost,
-                        tryUnlock: () => unlocks.TryUnlock(pm, def.id, out _),
+                    canUnlockNow = unlocks.CanUnlock(pm, def.id, out lockReason, out cost);
+                    if (canUnlockNow)
+                        lockReason = "";
+                }
+                else
+                    lockReason = "Unlock system unavailable";
+            }
+
+            optionData.Add(new TurretOptionData
+            {
+                definition = def,
+                isUnlocked = isUnlocked,
+                isCurrent = isCurrent,
+                canUnlock = canUnlockNow,
+                cost = cost,
+                lockReason = string.IsNullOrEmpty(lockReason) ? "Not available" : lockReason
+            });
+        }
+
+        var ordered = optionData
+            .OrderByDescending(o => o.SortPriority)
+            .ThenBy(o => string.IsNullOrEmpty(o.definition?.turretName) ? o.definition?.id : o.definition.turretName)
+            .ToList();
+
+        foreach (var option in ordered)
+        {
+            var go = Instantiate(optionPrefab, contentParent);
+            var tile = go.GetComponent<TurretButton>();
+            if (tile == null)
+            {
+                Debug.LogWarning("[TurretSelectorUI] optionPrefab missing TurretButton component.");
+                continue;
+            }
+
+            tile.Configure(option.definition, slotIndex, option.isUnlocked, OnPicked, option.isCurrent);
+
+            if (!option.isUnlocked)
+            {
+                if (option.canUnlock && unlocks != null)
+                {
+                    tile.ConfigureForUnlock(option.definition, option.cost,
+                        tryUnlock: () => unlocks.TryUnlock(pm, option.definition.id, out _),
                         onUnlocked: () =>
                         {
-                            // optional: auto-assign on unlock, then close
-                            pm.SetSelectedTurretForSlot(slotIndex, def.id);
+                            pm.SetSelectedTurretForSlot(slotIndex, option.definition.id);
                             loadoutScreen?.UpdateSlotButtons();
                             gameObject.SetActive(false);
                         });
                 }
                 else
                 {
-                    tile.ConfigureLockedReason(string.IsNullOrEmpty(reason) ? "Not available" : reason);
+                    tile.ConfigureLockedReason(option.lockReason);
                 }
             }
         }
 
-        LayoutRebuilder.ForceRebuildLayoutImmediate(contentParent as RectTransform);
+        var rect = contentParent as RectTransform;
+        if (rect != null)
+            LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
     }
 
     private void OnPicked(string id)
@@ -86,6 +130,7 @@ public class TurretSelectorUI : MonoBehaviour
     private void OnDisable()
     {
         // cleanup buttons
+        if (contentParent == null) return;
         for (int i = contentParent.childCount - 1; i >= 0; i--)
         {
             var tile = contentParent.GetChild(i).GetComponent<TurretButton>();
@@ -94,4 +139,26 @@ public class TurretSelectorUI : MonoBehaviour
     }
 
     public void ClosePanel() => gameObject.SetActive(false);
+
+    private class TurretOptionData
+    {
+        public TurretDefinition definition;
+        public bool isUnlocked;
+        public bool isCurrent;
+        public bool canUnlock;
+        public TurretUnlockManager.CurrencyCost cost;
+        public string lockReason;
+
+        public int SortPriority
+        {
+            get
+            {
+                if (isUnlocked)
+                    return isCurrent ? 3 : 2;
+                if (canUnlock)
+                    return 1;
+                return 0;
+            }
+        }
+    }
 }

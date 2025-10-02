@@ -31,8 +31,8 @@ MonoBehaviour:
   valueGrowth: 1
   fragmentsCostCurve: 1
   fragmentsCostGrowth: 1.25
-  coresCostCurve: 1
-  coresCostGrowth: 1.35
+  coresCostCurve: 4
+  coresCostGrowth: 5
   customValueCurve:
     serializedVersion: 2
     m_Curve: []

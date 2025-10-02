@@ -130,6 +130,8 @@ public class TurretUnlockManager : MonoBehaviour
         pm.playerData.unlockedTurretIds.Add(turretId);
         pm.SavePlayerData();
 
+        GrantDefaultProjectileIfConfigured(pm, turretId);
+
         return true;
     }
 
@@ -140,6 +142,20 @@ public class TurretUnlockManager : MonoBehaviour
         {
             pm.playerData.unlockedTurretIds.Add(turretId);
             pm.SavePlayerData();
+            GrantDefaultProjectileIfConfigured(pm, turretId);
         }
+    }
+
+    private void GrantDefaultProjectileIfConfigured(PlayerManager pm, string turretId)
+    {
+        if (pm == null) return;
+
+        var defManager = TurretDefinitionManager.Instance;
+        if (defManager == null) return;
+
+        var turretDef = defManager.GetById(turretId);
+        if (turretDef == null || string.IsNullOrEmpty(turretDef.defaultProjectileId)) return;
+
+        pm.UnlockProjectile(turretDef.defaultProjectileId);
     }
 }

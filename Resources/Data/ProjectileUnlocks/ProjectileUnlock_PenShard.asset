@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c8ce029fd52b414fa3e4b1fb1a9a67d6, type: 3}
-  m_Name: ProjectileUnlock_
+  m_Name: ProjectileUnlock_PenShard
   m_EditorClassIdentifier: 
   projectileId: STD_BULLET
   requiredHighestWave: 0
