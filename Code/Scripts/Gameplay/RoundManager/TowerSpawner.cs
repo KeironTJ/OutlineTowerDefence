@@ -13,7 +13,8 @@ public class TowerSpawner : MonoBehaviour
     // Spawn chassis + attach the player's selected turrets (dynamic loadout)
     public Tower SpawnTowerFromSelectedLoadout()
     {
-        var playerData = PlayerManager.main?.playerData;
+        var playerManager = PlayerManager.main;
+        var playerData = playerManager?.playerData;
         if (playerData == null)
         {
             Debug.LogError("[TowerSpawner] PlayerData missing (PlayerManager.main is null).");
@@ -116,6 +117,18 @@ public class TowerSpawner : MonoBehaviour
                 float slotDmgMult = (i == 0) ? 1f : 0.75f;
                 float slotFRMult = (i == 0) ? 1f : 0.75f;
                 turret.InitializeFromDefinition(def, slotDamageMult: slotDmgMult, slotFireRateMult: slotFRMult, owner: spawnedTower);
+
+                // Apply player-selected projectile (falls back to definition default if none picked)
+                string selectedProjectileId = playerManager != null ? playerManager.GetSelectedProjectileForSlot(i) : string.Empty;
+                if (!string.IsNullOrEmpty(selectedProjectileId))
+                {
+                    turret.SetProjectileDefinition(selectedProjectileId);
+                }
+                else if (!string.IsNullOrEmpty(def.defaultProjectileId))
+                {
+                    turret.SetProjectileDefinition(def.defaultProjectileId);
+                }
+
                 Debug.Log($"[TowerSpawner] Spawned turret '{turretId}' at slot {i}.");
             }
             else
