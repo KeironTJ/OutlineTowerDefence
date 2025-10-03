@@ -28,6 +28,10 @@ public class MainRewardSceen : MonoBehaviour
     [Header("Weekly Objectives")]
     public Transform weeklyObjectivesContentParent;
 
+    [Header("Achievements")]
+    [SerializeField] private GameObject achievementPanelPrefab;
+    [SerializeField] private Transform achievementContentParent;
+
     [Header("Daily Objective Timer")]
     [SerializeField] private TextMeshProUGUI nextSlotTimerText;
 
@@ -36,6 +40,7 @@ public class MainRewardSceen : MonoBehaviour
 
     private readonly Dictionary<ObjectiveRuntime, ObjectivePanelUI> panelMap = new Dictionary<ObjectiveRuntime, ObjectivePanelUI>();
     private readonly Dictionary<ObjectiveRuntime, ObjectivePanelUI> weeklyPanelMap = new Dictionary<ObjectiveRuntime, ObjectivePanelUI>();
+    private readonly Dictionary<AchievementRuntime, AchievementPanelUI> achievementPanelMap = new Dictionary<AchievementRuntime, AchievementPanelUI>();
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -57,16 +62,21 @@ public class MainRewardSceen : MonoBehaviour
     {
         yield return null;
         PopulateDailyObjectives();
+        PopulateWeeklyObjectives();
+        PopulateAchievements();
     }
 
     void OnEnable()
     {
         DailyObjectiveManager.main?.EnsureInitialized();
         WeeklyObjectiveManager.main?.EnsureInitialized();
+        AchievementManager.Instance?.EnsureInitialized();
         DailyObjectiveManager.OnProgress += HandleObjectiveProgress;
         DailyObjectiveManager.OnSlotRollover += HandleSlotRollover;
         WeeklyObjectiveManager.OnProgress += HandleWeeklyObjectiveProgress;
         WeeklyObjectiveManager.OnSlotRollover += HandleWeeklySlotRollover;
+        AchievementManager.OnProgress += HandleAchievementProgress;
+        AchievementManager.OnTierCompletedEvent += HandleAchievementTierCompleted;
         UpdateDailyLoginUI();
         OpenDailyRewardTab();
         StartCoroutine(DelayedPopulate());
@@ -78,6 +88,8 @@ public class MainRewardSceen : MonoBehaviour
         DailyObjectiveManager.OnSlotRollover -= HandleSlotRollover;
         WeeklyObjectiveManager.OnProgress -= HandleWeeklyObjectiveProgress;
         WeeklyObjectiveManager.OnSlotRollover -= HandleWeeklySlotRollover;
+        AchievementManager.OnProgress -= HandleAchievementProgress;
+        AchievementManager.OnTierCompletedEvent -= HandleAchievementTierCompleted;
         if (claimButton) claimButton.interactable = false;
         if (statusText) statusText.text = "";
     }
@@ -127,6 +139,7 @@ public class MainRewardSceen : MonoBehaviour
         CloseSubTabScreens();
         HighlightButton(achievementRewardButton);
         achievementRewardTab.SetActive(true);
+        PopulateAchievements();
     }
 
     public void CloseSubTabScreens()
@@ -275,14 +288,82 @@ public class MainRewardSceen : MonoBehaviour
         PopulateWeeklyObjectives();
     }
 
+    void PopulateAchievements()
+    {
+        if (achievementPanelPrefab == null || achievementContentParent == null) return;
+
+        var manager = AchievementManager.Instance;
+        if (manager == null) return;
+
+        manager.EnsureInitialized();
+        var list = manager.GetAllAchievements();
+        if (list == null) return;
+
+        var activeSet = new System.Collections.Generic.HashSet<AchievementRuntime>(list);
+
+        var toRemove = new System.Collections.Generic.List<AchievementRuntime>();
+        foreach (var kvp in achievementPanelMap)
+        {
+            if (!activeSet.Contains(kvp.Key))
+            {
+                if (kvp.Value != null) Destroy(kvp.Value.gameObject);
+                toRemove.Add(kvp.Key);
+            }
+        }
+        foreach (var rt in toRemove) achievementPanelMap.Remove(rt);
+
+        foreach (var rt in list)
+        {
+            if (achievementPanelMap.ContainsKey(rt)) continue;
+            var go = Instantiate(achievementPanelPrefab, achievementContentParent);
+            var ui = go.GetComponent<AchievementPanelUI>();
+            if (ui == null)
+            {
+                Debug.LogError("[MainRewardScreen] AchievementPanelUI missing on prefab.");
+                Destroy(go);
+                continue;
+            }
+            ui.Bind(rt);
+            achievementPanelMap.Add(rt, ui);
+        }
+
+        foreach (var ui in achievementPanelMap.Values)
+            ui.Refresh();
+    }
+
+    private void HandleAchievementProgress(AchievementRuntime rt)
+    {
+        if (rt == null)
+        {
+            PopulateAchievements();
+            return;
+        }
+
+        if (achievementPanelMap.TryGetValue(rt, out var ui) && ui != null)
+        {
+            ui.Refresh();
+        }
+        else
+        {
+            PopulateAchievements();
+        }
+    }
+
+    private void HandleAchievementTierCompleted(AchievementRuntime rt, AchievementTier tier)
+    {
+        HandleAchievementProgress(rt);
+    }
+
     // Public entrypoint for external callers (Options menu / HUD / controller)
     public void RefreshUI()
     {
         DailyObjectiveManager.main?.EnsureInitialized();
         WeeklyObjectiveManager.main?.EnsureInitialized();
+        AchievementManager.Instance?.EnsureInitialized();
         UpdateDailyLoginUI();
         PopulateDailyObjectives();
         PopulateWeeklyObjectives();
+        PopulateAchievements();
     }
 
     // Close/hide the rewards screen (wire a UI Close button to this)

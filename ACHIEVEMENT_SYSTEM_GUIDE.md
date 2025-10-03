@@ -374,26 +374,58 @@ Example:
 
 ---
 
-## UI Integration (Future)
+## UI Integration
 
-**Recommended UI Flow:**
+Follow the steps below to wire the achievement runtime data into your menus.
 
-1. **Achievement List Screen**
-   - Show all achievements (unlocked + locked)
-   - Display progress bars per tier
-   - Show current tier and next tier
-   - Highlight newly completed tiers
+### 1. Data Sources
 
-2. **Achievement Detail Screen**
-   - Show all tiers with checkmarks
-   - Display rewards for each tier
-   - Show current progress toward next tier
-   - Show filters/criteria
+- Call `AchievementManager.Instance.GetAllAchievements()` to retrieve the current runtime list (ordered however you prefer in UI).
+- For each `AchievementRuntime`, use:
+  - `displayName`, `description`, `category` from the definition for labels.
+  - `GetProgressToNextTier()` for progress bars (0.0–1.0).
+  - `GetCurrentTier()` / `GetNextUncompletedTier()` for tier summaries.
+  - `HighestTierCompleted` to determine completed badges.
 
-3. **Notification on Completion**
-   - Pop-up when tier is completed
-   - Show tier name and rewards
-   - Animate rewards being granted
+### 2. List Screen Setup
+
+1. Populate a scroll container with all runtimes; optionally sort by completion state (`IsComplete`), category, or reward value.
+2. Show a compact progress bar per entry using `GetProgressToNextTier()`.
+3. Display the current tier name (`GetCurrentTier()?.tierName ?? "Bronze"`) and the upcoming tier target (`GetNextUncompletedTier()?.targetAmount`).
+4. Trigger a subtle highlight or badge when `HighestTierCompleted` changed since last refresh (store previous value client-side).
+
+### 3. Detail Panel
+
+1. When a list item is selected, fetch the full tier array from the definition (`achievement.definition.tiers`).
+2. Build a vertical list showing each tier’s:
+  - Name + description
+  - Target amount and reward summary
+  - Completion state (`tierLevel <= HighestTierCompleted + 1`).
+3. For the active tier, show live progress: `Mathf.FloorToInt(achievement.Current)` / `targetAmount` and percentage to next tier.
+4. Display any filters (enemy family, currency type, etc.) by reading the definition fields so players know requirements.
+
+### 4. Real-time Updates
+
+- Subscribe to `AchievementManager.OnProgress` (or the equivalent event in your implementation) to refresh UI when progress changes. If that event does not yet exist, poll `achievement.LastUpdatedUtc` every few seconds or refresh on relevant gameplay events.
+- When a tier completes, play a small celebration animation and optionally queue a notification (see below).
+
+### 5. Completion Notifications
+
+1. Listen for tier completion via `AchievementManager.OnTierCompleted` (implement this event if missing) or detect when `HighestTierCompleted` increases.
+2. Launch a pop-up panel that shows:
+  - Achievement + tier name
+  - Reward icons/amounts
+  - “Claimed” state if the reward is granted immediately.
+3. Animate currency fly-outs or VFX to reinforce the reward.
+
+### 6. Recommended UX Touches
+
+- **Filters & Sorting:** Provide category toggles (Combat, Economy, etc.) and completion filters.
+- **Search:** Allow text search across `displayName` and `description` if you have many achievements.
+- **Pinned Achievements:** Let players mark a favourite achievement and display its progress on the HUD.
+- **Empty States:** Show guidance text when no achievements match the filter (e.g., “All Combat achievements complete!”).
+
+By following this checklist you can turn the data exposed by `AchievementRuntime` into a responsive, player-friendly achievements hub, plus lightweight pop-ups for moment-to-moment feedback.
 
 ---
 

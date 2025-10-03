@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 40cfce9b3120f1847bbcd2de0296d33a, type: 3}
-  m_Name: ACH_EnemySlayer_Example
+  m_Name: ACH_EnemySlayer_Example 2
   m_EditorClassIdentifier: 
-  id: ACH_EnemySlayer_Example
-  displayName: ACH_EnemySlayer_Example
+  id: test2
+  displayName: test2
   description: Kill Enemies!!!!!!
   category: 0
   type: 0

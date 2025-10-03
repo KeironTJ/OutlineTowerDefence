@@ -6,6 +6,9 @@ public class AchievementManager : MonoBehaviour
 {
     public static AchievementManager Instance;
 
+    public static event System.Action<AchievementRuntime> OnProgress;
+    public static event System.Action<AchievementRuntime, AchievementTier> OnTierCompletedEvent;
+
     [Header("Configuration")]
     [SerializeField] private List<AchievementDefinition> allAchievements;
 
@@ -43,6 +46,11 @@ public class AchievementManager : MonoBehaviour
     }
 
     private void Start()
+    {
+        InitializeIfNeeded();
+    }
+
+    public void EnsureInitialized()
     {
         InitializeIfNeeded();
     }
@@ -154,6 +162,7 @@ public class AchievementManager : MonoBehaviour
         }
 
         SaveManager.main?.QueueImmediateSave();
+        OnProgress?.Invoke(rt);
     }
 
     private void OnTierCompleted(AchievementRuntime rt, AchievementTier tier, int tierIndex)
@@ -176,6 +185,9 @@ public class AchievementManager : MonoBehaviour
             tierIndex = tierIndex,
             tierName = tier.tierName
         });
+
+        OnTierCompletedEvent?.Invoke(rt, tier);
+        OnProgress?.Invoke(rt);
     }
 
     private void GrantReward(AchievementReward reward)
@@ -261,6 +273,7 @@ public class AchievementManager : MonoBehaviour
                     rt.progressData.currentProgress = wce.waveNumber;
                     rt.progressData.lastUpdatedIsoUtc = System.DateTime.UtcNow.ToString("o");
                     SaveManager.main?.QueueImmediateSave();
+                    OnProgress?.Invoke(rt);
                 }
             }
         }
