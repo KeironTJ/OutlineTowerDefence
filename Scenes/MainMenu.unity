@@ -5967,6 +5967,8 @@ MonoBehaviour:
     weeklyObjectives: []
     lastDailyObjectiveAddIsoUtc: 
     lastDailyObjectiveSlotKey: 
+    lastWeeklyObjectiveSlotKey: 
+    achievementProgress: []
     selectedLoadoutId: 
   defaultTurretId: STD
   difficultySelected: 0
@@ -19262,6 +19264,8 @@ GameObject:
   - component: {fileID: 5625031933619076187}
   - component: {fileID: 2840436547339627304}
   - component: {fileID: 8833236884976689107}
+  - component: {fileID: 8833236884976689109}
+  - component: {fileID: 8833236884976689108}
   m_Layer: 0
   m_Name: RewardManager
   m_TagString: Untagged
@@ -19472,17 +19476,7 @@ MonoBehaviour:
   maxDailyObjectives: 6
   slotLengthHours: 6
   objectivesAddedPerCycle: 2
-  allObjectives:
-  - {fileID: 11400000, guid: f835fa23a9ed87b4491003b1d451e7dc, type: 2}
-  - {fileID: 11400000, guid: 5e3479e4c2072734a86012c1a4726b26, type: 2}
-  - {fileID: 11400000, guid: 515836607fd3f8e46953e8fd2a8dfabb, type: 2}
-  - {fileID: 11400000, guid: 5d8a20600e842cb4d9da843dcd4c93bb, type: 2}
-  - {fileID: 11400000, guid: 808a05a023a5577409908179b50967c9, type: 2}
-  - {fileID: 11400000, guid: c317cc04879d7e44cb07f8b232e70bbe, type: 2}
-  - {fileID: 11400000, guid: a2f62ff17ce4d7c47aec70653c8defcc, type: 2}
-  - {fileID: 11400000, guid: be65315a2f34b1141beae96d116272e7, type: 2}
-  - {fileID: 11400000, guid: 24e41046cbf2c2e45bfe0798317c4a4f, type: 2}
-  - {fileID: 11400000, guid: 80663c1208cec3c4c871b07096835ce0, type: 2}
+  allObjectives: []
   removeClaimedOnNextCycle: 1
   grantInitialFill: 0
 --- !u!224 &5553812900362687776 stripped
@@ -19648,6 +19642,37 @@ MonoBehaviour:
   openHotkey: 114
   pauseGameWhenOpen: 0
   persistAcrossScenes: 1
+--- !u!114 &8833236884976689108
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 949316153905815657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eee206d7f57aff5438df77ccaa4688ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  allAchievements: []
+--- !u!114 &8833236884976689109
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 949316153905815657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 850025ab57444217ace228fc67d99d1a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxWeeklyObjectives: 20
+  slotLengthDays: 7
+  objectivesAddedPerCycle: 1
+  allObjectives: []
+  removeClaimedOnNextCycle: 1
+  grantInitialFill: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

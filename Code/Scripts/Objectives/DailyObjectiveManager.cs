@@ -33,6 +33,14 @@ public class DailyObjectiveManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);   // ensure persists across scenes
     }
 
+    private void EnsureDefinitionsLoaded()
+    {
+        if (allObjectives != null && allObjectives.Count > 0) return;
+        var loaded = Resources.LoadAll<ObjectiveDefinition>("Data/Objectives/Daily");
+        if (loaded != null && loaded.Length > 0)
+            allObjectives = new List<ObjectiveDefinition>(loaded);
+    }
+
     private void OnEnable()
     {
         EventManager.StartListening(EventNames.EnemyDestroyedDefinition, OnEnemyDestroyedDefinition);
@@ -41,6 +49,9 @@ public class DailyObjectiveManager : MonoBehaviour
         EventManager.StartListening(EventNames.CurrencySpent, OnCurrencySpent);
         EventManager.StartListening(EventNames.SkillUnlocked, OnSkillUnlocked);
         EventManager.StartListening(EventNames.WaveCompleted, OnWaveCompleted);
+
+        // Load definitions before any init that depends on them
+        EnsureDefinitionsLoaded();
 
         // Subscribe to SaveManager.OnAfterLoad if available; otherwise fallback to polling
         if (SaveManager.main != null)
@@ -113,6 +124,7 @@ public class DailyObjectiveManager : MonoBehaviour
     {
         if (initialized) return;
         if (PlayerData == null) return; // Bootstrap waits; safety guard.
+        EnsureDefinitionsLoaded();
 
         RebuildFromSave();          // Does NOT add or prune.
         EstablishBaselineIfNeeded(); // Sets baseline only if missing.
@@ -137,12 +149,16 @@ public class DailyObjectiveManager : MonoBehaviour
     {
         activeDaily.Clear();
         if (PlayerData == null) return;
+        if (allObjectives == null) return;
 
         // Build lookup of definitions
         var map = new Dictionary<string, ObjectiveDefinition>();
         foreach (var def in allObjectives)
+        {
+            if (def == null) continue;
             if (def.period == ObjectivePeriod.Daily && !string.IsNullOrEmpty(def.id))
                 map[def.id] = def;
+        }
 
         // Rebuild runtime list from saved progress
         foreach (var pd in PlayerData.dailyObjectives)
@@ -317,6 +333,21 @@ public class DailyObjectiveManager : MonoBehaviour
     // Public access for UI
     public IReadOnlyList<ObjectiveRuntime> GetActiveDailyObjectives() => activeDaily;
 
+    public IReadOnlyList<ObjectiveRuntime> GetOrderedDailyObjectives()
+    {
+        // Return objectives ordered by completion status (incomplete first)
+        return activeDaily.OrderBy(obj => obj.progressData.completed ? 1 : 0).ToList();
+    }
+    
+    // Get objectives ordered by completion status (incomplete first, then completed)
+    public IReadOnlyList<ObjectiveRuntime> GetActiveDailyObjectivesOrdered()
+    {
+        return activeDaily
+            .OrderBy(rt => rt.Completed ? 1 : 0) // incomplete first (0), completed last (1)
+            .ThenBy(rt => rt.definition.targetAmount > 0 ? rt.Current / rt.definition.targetAmount : 0) // within each group, sort by progress
+            .ToList();
+    }
+
     public void Claim(ObjectiveRuntime rt)
     {
         if (rt == null || !rt.Completed || rt.Claimed) return;
@@ -355,6 +386,7 @@ public class DailyObjectiveManager : MonoBehaviour
                 rt.progressData.claimed = true;
             }
             SaveManager.main.QueueSave();
+            OnDailyObjectiveCompleted?.Invoke(); // Notify weekly objectives
         }
         //Debug.Log($"[DailyObjectiveManager] {rt.definition.id} progress {rt.progressData.currentProgress:0.##}/{rt.definition.targetAmount:0.##}");
         OnProgress?.Invoke(rt);
@@ -481,6 +513,7 @@ public class DailyObjectiveManager : MonoBehaviour
 
     public static event System.Action<ObjectiveRuntime> OnProgress;
     public static event Action<string> OnSlotRollover; // slotKey of new slot
+    public static event System.Action OnDailyObjectiveCompleted; // fired when any daily objective completes
 
     // ---- PUBLIC SLOT TIME HELPERS ----
 

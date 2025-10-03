@@ -96,12 +96,12 @@ public class PlayerData
     public string lastDailyLoginIsoUtc = "";
     public int dailyLoginStreak = 0;
 
-    [Header("Objective Progress")]
+    [Header("Objectives")]
     public List<ObjectiveProgressData> dailyObjectives = new List<ObjectiveProgressData>();
     public List<ObjectiveProgressData> weeklyObjectives = new List<ObjectiveProgressData>();
-    public string lastDailyObjectiveAddIsoUtc = "";
     public string lastDailyObjectiveSlotKey = "";
     public string lastWeeklyObjectiveSlotKey = "";
+    public int weeklyDailyCompletions = 0; // Track daily objectives completed this week
 
     [Header("Achievement Progress")]
     public List<AchievementProgressData> achievementProgress = new List<AchievementProgressData>();

@@ -116,7 +116,7 @@ public class AchievementManager : MonoBehaviour
             }
         }
 
-        SaveManager.main?.SaveGame();
+        SaveManager.main?.QueueImmediateSave();
     }
 
     public IReadOnlyList<AchievementRuntime> GetAllAchievements()
@@ -153,7 +153,7 @@ public class AchievementManager : MonoBehaviour
             }
         }
 
-        SaveManager.main?.SaveGame();
+        SaveManager.main?.QueueImmediateSave();
     }
 
     private void OnTierCompleted(AchievementRuntime rt, AchievementTier tier, int tierIndex)
@@ -218,7 +218,7 @@ public class AchievementManager : MonoBehaviour
                 break;
         }
 
-        SaveManager.main?.SaveGame();
+        SaveManager.main?.QueueImmediateSave();
     }
 
     // --- Event Handlers ---
@@ -260,7 +260,7 @@ public class AchievementManager : MonoBehaviour
                 {
                     rt.progressData.currentProgress = wce.waveNumber;
                     rt.progressData.lastUpdatedIsoUtc = System.DateTime.UtcNow.ToString("o");
-                    SaveManager.main?.SaveGame();
+                    SaveManager.main?.QueueImmediateSave();
                 }
             }
         }

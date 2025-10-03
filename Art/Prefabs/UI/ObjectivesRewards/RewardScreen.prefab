@@ -2587,7 +2587,9 @@ MonoBehaviour:
   statusText: {fileID: 243612898212922013}
   objectivePanelPrefab: {fileID: 2266647491569213869, guid: dfc2e7a03d225dc4e91c3c7ffa645a4c, type: 3}
   dailyObjectivesContentParent: {fileID: 1243768691997989404}
+  weeklyObjectivesContentParent: {fileID: 1710493420530988806}
   nextSlotTimerText: {fileID: 4392926178742086215}
+  nextWeeklySlotTimerText: {fileID: 7001961492383970426}
 --- !u!1 &7854263672483182881
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public enum ObjectiveType { KillEnemies, CompleteRounds, CompleteWaves, SpendCurrency, UnlockSkill, EarnCurrency }
+public enum ObjectiveType { KillEnemies, CompleteRounds, CompleteWaves, SpendCurrency, UnlockSkill, EarnCurrency, CompleteDailyObjectives, CompleteWeeklyObjectives }
 public enum ObjectiveRarity { Common, Uncommon, Rare, Epic }
 public enum ObjectivePeriod { Daily, Weekly }
 

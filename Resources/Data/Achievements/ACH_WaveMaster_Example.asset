@@ -9,56 +9,24 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 865ca32b292e4a24b9dc7da489d189cb, type: 3}
+  m_Script: {fileID: 11500000, guid: 40cfce9b3120f1847bbcd2de0296d33a, type: 3}
   m_Name: ACH_WaveMaster_Example
   m_EditorClassIdentifier: 
-  id: ACH_WAVE_MASTER
-  displayName: Wave Master
-  description: Complete waves to demonstrate your endurance and skill. Earn Prisms
-    for each tier!
+  id: ACH_WaveMaster_Example
+  displayName: ACH_WaveMaster_Example
+  description: 
   category: 1
   type: 2
   tiers:
-  - tierLevel: 1
+  - tierLevel: 0
     targetAmount: 10
     rewards:
     - rewardType: 0
-      rewardId: 
-      amount: 200
-      currencyType: 2
-    tierName: Bronze
-    tierDescription: Complete 10 waves
-  - tierLevel: 2
-    targetAmount: 100
-    rewards:
-    - rewardType: 0
-      rewardId: 
-      amount: 1000
-      currencyType: 2
-    tierName: Silver
-    tierDescription: Complete 100 waves
-  - tierLevel: 3
-    targetAmount: 500
-    rewards:
-    - rewardType: 0
-      rewardId: 
-      amount: 5000
-      currencyType: 2
-    tierName: Gold
-    tierDescription: Complete 500 waves
-  - tierLevel: 4
-    targetAmount: 2000
-    rewards:
-    - rewardType: 0
-      rewardId: 
-      amount: 20000
-      currencyType: 2
-    - rewardType: 0
-      rewardId: 
+      rewardId: Cores
       amount: 100
-      currencyType: 3
-    tierName: Diamond
-    tierDescription: Complete 2000 waves
+      currencyType: 1
+    tierName: 
+    tierDescription: 
   targetDefinitionId: 
   useTierFilter: 0
   targetEnemyTier: 0
