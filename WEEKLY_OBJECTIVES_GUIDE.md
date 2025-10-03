@@ -1,113 +1,89 @@
-# Weekly Objectives Implementation Guide
+# Weekly Objectives Guide
 
-This implementation adds weekly objectives to the game, following the same pattern as daily objectives.
+The weekly system now delivers a fixed progression track that rewards players for consistently clearing daily objectives while still supporting traditional weekly tasks. This document explains the runtime behaviour, configuration points, and debug helpers that ship with the latest implementation.
 
-## Components Added
+## Feature Overview
 
-### 1. WeeklyObjectiveManager.cs
-- Manages weekly objective lifecycle (assignment, progress, completion, claiming)
-- Handles weekly slot rotation (configurable 7 or 14 day cycles)
-- Listens to game events (enemy kills, rounds completed, currency earned/spent, etc.)
-- Supports catch-up for missed weeks
+- **Eight-tier progression track** that awards currency when players finish 3, 6, 10, 15, 20, 30, 40, and 55 daily objectives during the current week.
+- **Daily completion tracking**: `DailyObjectiveManager` raises `OnDailyObjectiveCompleted` which the weekly manager listens to in order to advance the tier objectives.
+- **Automatic weekly reset** every Monday 00:00 UTC (or according to `slotLengthDays`) that rebuilds the tier list and clears the completion counter.
+- **Manual debug utilities** allowing testers to force a new week or dump current state directly from the Inspector.
+- **Legacy weekly definitions** are still supported; any ScriptableObject added to `allObjectives` continues to work alongside the tier track.
 
-### 2. PlayerData Updates
-- Added `lastWeeklyObjectiveSlotKey` field to track the current weekly cycle
+## PlayerData Fields
 
-### 3. UI Integration
-- Updated `MainRewardScreen` to populate weekly objectives tab
-- Added weekly timer countdown display
-- Separate panel map for weekly objectives
+The weekly system persists its state through the following fields on `PlayerData`:
 
-### 4. ObjectivePanelUI Updates
-- Now supports both daily and weekly objectives
-- Automatically calls the correct manager (Daily or Weekly) based on objective period
+- `weeklyObjectives` – active weekly objective progress entries.
+- `lastWeeklyObjectiveSlotKey` – identifies the current weekly cycle (formatted `yyyyMMdd`).
+- `weeklyDailyCompletions` – running count of daily objectives completed this week.
 
-## Setup Instructions
+These values are saved automatically via `SaveManager` and uploaded through `CloudSyncService` when changes occur.
 
-### Unity Inspector Configuration
+## WeeklyObjectiveManager Highlights
 
-1. **Create Weekly Objective Definitions**
-   - Right-click in Project window → Create → Rewards → Objective
-   - Set `period` to `Weekly`
-   - Configure objective type, rarity, target amount, and rewards
-   - Weekly objectives should have higher rewards (cores, prisms, loops)
+- Subscribes to the daily manager’s completion event to increment the weekly counter and update tier progress immediately.
+- Recreates the eight tier objectives every time a new cycle begins. Each tier is generated at runtime through `CreateTierObjectiveDefinition`, so no ScriptableObject authoring is required for the completion track.
+- Continues to evaluate other weekly objectives (kill enemies, currency spend, etc.) that are loaded from Resources into `allObjectives`.
+- Provides `GetOrderedWeeklyObjectives()` which returns a completion-first ordering suitable for UI lists (unfinished objectives first).
 
-2. **WeeklyObjectiveManager GameObject**
-   - Create a new GameObject in your scene (e.g., "WeeklyObjectiveManager")
-   - Add the `WeeklyObjectiveManager` component
-   - Configure settings:
-     - `Max Weekly Objectives`: Number of concurrent weekly objectives (default: 3)
-     - `Slot Length Days`: Weekly cycle length - 7 for weekly, 14 for biweekly (default: 7)
-     - `Objectives Added Per Cycle`: How many objectives to add when a new week starts (default: 1)
-     - `All Objectives`: Drag all your weekly ObjectiveDefinition assets here
-     - `Remove Claimed On Next Cycle`: Whether to remove claimed objectives at week end (default: true)
-     - `Grant Initial Fill`: Whether to add objectives immediately on first load (default: false)
+### Tier Rewards
 
-3. **MainRewardScreen Updates**
-   - In your MainRewardScreen GameObject:
-     - Assign `weeklyObjectivesContentParent` - the Transform/ScrollView content where weekly panels spawn
-     - Assign `nextWeeklySlotTimerText` - the TextMeshProUGUI to show weekly countdown
+| Tier | Daily Completions | Reward (Cores) |
+|-----:|-------------------|----------------|
+|  1   | 3                 | 50             |
+|  2   | 6                 | 120            |
+|  3   | 10                | 250            |
+|  4   | 15                | 450            |
+|  5   | 20                | 700            |
+|  6   | 30                | 1200           |
+|  7   | 40                | 1800           |
+|  8   | 55                | 2800           |
 
-4. **Scene Setup**
-   - The WeeklyObjectiveManager will persist across scenes (DontDestroyOnLoad)
-   - Make sure it's initialized in your bootstrap scene
+Rewards scale with difficulty; adjust `CalculateTierReward` if different pacing is desired.
 
-## Objective Types Supported
+## Configuration Checklist
 
-Weekly objectives support all the same types as daily objectives:
+1. **Scene Setup**
+   - Add `WeeklyObjectiveManager` to a bootstrap scene (it marks itself `DontDestroyOnLoad`).
+   - Toggle `slotLengthDays` if you want bi-weekly cycles.
 
-1. **KillEnemies** - Kill specific enemies (with filters for tier, family, traits)
-2. **CompleteRounds** - Complete X rounds
-3. **CompleteWaves** - Complete X waves
-4. **EarnCurrency** - Earn X amount of a specific currency
-5. **SpendCurrency** - Spend X amount of a specific currency
-6. **UnlockSkill** - Unlock specific skills
+2. **Optional Weekly Definitions**
+   - Place additional weekly `ObjectiveDefinition` assets in `Resources/Data/Objectives/Weekly` and assign them to the `allObjectives` list if you want traditional weekly goals alongside the tier track.
 
-## Weekly Objective Design Guidelines
+3. **UI Wiring**
+   - Ensure your rewards screen calls `GetOrderedWeeklyObjectives()` so incomplete tiers appear first.
+   - Display the countdown using the provided helpers: `GetNextSlotCountdownString()` or `GetTimeUntilNextSlot()`.
 
-Based on the issue requirements:
+4. **Debug Controls (Testing Only)**
+   - Enable the `enableDebugControls` toggle in the Inspector to allow runtime triggering outside of the editor.
+   - Use the context-menu buttons on the component:
+     - **Force New Week (Debug)** – immediately resets the cycle, clears progress, and rebuilds tiers.
+     - **Debug Current State** – logs the week key, completion count, and status of all tiers.
+   - You can also call `WeeklyObjectiveManager.main.TriggerNewWeekForTesting()` from scripts or a debug console.
 
-1. **Higher Volume/Difficulty**
-   - Set higher `targetAmount` values than daily objectives
-   - Example: "Kill 500 enemies" vs daily "Kill 50 enemies"
+## Cycle Behaviour
 
-2. **Premium Rewards**
-   - Use `rewardType`: Cores, Prisms, or Loops
-   - Set higher `rewardAmount` values
-   - Example: 1000+ cores, 50+ prisms, 10+ loops
+- `EvaluateSlots()` runs every minute (configurable) to detect when the stored slot key differs from the current week.
+- On rollover the manager:
+  1. Clears `weeklyObjectives` and `activeWeekly`.
+  2. Resets the daily completion counter back to zero.
+  3. Rebuilds the eight tier objectives.
+  4. Raises `OnSlotRollover` so UI or analytics code can react.
 
-3. **Special Objectives**
-   - Can track weekly daily objective completions (future enhancement)
-   - Long-term progression goals
+## Integration Best Practices
 
-## Weekly Cycle Logic
+- **Daily objectives dependency**: The weekly track assumes `DailyObjectiveManager` is active so that it can receive `OnDailyObjectiveCompleted` events. Ensure both managers are loaded together (see `DAILY_OBJECTIVES_GUIDE.md`).
+- **Ordering in UI**: Prefer the `GetOrderedWeeklyObjectives()` helper to keep incomplete tiers visible.
+- **Save cadence**: The manager queues saves when progress updates, but if you batch claim rewards consider calling `SaveManager.main.QueueImmediateSave()` afterwards.
+- **Extending rewards**: The default implementation grants cores; for multi-currency rewards adjust `CalculateTierReward` or extend `CreateTierObjectiveDefinition` to produce richer reward payloads.
 
-- **Week Start**: Monday 00:00 UTC
-- **Cycle Length**: Configurable (7 or 14 days)
-- **Rollover Behavior**: 
-  - Claimed & completed objectives are removed
-  - New objectives are added based on available slots
-  - Progress on unclaimed objectives is preserved
+## Reference API
 
-## Events
+- `GetCurrentSlotStartUtc()`, `GetNextSlotStartUtc()`, `GetTimeUntilNextSlot()`, `GetSecondsUntilNextSlot()` – time helpers for countdowns.
+- `GetCurrentSlotKey()` – current weekly key (formatted string).
+- `LogCurrentState()` – quick logging helper for diagnostics.
+- `OnProgress` event – fired whenever progress updates, including tier completions.
+- `OnSlotRollover` event – fired when a new week is seeded via schedule or debug trigger.
 
-The WeeklyObjectiveManager fires two events:
-
-1. `OnProgress` - Fired when objective progress changes
-2. `OnSlotRollover` - Fired when the weekly cycle resets
-
-## Time Helpers
-
-Available public methods for UI:
-- `GetCurrentSlotStartUtc()` - When did current week start
-- `GetNextSlotStartUtc()` - When does next week start  
-- `GetTimeUntilNextSlot()` - TimeSpan until next week
-- `GetSecondsUntilNextSlot()` - Seconds until next week
-- `GetNextSlotCountdownString()` - Formatted countdown (e.g., "5d 12h 30m")
-
-## Integration Notes
-
-- Works alongside DailyObjectiveManager (both can run simultaneously)
-- Uses the same ObjectiveProgressData serialization format
-- Shares the same ObjectivePanelUI prefab
-- Automatically saves to cloud via CloudSyncService
+With these mechanics in place the weekly track offers clear long-term goals, transparent rewards, and tooling for rapid iteration during development.
