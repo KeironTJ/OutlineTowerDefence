@@ -101,6 +101,7 @@ public class PlayerData
     public List<ObjectiveProgressData> weeklyObjectives = new List<ObjectiveProgressData>();
     public string lastDailyObjectiveAddIsoUtc = "";
     public string lastDailyObjectiveSlotKey = "";
+    public string lastWeeklyObjectiveSlotKey = "";
 
     [Header("Achievement Progress")]
     public List<AchievementProgressData> achievementProgress = new List<AchievementProgressData>();

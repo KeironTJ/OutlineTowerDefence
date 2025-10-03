@@ -25,10 +25,17 @@ public class MainRewardSceen : MonoBehaviour
     public GameObject objectivePanelPrefab;
     public Transform dailyObjectivesContentParent; 
 
+    [Header("Weekly Objectives")]
+    public Transform weeklyObjectivesContentParent;
+
     [Header("Daily Objective Timer")]
     [SerializeField] private TextMeshProUGUI nextSlotTimerText;
 
+    [Header("Weekly Objective Timer")]
+    [SerializeField] private TextMeshProUGUI nextWeeklySlotTimerText;
+
     private readonly Dictionary<ObjectiveRuntime, ObjectivePanelUI> panelMap = new Dictionary<ObjectiveRuntime, ObjectivePanelUI>();
+    private readonly Dictionary<ObjectiveRuntime, ObjectivePanelUI> weeklyPanelMap = new Dictionary<ObjectiveRuntime, ObjectivePanelUI>();
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -41,6 +48,9 @@ public class MainRewardSceen : MonoBehaviour
     {
         if (nextSlotTimerText && DailyObjectiveManager.main)
             nextSlotTimerText.text = "Next Objective: " + DailyObjectiveManager.main.GetNextSlotCountdownString();
+        
+        if (nextWeeklySlotTimerText && WeeklyObjectiveManager.main)
+            nextWeeklySlotTimerText.text = "Next Weekly Reset: " + WeeklyObjectiveManager.main.GetNextSlotCountdownString();
     }
 
     private IEnumerator DelayedPopulate()  
@@ -52,8 +62,11 @@ public class MainRewardSceen : MonoBehaviour
     void OnEnable()
     {
         DailyObjectiveManager.main?.EnsureInitialized();
+        WeeklyObjectiveManager.main?.EnsureInitialized();
         DailyObjectiveManager.OnProgress += HandleObjectiveProgress;
         DailyObjectiveManager.OnSlotRollover += HandleSlotRollover;
+        WeeklyObjectiveManager.OnProgress += HandleWeeklyObjectiveProgress;
+        WeeklyObjectiveManager.OnSlotRollover += HandleWeeklySlotRollover;
         UpdateDailyLoginUI();
         OpenDailyRewardTab();
         StartCoroutine(DelayedPopulate());
@@ -63,6 +76,8 @@ public class MainRewardSceen : MonoBehaviour
     {
         DailyObjectiveManager.OnProgress -= HandleObjectiveProgress;
         DailyObjectiveManager.OnSlotRollover -= HandleSlotRollover;
+        WeeklyObjectiveManager.OnProgress -= HandleWeeklyObjectiveProgress;
+        WeeklyObjectiveManager.OnSlotRollover -= HandleWeeklySlotRollover;
         if (claimButton) claimButton.interactable = false;
         if (statusText) statusText.text = "";
     }
@@ -104,6 +119,7 @@ public class MainRewardSceen : MonoBehaviour
         CloseSubTabScreens();
         HighlightButton(weeklyRewardButton);
         weeklyRewardTab.SetActive(true);
+        PopulateWeeklyObjectives();
     }
 
     public void OpenAchievementRewardTab()
@@ -199,12 +215,74 @@ public class MainRewardSceen : MonoBehaviour
         PopulateDailyObjectives(); // refresh list after rollover
     }
 
+    void PopulateWeeklyObjectives()
+    {
+        if (objectivePanelPrefab == null || weeklyObjectivesContentParent == null) return;
+        WeeklyObjectiveManager.main?.EnsureInitialized();
+
+        var list = WeeklyObjectiveManager.main?.GetActiveWeeklyObjectives();
+        if (list == null) return;
+
+        var activeSet = new System.Collections.Generic.HashSet<ObjectiveRuntime>(list);
+
+        // Remove panels no longer active
+        var toRemove = new System.Collections.Generic.List<ObjectiveRuntime>();
+        foreach (var kvp in weeklyPanelMap)
+        {
+            if (!activeSet.Contains(kvp.Key))
+            {
+                if (kvp.Value != null) Destroy(kvp.Value.gameObject);
+                toRemove.Add(kvp.Key);
+            }
+        }
+        foreach (var rt in toRemove) weeklyPanelMap.Remove(rt);
+
+        // Add new panels
+        foreach (var rt in list)
+        {
+            if (weeklyPanelMap.ContainsKey(rt)) continue;
+            var go = Instantiate(objectivePanelPrefab, weeklyObjectivesContentParent);
+            var ui = go.GetComponent<ObjectivePanelUI>();
+            if (ui == null)
+            {
+                Debug.LogError("[RewardsUI] ObjectivePanelUI missing on prefab.");
+                Destroy(go);
+                continue;
+            }
+            ui.Bind(rt);
+            weeklyPanelMap.Add(rt, ui);
+        }
+
+        // Refresh existing panels
+        foreach (var ui in weeklyPanelMap.Values)
+            ui.UpdateProgress();
+    }
+
+    private void HandleWeeklyObjectiveProgress(ObjectiveRuntime rt)
+    {
+        if (rt != null && weeklyPanelMap.TryGetValue(rt, out var ui))
+        {
+            ui.UpdateProgress();
+        }
+        else
+        {
+            PopulateWeeklyObjectives();
+        }
+    }
+
+    private void HandleWeeklySlotRollover(string newSlotKey)
+    {
+        PopulateWeeklyObjectives();
+    }
+
     // Public entrypoint for external callers (Options menu / HUD / controller)
     public void RefreshUI()
     {
         DailyObjectiveManager.main?.EnsureInitialized();
+        WeeklyObjectiveManager.main?.EnsureInitialized();
         UpdateDailyLoginUI();
         PopulateDailyObjectives();
+        PopulateWeeklyObjectives();
     }
 
     // Close/hide the rewards screen (wire a UI Close button to this)
