@@ -67,10 +67,10 @@ public class AchievementDefinition : ScriptableObject
             displayName = id;
 
         // Ensure tiers are sorted by target amount
-        if (tiers != null && tiers.Length > 1)
-        {
-            System.Array.Sort(tiers, (a, b) => a.targetAmount.CompareTo(b.targetAmount));
-        }
+        //if (tiers != null && tiers.Length > 1)
+        //{
+        //    System.Array.Sort(tiers, (a, b) => a.targetAmount.CompareTo(b.targetAmount));
+        //}
     }
 #endif
 

@@ -23,9 +23,10 @@ public class MainRewardSceen : MonoBehaviour
 
     [Header("Daily Objectives")]
     public GameObject objectivePanelPrefab;
-    public Transform dailyObjectivesContentParent; 
+    public Transform dailyObjectivesContentParent;
 
     [Header("Weekly Objectives")]
+    public GameObject weeklyObjectivePanelPrefab;
     public Transform weeklyObjectivesContentParent;
 
     [Header("Achievements")]

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ACH_WaveMaster_Example
   m_EditorClassIdentifier: 
   id: ACH_WaveMaster_Example
-  displayName: ACH_WaveMaster_Example
+  displayName: Wave Master
   description: 
   category: 1
   type: 2
