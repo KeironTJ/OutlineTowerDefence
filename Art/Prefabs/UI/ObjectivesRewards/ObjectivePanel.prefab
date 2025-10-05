@@ -209,6 +209,7 @@ GameObject:
   - component: {fileID: 1597889015298638582}
   - component: {fileID: 6675293523367949028}
   - component: {fileID: 4829554957445488451}
+  - component: {fileID: 7328278592717072437}
   m_Layer: 5
   m_Name: ObjectivePanel
   m_TagString: Untagged
@@ -301,6 +302,21 @@ MonoBehaviour:
   completionText: {fileID: 2333857602919978945}
   claimedOverlay: {fileID: 1740489539414117882}
   claimedText: {fileID: 7175244274908182122}
+--- !u!114 &7328278592717072437
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2266647491569213869}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 0, g: 1, b: 1, a: 1}
+  m_EffectDistance: {x: 5, y: 5}
+  m_UseGraphicAlpha: 1
 --- !u!1 &3220766621325835088
 GameObject:
   m_ObjectHideFlags: 0
@@ -799,7 +815,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0

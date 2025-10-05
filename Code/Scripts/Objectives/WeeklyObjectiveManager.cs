@@ -15,6 +15,7 @@ public class WeeklyObjectiveManager : MonoBehaviour
     
     // Fixed weekly tiers for daily completion objectives
     private readonly int[] weeklyTiers = { 3, 6, 10, 15, 20, 30, 40, 55 };
+    private readonly Dictionary<int, ObjectiveDefinition> tierDefinitions = new Dictionary<int, ObjectiveDefinition>();
 
     private readonly List<ObjectiveRuntime> activeWeekly = new List<ObjectiveRuntime>();
 
@@ -34,10 +35,117 @@ public class WeeklyObjectiveManager : MonoBehaviour
     // Ensure weekly definitions are available (Resources/Data/Objectives/Weekly)
     private void EnsureDefinitionsLoaded()
     {
-        if (allObjectives != null && allObjectives.Count > 0) return;
+        if (allObjectives == null)
+            allObjectives = new List<ObjectiveDefinition>();
+
+        var seenIds = new HashSet<string>(allObjectives
+            .Where(def => def != null && !string.IsNullOrEmpty(def.id))
+            .Select(def => def.id));
+
         var loaded = Resources.LoadAll<ObjectiveDefinition>("Data/Objectives/Weekly");
         if (loaded != null && loaded.Length > 0)
-            allObjectives = new List<ObjectiveDefinition>(loaded);
+        {
+            foreach (var def in loaded)
+            {
+                if (def == null || string.IsNullOrEmpty(def.id)) continue;
+                if (seenIds.Add(def.id))
+                    allObjectives.Add(def);
+            }
+        }
+    }
+
+    private DateTime GetStoredWeekStartUtc()
+    {
+        if (PlayerData == null) return GetWeekStart(DateTime.UtcNow, slotLengthDays);
+
+        string key = PlayerData.lastWeeklyObjectiveSlotKey;
+        if (!string.IsNullOrEmpty(key) &&
+            DateTime.TryParseExact(key, "yyyyMMdd", CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var storedStart))
+        {
+            return storedStart;
+        }
+
+        return GetWeekStart(DateTime.UtcNow, slotLengthDays);
+    }
+
+    private void EnsureWeeklyDefinitionsPresent(DateTime assignedAtUtc)
+    {
+        if (PlayerData == null) return;
+
+        EnsureDefinitionsLoaded();
+        EnsureTierDefinitions();
+
+        var definitionLookup = new Dictionary<string, ObjectiveDefinition>(StringComparer.Ordinal);
+        if (allObjectives != null)
+        {
+            foreach (var def in allObjectives)
+            {
+                if (def == null || def.period != ObjectivePeriod.Weekly || string.IsNullOrEmpty(def.id))
+                    continue;
+                definitionLookup[def.id] = def;
+            }
+        }
+
+        foreach (var kvp in tierDefinitions)
+        {
+            var def = kvp.Value;
+            if (def == null || string.IsNullOrEmpty(def.id)) continue;
+            definitionLookup[def.id] = def;
+        }
+
+        var progressById = new Dictionary<string, ObjectiveProgressData>(StringComparer.Ordinal);
+        foreach (var pd in PlayerData.weeklyObjectives)
+        {
+            if (pd == null || string.IsNullOrEmpty(pd.objectiveId)) continue;
+            progressById[pd.objectiveId] = pd;
+
+            bool hasRuntime = activeWeekly.Any(rt => rt.progressData == pd);
+            if (!hasRuntime && definitionLookup.TryGetValue(pd.objectiveId, out var def))
+            {
+                activeWeekly.Add(new ObjectiveRuntime { definition = def, progressData = pd });
+            }
+        }
+
+        bool addedAny = false;
+        string assignedIso = assignedAtUtc.ToString("o");
+
+        foreach (var kvp in definitionLookup)
+        {
+            if (progressById.ContainsKey(kvp.Key)) continue;
+
+            var data = new ObjectiveProgressData
+            {
+                objectiveId = kvp.Key,
+                currentProgress = 0f,
+                completed = false,
+                claimed = false,
+                assignedAtIsoUtc = assignedIso
+            };
+
+            PlayerData.weeklyObjectives.Add(data);
+            activeWeekly.Add(new ObjectiveRuntime { definition = kvp.Value, progressData = data });
+            progressById[kvp.Key] = data;
+            addedAny = true;
+        }
+
+        if (addedAny)
+        {
+            SaveManager.main.QueueImmediateSave();
+            CloudSyncService.main?.ScheduleUpload();
+        }
+    }
+
+    private void EnsureTierDefinitions()
+    {
+        foreach (int tierTarget in weeklyTiers)
+        {
+            if (!tierDefinitions.TryGetValue(tierTarget, out var definition) || definition == null)
+            {
+                definition = CreateTierObjectiveDefinition(tierTarget);
+                tierDefinitions[tierTarget] = definition;
+            }
+        }
     }
 
     private void OnEnable()
@@ -123,13 +231,18 @@ public class WeeklyObjectiveManager : MonoBehaviour
     {
         if (initialized) return;
         if (PlayerData == null) return;
+
         EnsureDefinitionsLoaded();
+        EnsureTierDefinitions();
 
         // Load daily completion counter from save data
         dailyCompletionsThisWeek = PlayerData.weeklyDailyCompletions;
 
         RebuildFromSave();
         EstablishBaselineIfNeeded();
+        EnsureWeeklyDefinitionsPresent(GetStoredWeekStartUtc());
+        UpdateWeeklyTierProgress();
+
         initialized = true;
     }
 
@@ -147,13 +260,26 @@ public class WeeklyObjectiveManager : MonoBehaviour
     {
         activeWeekly.Clear();
         if (PlayerData == null) return;
-        if (allObjectives == null) return;
+        EnsureTierDefinitions();
+
+        if (allObjectives == null && tierDefinitions.Count == 0) return;
 
         var map = new Dictionary<string, ObjectiveDefinition>();
-        foreach (var def in allObjectives)
+        if (allObjectives != null)
         {
+            foreach (var def in allObjectives)
+            {
+                if (def == null) continue;
+                if (def.period == ObjectivePeriod.Weekly && !string.IsNullOrEmpty(def.id))
+                    map[def.id] = def;
+            }
+        }
+
+        foreach (var kvp in tierDefinitions)
+        {
+            var def = kvp.Value;
             if (def == null) continue;
-            if (def.period == ObjectivePeriod.Weekly && !string.IsNullOrEmpty(def.id))
+            if (!string.IsNullOrEmpty(def.id))
                 map[def.id] = def;
         }
 
@@ -166,9 +292,7 @@ public class WeeklyObjectiveManager : MonoBehaviour
     {
         if (string.IsNullOrEmpty(PlayerData.lastWeeklyObjectiveSlotKey))
         {
-            var key = CurrentSlotKey();
-            PlayerData.lastWeeklyObjectiveSlotKey = key;
-            InitializeWeeklyTiers();
+            PlayerData.lastWeeklyObjectiveSlotKey = CurrentSlotKey();
             SaveManager.main.QueueImmediateSave();
         }
     }
@@ -207,6 +331,9 @@ public class WeeklyObjectiveManager : MonoBehaviour
     private void EvaluateSlots()
     {
         if (PlayerData == null) return;
+
+        EnsureWeeklyDefinitionsPresent(GetStoredWeekStartUtc());
+        UpdateWeeklyTierProgress();
 
         string stored = PlayerData.lastWeeklyObjectiveSlotKey;
         if (string.IsNullOrEmpty(stored))
@@ -258,7 +385,7 @@ public class WeeklyObjectiveManager : MonoBehaviour
         {
             OnSlotRollover?.Invoke(newKey);
             // Reset weekly objectives for new week
-            ResetWeeklyObjectives();
+            ResetWeeklyObjectives(currentSlotStart);
         }
     }
 
@@ -305,32 +432,12 @@ public class WeeklyObjectiveManager : MonoBehaviour
         }
     }
     
-    private void InitializeWeeklyTiers()
+    private ObjectiveDefinition GetTierObjectiveDefinition(int tierTarget)
     {
-        // Create weekly tier objectives for daily completion tracking
-        foreach (int tierTarget in weeklyTiers)
-        {
-            var data = new ObjectiveProgressData
-            {
-                objectiveId = $"weekly_daily_tier_{tierTarget}",
-                currentProgress = 0f,
-                completed = false,
-                claimed = false,
-                assignedAtIsoUtc = DateTime.UtcNow.ToString("o")
-            };
-            
-            PlayerData.weeklyObjectives.Add(data);
-            
-            // Create runtime objective (we'll need to define these in ScriptableObjects)
-            // For now, create a basic definition
-            var tierObjective = CreateTierObjectiveDefinition(tierTarget);
-            if (tierObjective != null)
-            {
-                activeWeekly.Add(new ObjectiveRuntime { definition = tierObjective, progressData = data });
-            }
-        }
+        EnsureTierDefinitions();
+        return tierDefinitions.TryGetValue(tierTarget, out var definition) ? definition : null;
     }
-    
+
     private ObjectiveDefinition CreateTierObjectiveDefinition(int tierTarget)
     {
         // This would ideally be a ScriptableObject, but for now create programmatically
@@ -366,17 +473,26 @@ public class WeeklyObjectiveManager : MonoBehaviour
     
     private void ResetWeeklyObjectives()
     {
+        ResetWeeklyObjectives(GetWeekStart(DateTime.UtcNow, slotLengthDays));
+    }
+
+    private void ResetWeeklyObjectives(DateTime weekStartUtc)
+    {
+        if (PlayerData == null) return;
+
         // Clear all weekly objectives
         PlayerData.weeklyObjectives.Clear();
         activeWeekly.Clear();
-        
+
         // Reset daily completion counter
         dailyCompletionsThisWeek = 0;
         PlayerData.weeklyDailyCompletions = 0;
-        
-        // Initialize new weekly tiers
-        InitializeWeeklyTiers();
-        
+
+        // Repopulate with current weekly definitions (including tiers)
+        EnsureWeeklyDefinitionsPresent(weekStartUtc);
+        UpdateWeeklyTierProgress();
+
+        SaveManager.main.QueueImmediateSave();
         Debug.Log("Weekly objectives reset for new week");
     }
 
@@ -553,33 +669,18 @@ public class WeeklyObjectiveManager : MonoBehaviour
         
         Debug.Log("[WeeklyObjectiveManager] Manually triggering new week...");
         
-        // Clear current weekly objectives
-        activeWeekly.Clear();
-        if (PlayerData != null)
-        {
-            PlayerData.weeklyObjectives.Clear();
-        }
-        
-        // Reset daily completion counter
-        if (PlayerData != null)
-        {
-            PlayerData.weeklyDailyCompletions = 0;
-        }
-        
-        // Set new week start time to now
-        string newWeekKey = CurrentSlotKey();
+        DateTime newWeekStart = GetWeekStart(DateTime.UtcNow, slotLengthDays);
+        string newWeekKey = newWeekStart.ToString("yyyyMMdd");
+
         if (PlayerData != null)
         {
             PlayerData.lastWeeklyObjectiveSlotKey = newWeekKey;
         }
-        
-        // Create fresh weekly objectives
-        InitializeWeeklyTiers();
-        
-        // Save changes
-        SaveManager.main?.QueueImmediateSave();
+
+        ResetWeeklyObjectives(newWeekStart);
+
         CloudSyncService.main?.ScheduleUpload();
-        
+
         // Trigger event if it exists
         OnSlotRollover?.Invoke(newWeekKey);
         
@@ -659,15 +760,15 @@ public class WeeklyObjectiveManager : MonoBehaviour
         else
             return $"{hours:00}h {minutes:00}m";
     }
-
-    public string GetCurrentSlotKey() => CurrentSlotKey();
     
     // Debug helper to check current state
     public void LogCurrentState()
     {
+        EnsureWeeklyDefinitionsPresent(GetStoredWeekStartUtc());
+        UpdateWeeklyTierProgress();
+
         Debug.Log($"[WeeklyObjectives] Current state:");
         Debug.Log($"  - Daily completions this week: {dailyCompletionsThisWeek}");
-        Debug.Log($"  - Active weekly objectives: {activeWeekly.Count}");
         Debug.Log($"  - Current slot key: {CurrentSlotKey()}");
         
         foreach (var obj in activeWeekly)

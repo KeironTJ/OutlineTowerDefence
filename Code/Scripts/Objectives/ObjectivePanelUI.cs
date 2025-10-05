@@ -34,7 +34,7 @@ public class ObjectivePanelUI : MonoBehaviour
         progressSlider.maxValue = Mathf.Max(1, def.targetAmount);
         progressSlider.value = Mathf.Clamp(rt.progressData.currentProgress, 0, def.targetAmount);
 
-        titleText.text = $"{def.type} ({def.rarity})";
+        titleText.text = $"{def.displayName}";
         descText.text = def.description;
         rewardText.text = $"{def.rewardType} +{def.rewardAmount}";
 

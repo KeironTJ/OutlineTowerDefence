@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: CompleteWavesUncommon
   m_EditorClassIdentifier: 
   id: CompleteWavesUncommon
+  displayName: Complete Waves
   period: 0
   type: 2
   rarity: 1

@@ -132,7 +132,7 @@ public class ProjectileIntegrationExample : MonoBehaviour
         
         if (!accepts)
         {
-            Debug.Log($"Turret '{turretDef.turretName}' cannot use projectile '{projDef.projectileName}' " +
+            Debug.Log($"Turret '{turretDef.displayName}' cannot use projectile '{projDef.projectileName}' " +
                      $"(Type: {projDef.projectileType})");
         }
         
@@ -146,7 +146,7 @@ public class ProjectileIntegrationExample : MonoBehaviour
     {
         if (turretDef == null || ProjectileDefinitionManager.Instance == null) return;
         
-        Debug.Log($"Compatible projectiles for {turretDef.turretName}:");
+        Debug.Log($"Compatible projectiles for {turretDef.displayName}:");
         
         var allProjectiles = ProjectileDefinitionManager.Instance.GetAll();
         foreach (var proj in allProjectiles)

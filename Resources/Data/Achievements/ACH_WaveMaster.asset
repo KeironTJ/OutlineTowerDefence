@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 40cfce9b3120f1847bbcd2de0296d33a, type: 3}
-  m_Name: ACH_WaveMaster_Example
+  m_Name: ACH_WaveMaster
   m_EditorClassIdentifier: 
-  id: ACH_WaveMaster_Example
+  id: ACH_WaveMaster
   displayName: Wave Master
-  description: 
+  description: Can you master the endless struggle of waves?
   category: 1
   type: 2
   tiers:
@@ -22,10 +22,40 @@ MonoBehaviour:
     targetAmount: 10
     rewards:
     - rewardType: 0
-      rewardId: Cores
+      rewardId: 
+      amount: 25
+      currencyType: 1
+    - rewardType: 0
+      rewardId: 
+      amount: 3
+      currencyType: 2
+    tierName: Bronze
+    tierDescription: 
+  - tierLevel: 1
+    targetAmount: 100
+    rewards:
+    - rewardType: 0
+      rewardId: 
       amount: 100
       currencyType: 1
-    tierName: 
+    - rewardType: 0
+      rewardId: 
+      amount: 8
+      currencyType: 2
+    tierName: Silver
+    tierDescription: 
+  - tierLevel: 2
+    targetAmount: 1000
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 250
+      currencyType: 1
+    - rewardType: 0
+      rewardId: 
+      amount: 15
+      currencyType: 2
+    tierName: Silver
     tierDescription: 
   targetDefinitionId: 
   useTierFilter: 0

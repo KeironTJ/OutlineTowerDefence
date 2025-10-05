@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: KillBasicScoutUncommon
   m_EditorClassIdentifier: 
   id: 1002
+  displayName: Destroy Basic Scouts
   period: 0
   type: 0
   rarity: 1

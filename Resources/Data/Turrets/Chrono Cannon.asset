@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Chrono Cannon
   m_EditorClassIdentifier: 
   id: CC
-  turretName: Chrono Cannon
+  displayName: Chrono Cannon
   turretDescription: Fire energy based projectiles
   turretPrefab: {fileID: 4304509950014231380, guid: 7e67f06fec0cbe640ad46392d6a7e9aa, type: 3}
   previewSprite: {fileID: 5808186972362433900, guid: 53fa9ba0fb81d6544b96545f1139b021, type: 3}

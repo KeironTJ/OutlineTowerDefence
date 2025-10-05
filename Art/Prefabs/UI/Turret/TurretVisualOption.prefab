@@ -518,7 +518,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   turretImage: {fileID: 8743319147815401034}
-  turretNameText: {fileID: 5998516727225939209}
+  displayNameText: {fileID: 5998516727225939209}
   turretDescriptionText: {fileID: 8371332607326091520}
   actionButton: {fileID: 945278894554286886}
   actionButtonText: {fileID: 5041744087836573252}
@@ -550,7 +550,7 @@ GameObject:
   - component: {fileID: 8306224443792940423}
   - component: {fileID: 5998516727225939209}
   m_Layer: 5
-  m_Name: TurretName
+  m_Name: DisplayName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

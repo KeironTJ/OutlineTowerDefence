@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: WeeklyCompleteWaves
   m_EditorClassIdentifier: 
   id: W1
+  displayName: Complete Waves
   period: 1
   type: 2
   rarity: 0

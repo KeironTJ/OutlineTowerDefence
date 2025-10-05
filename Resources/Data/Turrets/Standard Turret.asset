@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Standard Turret
   m_EditorClassIdentifier: 
   id: STD
-  turretName: Standard Turret
+  displayName: Standard Turret
   turretDescription: There is nothing special about this turret. Nothing!
   turretPrefab: {fileID: 4304509950014231380, guid: 74f25559655e4734a90ad13f28d745e4, type: 3}
   previewSprite: {fileID: 3007339533555982569, guid: 0797b190b614d4e43b81f6648e634de0, type: 3}

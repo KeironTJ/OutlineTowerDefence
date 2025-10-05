@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class TurretDefinition : ScriptableObject
 {
     public string id;
-    public string turretName;
+    public string displayName;
     public string turretDescription;
     [Tooltip("Prefab must contain a Turret component.")]
     public GameObject turretPrefab;

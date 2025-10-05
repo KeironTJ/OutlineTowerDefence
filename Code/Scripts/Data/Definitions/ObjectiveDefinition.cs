@@ -9,6 +9,7 @@ public class ObjectiveDefinition : ScriptableObject
 {
     [Header("Identity / Classification")]
     public string id;
+    public string displayName;
     public ObjectivePeriod period = ObjectivePeriod.Daily;
     public ObjectiveType type;
     public ObjectiveRarity rarity = ObjectiveRarity.Common;

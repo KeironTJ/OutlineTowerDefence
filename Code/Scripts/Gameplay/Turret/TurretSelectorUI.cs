@@ -73,7 +73,7 @@ public class TurretSelectorUI : MonoBehaviour
 
         var ordered = optionData
             .OrderByDescending(o => o.SortPriority)
-            .ThenBy(o => string.IsNullOrEmpty(o.definition?.turretName) ? o.definition?.id : o.definition.turretName)
+            .ThenBy(o => string.IsNullOrEmpty(o.definition?.displayName) ? o.definition?.id : o.definition.displayName)
             .ToList();
 
         foreach (var option in ordered)

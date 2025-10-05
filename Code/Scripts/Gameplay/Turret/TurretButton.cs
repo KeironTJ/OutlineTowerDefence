@@ -7,7 +7,7 @@ public class TurretButton : MonoBehaviour
 {
     [Header("UI References")]
     [SerializeField] private Image turretImage;
-    [SerializeField] private TextMeshProUGUI turretNameText;
+    [SerializeField] private TextMeshProUGUI displayNameText;
     [SerializeField] private TextMeshProUGUI turretDescriptionText;
     [SerializeField] private Button actionButton;
     [SerializeField] private TextMeshProUGUI actionButtonText; // label on the button
@@ -26,7 +26,7 @@ public class TurretButton : MonoBehaviour
         turretId = def?.id ?? string.Empty;
 
         if (turretImage) turretImage.sprite = def?.previewSprite;
-        if (turretNameText) turretNameText.text = def?.turretName ?? "(Unknown)";
+        if (displayNameText) displayNameText.text = def?.displayName ?? "(Unknown)";
         if (turretDescriptionText) turretDescriptionText.text = def?.turretDescription ?? "";
 
         if (!actionButtonText && actionButton) actionButtonText = actionButton.GetComponentInChildren<TextMeshProUGUI>(true);

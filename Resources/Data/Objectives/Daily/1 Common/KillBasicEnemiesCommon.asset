@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: KillBasicEnemiesCommon
   m_EditorClassIdentifier: 
   id: 1500
+  displayName: Kill Basic Enemies
   period: 0
   type: 0
   rarity: 0

@@ -241,7 +241,49 @@ public class PlayerManager : MonoBehaviour
         if (prisms > 0 && !Wallet.TrySpend(CurrencyType.Prisms, prisms)) return false;
         if (loops > 0 && !Wallet.TrySpend(CurrencyType.Loops, loops)) return false;
         return true;
+    }
 
+    // ===== Achievement Progress =====
+    public List<AchievementProgressData> GetAchievementProgressList()
+    {
+        if (playerData == null) return null;
+        if (playerData.achievementProgress == null)
+            playerData.achievementProgress = new List<AchievementProgressData>();
+        return playerData.achievementProgress;
+    }
+
+    public AchievementProgressData GetAchievementProgress(string achievementId)
+    {
+        if (string.IsNullOrEmpty(achievementId)) return null;
+        var list = GetAchievementProgressList();
+        if (list == null) return null;
+        for (int i = 0; i < list.Count; i++)
+        {
+            var entry = list[i];
+            if (entry != null && entry.achievementId == achievementId)
+                return entry;
+        }
+        return null;
+    }
+
+    public AchievementProgressData GetOrCreateAchievementProgress(string achievementId)
+    {
+        if (string.IsNullOrEmpty(achievementId)) return null;
+        var list = GetAchievementProgressList();
+        if (list == null) return null;
+
+        var existing = GetAchievementProgress(achievementId);
+        if (existing != null) return existing;
+
+        var created = new AchievementProgressData(achievementId);
+        list.Add(created);
+        SavePlayerData();
+        return created;
+    }
+
+    public void NotifyAchievementProgressChanged()
+    {
+        SavePlayerData();
     }
 
     public void RecordFragmentsSpent(float amount)

@@ -8,6 +8,7 @@ public class AchievementManager : MonoBehaviour
 
     public static event System.Action<AchievementRuntime> OnProgress;
     public static event System.Action<AchievementRuntime, AchievementTier> OnTierCompletedEvent;
+    public static event System.Action<AchievementRuntime, AchievementTier> OnTierClaimedEvent;
 
     [Header("Configuration")]
     [SerializeField] private List<AchievementDefinition> allAchievements;
@@ -15,7 +16,8 @@ public class AchievementManager : MonoBehaviour
     private readonly List<AchievementRuntime> activeAchievements = new List<AchievementRuntime>();
     private readonly Dictionary<string, AchievementDefinition> achievementById = new Dictionary<string, AchievementDefinition>();
 
-    private PlayerData PlayerData => SaveManager.main?.Current?.player;
+    private PlayerManager PlayerMgr => PlayerManager.main;
+    private PlayerData PlayerData => PlayerMgr?.playerData;
     private bool initialized;
 
     private void Awake()
@@ -85,46 +87,68 @@ public class AchievementManager : MonoBehaviour
     private void LoadAchievementProgress()
     {
         activeAchievements.Clear();
-        
-        if (PlayerData?.achievementProgress == null)
+        var pm = PlayerMgr;
+        if (pm == null || pm.playerData == null)
         {
-            if (PlayerData != null)
-                PlayerData.achievementProgress = new List<AchievementProgressData>();
+            Debug.LogWarning("[AchievementManager] PlayerManager not ready; delaying achievement progress load.");
             return;
         }
 
-        // Create runtime objects from saved data
-        foreach (var progressData in PlayerData.achievementProgress)
+        var progressList = pm.GetAchievementProgressList();
+        if (progressList == null) return;
+
+        bool progressChanged = false;
+        var addedIds = new HashSet<string>();
+
+        foreach (var progressData in progressList)
         {
+            if (progressData == null) continue;
+
             if (achievementById.TryGetValue(progressData.achievementId, out var def))
             {
+                if (progressData.claimedTierIndices == null)
+                {
+                    progressData.claimedTierIndices = new List<int>();
+                    if (progressData.highestTierCompleted >= 0 && def.tiers != null)
+                    {
+                        int maxIndex = Mathf.Min(progressData.highestTierCompleted, def.tiers.Length - 1);
+                        for (int i = 0; i <= maxIndex; i++)
+                            progressData.claimedTierIndices.Add(i);
+                    }
+                    progressChanged = true;
+                }
+
                 activeAchievements.Add(new AchievementRuntime
                 {
                     definition = def,
                     progressData = progressData
                 });
+                addedIds.Add(def.id);
             }
         }
 
-        // Add any new achievements that don't have progress yet
         foreach (var def in allAchievements)
         {
             if (def == null || string.IsNullOrEmpty(def.id)) continue;
-            
-            bool exists = activeAchievements.Any(a => a.definition.id == def.id);
-            if (!exists)
+            if (addedIds.Contains(def.id)) continue;
+
+            var newProgress = pm.GetOrCreateAchievementProgress(def.id);
+            if (newProgress == null) continue;
+
+            activeAchievements.Add(new AchievementRuntime
             {
-                var newProgress = new AchievementProgressData(def.id);
-                PlayerData.achievementProgress.Add(newProgress);
-                activeAchievements.Add(new AchievementRuntime
-                {
-                    definition = def,
-                    progressData = newProgress
-                });
-            }
+                definition = def,
+                progressData = newProgress
+            });
+            addedIds.Add(def.id);
+            progressChanged = true;
         }
 
-        SaveManager.main?.QueueImmediateSave();
+        if (progressChanged)
+        {
+            pm.NotifyAchievementProgressChanged();
+            SaveManager.main?.QueueImmediateSave();
+        }
     }
 
     public IReadOnlyList<AchievementRuntime> GetAllAchievements()
@@ -167,16 +191,7 @@ public class AchievementManager : MonoBehaviour
 
     private void OnTierCompleted(AchievementRuntime rt, AchievementTier tier, int tierIndex)
     {
-        Debug.Log($"Achievement Tier Completed: {rt.definition.displayName} - {tier.tierName} (Tier {tierIndex + 1})");
-
-        // Grant rewards
-        if (tier.rewards != null)
-        {
-            foreach (var reward in tier.rewards)
-            {
-                GrantReward(reward);
-            }
-        }
+        Debug.Log($"Achievement Tier Completed: {rt.definition.displayName} - {tier.tierName} (Tier {tierIndex + 1}) — awaiting manual claim");
 
         // Fire event for UI/other systems
         EventManager.TriggerEvent(EventNames.AchievementTierCompleted, new AchievementTierCompletedEvent
@@ -187,7 +202,6 @@ public class AchievementManager : MonoBehaviour
         });
 
         OnTierCompletedEvent?.Invoke(rt, tier);
-        OnProgress?.Invoke(rt);
     }
 
     private void GrantReward(AchievementReward reward)
@@ -221,16 +235,63 @@ public class AchievementManager : MonoBehaviour
             case AchievementRewardType.UnlockTowerBase:
                 if (!string.IsNullOrEmpty(reward.rewardId))
                 {
-                    if (!pm.playerData.unlockedTowerBases.Contains(reward.rewardId))
-                    {
-                        pm.playerData.unlockedTowerBases.Add(reward.rewardId);
-                        Debug.Log($"Unlocked tower base: {reward.rewardId}");
-                    }
+                    pm.UnlockTowerBase(reward.rewardId);
+                    Debug.Log($"Unlocked tower base: {reward.rewardId}");
                 }
                 break;
         }
 
         SaveManager.main?.QueueImmediateSave();
+    }
+
+    private void GrantRewards(AchievementReward[] rewards)
+    {
+        if (rewards == null) return;
+        foreach (var reward in rewards)
+        {
+            GrantReward(reward);
+        }
+    }
+
+    public bool ClaimNextTier(AchievementRuntime rt) => ClaimPendingTiers(rt, false) > 0;
+
+    public int ClaimAllPendingTiers(AchievementRuntime rt) => ClaimPendingTiers(rt, true);
+
+    private int ClaimPendingTiers(AchievementRuntime rt, bool claimAll)
+    {
+        InitializeIfNeeded();
+        if (rt == null || rt.definition?.tiers == null || rt.definition.tiers.Length == 0)
+            return 0;
+
+        if (rt.progressData.claimedTierIndices == null)
+            rt.progressData.claimedTierIndices = new List<int>();
+
+        var claimed = rt.progressData.claimedTierIndices;
+        int claimedCount = 0;
+
+        for (int index = 0; index <= rt.HighestTierCompleted && index < rt.definition.tiers.Length; index++)
+        {
+            if (claimed.Contains(index)) continue;
+
+            var tier = rt.definition.tiers[index];
+            GrantRewards(tier?.rewards);
+            claimed.Add(index);
+            claimedCount++;
+            OnTierClaimedEvent?.Invoke(rt, tier);
+
+            if (!claimAll)
+                break;
+        }
+
+        if (claimedCount > 0)
+        {
+            claimed.Sort();
+            SaveManager.main?.QueueImmediateSave();
+            CloudSyncService.main?.ScheduleUpload();
+            OnProgress?.Invoke(rt);
+        }
+
+        return claimedCount;
     }
 
     // --- Event Handlers ---
@@ -255,7 +316,15 @@ public class AchievementManager : MonoBehaviour
     private void OnWaveCompleted(object data)
     {
         InitializeIfNeeded();
-        if (data is not WaveCompletedEvent wce) return;
+
+        int? waveNumber = data switch
+        {
+            WaveCompletedEvent wce => wce.waveNumber,
+            int i => i,
+            float f => Mathf.RoundToInt(f),
+            double d => (int)System.Math.Round(d),
+            _ => (int?)null
+        };
 
         foreach (var rt in activeAchievements)
         {
@@ -265,12 +334,12 @@ public class AchievementManager : MonoBehaviour
             {
                 Progress(rt, 1f);
             }
-            else if (rt.definition.type == AchievementType.ReachDifficulty)
+            else if (rt.definition.type == AchievementType.ReachDifficulty && waveNumber.HasValue)
             {
                 // Track highest wave per difficulty
-                if (wce.waveNumber > rt.Current)
+                if (waveNumber.Value > rt.Current)
                 {
-                    rt.progressData.currentProgress = wce.waveNumber;
+                    rt.progressData.currentProgress = waveNumber.Value;
                     rt.progressData.lastUpdatedIsoUtc = System.DateTime.UtcNow.ToString("o");
                     SaveManager.main?.QueueImmediateSave();
                     OnProgress?.Invoke(rt);

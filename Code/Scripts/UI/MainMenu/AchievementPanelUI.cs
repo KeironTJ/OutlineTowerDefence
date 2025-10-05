@@ -20,11 +20,34 @@ public class AchievementPanelUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI nextTierText;
     [SerializeField] private TextMeshProUGUI nextRewardText;
     [SerializeField] private GameObject completionBadge;
+    [SerializeField] private Button claimButton;
+    [SerializeField] private TextMeshProUGUI claimButtonText;
+    [SerializeField] private GameObject claimIndicator;
+
+    [Header("Ready State Visuals")]
+    [SerializeField] private Image readyBackground;
+    [SerializeField] private Color readyBackgroundColor = new(0.18f, 0.22f, 0.32f, 1f);
+    [SerializeField] private Graphic[] readyAccentGraphics;
+    [SerializeField] private Color readyAccentColor = new(1f, 0.85f, 0.4f, 1f);
+    [SerializeField] private GameObject readyFxRoot;
+    [SerializeField] private Animator readyAnimator;
+    [SerializeField] private string readyAnimatorBool = "HasReward";
+    [SerializeField] private Color claimButtonReadyColor = new(1f, 0.78f, 0.2f, 1f);
+
+    private Color defaultBackgroundColor;
+    private readonly List<Color> defaultAccentColors = new();
+    private ColorBlock defaultClaimButtonColors;
+    private bool visualsInitialized;
 
     [Header("Tier Summary")]
     [SerializeField] private TextMeshProUGUI tierListText;
 
     private AchievementRuntime runtime;
+
+    private void Awake()
+    {
+        CacheDefaultVisuals();
+    }
 
     public void Bind(AchievementRuntime rt)
     {
@@ -41,18 +64,28 @@ public class AchievementPanelUI : MonoBehaviour
         if (categoryText) categoryText.text = def.category.ToString();
         if (descriptionText) descriptionText.text = def.description;
 
+        if (claimButton)
+        {
+            claimButton.onClick.RemoveAllListeners();
+            claimButton.onClick.AddListener(OnClaimButtonPressed);
+        }
+
         Refresh();
     }
 
     public void Refresh()
     {
         if (runtime == null) return;
+        CacheDefaultVisuals();
 
         var def = runtime.definition;
         var nextTier = runtime.GetNextUncompletedTier();
+        var nextClaimableTier = runtime.GetNextUnclaimedTier();
         var currentTier = runtime.HighestTierCompleted >= 0 && def.tiers != null && def.tiers.Length > 0
             ? def.tiers[Mathf.Clamp(runtime.HighestTierCompleted, 0, def.tiers.Length - 1)]
             : null;
+        int pendingClaims = runtime.GetUnclaimedTierCount();
+        bool hasClaimable = pendingClaims > 0;
 
         float progressFraction = Mathf.Clamp01(runtime.GetProgressToNextTier());
 
@@ -66,7 +99,11 @@ public class AchievementPanelUI : MonoBehaviour
 
         if (progressText)
         {
-            if (nextTier == null)
+            if (hasClaimable && nextClaimableTier != null)
+            {
+                progressText.text = "Reward ready";
+            }
+            else if (nextTier == null)
             {
                 progressText.text = "All tiers complete";
             }
@@ -82,32 +119,142 @@ public class AchievementPanelUI : MonoBehaviour
         {
             int completed = Mathf.Clamp(runtime.HighestTierCompleted + 1, 0, def.tiers?.Length ?? 0);
             int total = def.tiers?.Length ?? 0;
-            tierStatusText.text = total > 0 ? $"{completed}/{total} tiers complete" : "No tiers configured";
+            if (total > 0)
+            {
+                tierStatusText.text = pendingClaims > 0
+                    ? $"{completed}/{total} tiers complete — {pendingClaims} reward{(pendingClaims == 1 ? "" : "s")} ready"
+                    : $"{completed}/{total} tiers complete";
+            }
+            else
+            {
+                tierStatusText.text = "No tiers configured";
+            }
         }
 
         if (currentTierText)
         {
-            currentTierText.text = currentTier != null ? currentTier.tierName : "No tier complete";
+            currentTierText.text = currentTier != null ? currentTier.tierName : "";
         }
 
         if (nextTierText)
         {
-            nextTierText.text = nextTier != null ? nextTier.tierName : "Max tier reached";
+            nextTierText.text = nextTier != null ? nextTier.tierName : "MASTERED";
         }
 
         if (nextRewardText)
         {
-            nextRewardText.text = nextTier != null
-                ? BuildRewardSummary(nextTier.rewards)
-                : "All rewards claimed";
+            if (hasClaimable && nextClaimableTier != null)
+            {
+                nextRewardText.text = "Claim: " + BuildRewardSummary(nextClaimableTier.rewards);
+            }
+            else
+            {
+                nextRewardText.text = nextTier != null
+                    ? BuildRewardSummary(nextTier.rewards)
+                    : "All rewards claimed";
+            }
         }
 
         if (completionBadge)
         {
-            completionBadge.SetActive(nextTier == null);
+            completionBadge.SetActive(nextTier == null && !hasClaimable);
         }
 
+        if (claimButton)
+        {
+            claimButton.gameObject.SetActive(true);
+            claimButton.interactable = hasClaimable;
+        }
+
+        if (claimButtonText)
+        {
+            claimButtonText.text = hasClaimable ? "Claim reward" : "No reward";
+        }
+
+        if (claimIndicator)
+        {
+            claimIndicator.SetActive(hasClaimable);
+        }
+
+        ApplyReadyVisuals(hasClaimable);
         UpdateTierListing();
+    }
+
+    private void CacheDefaultVisuals()
+    {
+        if (visualsInitialized) return;
+
+        if (readyBackground != null)
+        {
+            defaultBackgroundColor = readyBackground.color;
+        }
+
+        defaultAccentColors.Clear();
+        if (readyAccentGraphics != null && readyAccentGraphics.Length > 0)
+        {
+            for (int i = 0; i < readyAccentGraphics.Length; i++)
+            {
+                var graphic = readyAccentGraphics[i];
+                if (graphic == null)
+                {
+                    defaultAccentColors.Add(Color.white);
+                    continue;
+                }
+                defaultAccentColors.Add(graphic.color);
+            }
+        }
+
+        if (claimButton != null)
+        {
+            defaultClaimButtonColors = claimButton.colors;
+        }
+
+        visualsInitialized = true;
+    }
+
+    private void ApplyReadyVisuals(bool hasReward)
+    {
+        if (readyBackground != null)
+        {
+            readyBackground.color = hasReward ? readyBackgroundColor : defaultBackgroundColor;
+        }
+
+        if (readyAccentGraphics != null && readyAccentGraphics.Length > 0)
+        {
+            for (int i = 0; i < readyAccentGraphics.Length; i++)
+            {
+                var graphic = readyAccentGraphics[i];
+                if (graphic == null) continue;
+
+                Color targetColor = hasReward
+                    ? readyAccentColor
+                    : i < defaultAccentColors.Count ? defaultAccentColors[i] : graphic.color;
+                graphic.color = targetColor;
+            }
+        }
+
+        if (claimButton != null)
+        {
+            var colors = defaultClaimButtonColors;
+            if (hasReward)
+            {
+                colors.normalColor = claimButtonReadyColor;
+                colors.highlightedColor = claimButtonReadyColor;
+                colors.pressedColor = claimButtonReadyColor * 0.9f;
+                colors.selectedColor = claimButtonReadyColor;
+            }
+            claimButton.colors = colors;
+        }
+
+        if (readyFxRoot != null)
+        {
+            readyFxRoot.SetActive(hasReward);
+        }
+
+        if (readyAnimator != null && !string.IsNullOrEmpty(readyAnimatorBool))
+        {
+            readyAnimator.SetBool(readyAnimatorBool, hasReward);
+        }
     }
 
     private void UpdateTierListing()
@@ -126,7 +273,14 @@ public class AchievementPanelUI : MonoBehaviour
         {
             var tier = def.tiers[i];
             bool completed = runtime.HighestTierCompleted >= i;
-            string statusGlyph = completed ? "<color=#4CAF50>✔</color>" : "<color=#888888>○</color>";
+            bool claimed = runtime.IsTierClaimed(i);
+            string statusGlyph;
+            if (claimed)
+                statusGlyph = "<color=#4CAF50>✔</color>";
+            else if (completed)
+                statusGlyph = "<color=#FFD54F>●</color>";
+            else
+                statusGlyph = "<color=#888888>○</color>";
 
             sb.Append(statusGlyph)
               .Append(' ')
@@ -146,8 +300,10 @@ public class AchievementPanelUI : MonoBehaviour
             {
                 sb.AppendLine()
                   .Append("   <size=85%>")
-                  .Append(BuildRewardSummary(tier.rewards))
-                  .Append("</size>");
+                  .Append(BuildRewardSummary(tier.rewards));
+                if (completed && !claimed)
+                    sb.Append(" <color=#FFD54F>(Claim)</color>");
+                sb.Append("</size>");
             }
 
             if (i < def.tiers.Length - 1)
@@ -155,6 +311,19 @@ public class AchievementPanelUI : MonoBehaviour
         }
 
         tierListText.text = sb.ToString();
+    }
+
+    private void OnClaimButtonPressed()
+    {
+        if (runtime == null) return;
+
+        var manager = AchievementManager.Instance;
+        if (manager == null) return;
+
+        if (manager.ClaimAllPendingTiers(runtime) > 0)
+        {
+            Refresh();
+        }
     }
 
     private string BuildRewardSummary(AchievementReward[] rewards)

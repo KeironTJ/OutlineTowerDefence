@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: EarnFragmentsCommon
   m_EditorClassIdentifier: 
   id: 1050
+  displayName: Earn Fragments
   period: 0
   type: 5
   rarity: 0

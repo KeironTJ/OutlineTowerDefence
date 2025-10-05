@@ -156,7 +156,7 @@ public class LoadoutScreen : MonoBehaviour
             {
                 if (hasDef)
                 {
-                    if (elements.nameText)  elements.nameText.text = def.turretName;
+                    if (elements.nameText)  elements.nameText.text = def.displayName;
                     if (elements.descriptionText)  elements.descriptionText.text = def.turretDescription;
                     if (elements.previewImage)
                     {
@@ -490,7 +490,7 @@ public class LoadoutScreen : MonoBehaviour
         var transform = button.transform;
         return new TurretSlotUIElements
         {
-            nameText = transform.Find("Info/TurretName")?.GetComponent<TextMeshProUGUI>(),
+            nameText = transform.Find("Info/DisplayName")?.GetComponent<TextMeshProUGUI>(),
             descriptionText = transform.Find("Info/TurretDescription")?.GetComponent<TextMeshProUGUI>(),
             previewImage = transform.Find("Image")?.GetComponent<Image>(),
             lockedPanel = transform.Find("LockedPanel")?.gameObject,

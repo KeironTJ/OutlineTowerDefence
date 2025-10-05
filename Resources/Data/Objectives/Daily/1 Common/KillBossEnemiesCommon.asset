@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: KillBossEnemiesCommon
   m_EditorClassIdentifier: 
   id: 1501
+  displayName: Kill Boss Enemies
   period: 0
   type: 0
   rarity: 0

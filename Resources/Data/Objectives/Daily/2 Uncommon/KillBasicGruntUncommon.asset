@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: KillBasicGruntUncommon
   m_EditorClassIdentifier: 
   id: 1001
+  displayName: Destroy Basic Grunts
   period: 0
   type: 0
   rarity: 1

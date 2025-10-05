@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: CompleteRoundCommon
   m_EditorClassIdentifier: 
   id: 1100
+  displayName: Complete Rounds
   period: 0
   type: 1
   rarity: 0

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Microshard Blaster
   m_EditorClassIdentifier: 
   id: MSB
-  turretName: Microshard Blaster
+  displayName: Microshard Blaster
   turretDescription: Shoots projectile shards
   turretPrefab: {fileID: 4304509950014231380, guid: 6cb3d20c0bbff024580ec2c8f374bb3b, type: 3}
   previewSprite: {fileID: -1358655451419470906, guid: 14c94cf3726fdf340b3fa3c308f2a76f, type: 3}

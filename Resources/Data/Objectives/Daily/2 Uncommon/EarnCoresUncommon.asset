@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: EarnCoresUncommon
   m_EditorClassIdentifier: 
   id: 1051
+  displayName: Earn Cores
   period: 0
   type: 5
   rarity: 1
