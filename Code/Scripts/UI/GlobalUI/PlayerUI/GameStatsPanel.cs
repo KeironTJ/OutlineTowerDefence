@@ -33,6 +33,33 @@ public class GameStatsPanel : MonoBehaviour
 
         int totalWavesComplete = playerData.totalWavesCompleted;
         AddStatRow("Total Waves Completed", NumberManager.FormatLargeNumber(totalWavesComplete, true));
+        
+        // Combat Stats
+        AddHeaderRow("Combat Stats");
+        AddStatRow("Total Damage Dealt", NumberManager.FormatLargeNumber(playerData.lifetimeTotalDamage));
+        AddStatRow("Critical Hits", NumberManager.FormatLargeNumber(playerData.lifetimeCriticalHits, true));
+        
+        // Projectile Stats
+        if (playerData.lifetimeProjectileStats != null && playerData.lifetimeProjectileStats.Count > 0)
+        {
+            AddHeaderRow("Projectile Usage (Lifetime)", "", true);
+            foreach (var proj in playerData.lifetimeProjectileStats.OrderByDescending(p => p.shotsFired).Take(10))
+            {
+                string projName = proj.projectileId;
+                AddStatRow($"{projName} Shots", NumberManager.FormatLargeNumber(proj.shotsFired, true));
+                AddStatRow($"{projName} Damage", NumberManager.FormatLargeNumber(proj.damageDealt));
+            }
+        }
+        
+        // Turret Stats
+        if (playerData.lifetimeTurretStats != null && playerData.lifetimeTurretStats.Count > 0)
+        {
+            AddHeaderRow("Turret Usage (Lifetime)", "", true);
+            foreach (var turret in playerData.lifetimeTurretStats.OrderByDescending(t => t.shotsFired).Take(10))
+            {
+                AddStatRow(turret.turretId, NumberManager.FormatLargeNumber(turret.shotsFired, true));
+            }
+        }
 
         // Difficulty section
         AddHeaderRow("Difficulty","",true);

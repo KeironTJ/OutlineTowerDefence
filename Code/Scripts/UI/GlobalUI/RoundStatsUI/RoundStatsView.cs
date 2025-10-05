@@ -98,7 +98,38 @@ public class RoundStatsView : MonoBehaviour
         AddStatRow("Duration", FormatDuration(record.durationSeconds));
         AddStatRow("Difficulty", record.difficulty.ToString());
         AddStatRow("Highest Wave", record.highestWave.ToString());
+        
+        // Tower Base
+        if (!string.IsNullOrEmpty(record.towerBaseId))
+            AddStatRow("Tower Base", record.towerBaseId);
+        
+        // Combat stats
+        AddHeaderRow("Combat Stats");
         AddStatRow("Bullets Fired", NumberManager.FormatLargeNumber(record.bulletsFired, true));
+        AddStatRow("Total Damage", NumberManager.FormatLargeNumber(record.totalDamageDealt));
+        AddStatRow("Critical Hits", NumberManager.FormatLargeNumber(record.criticalHits, true));
+
+        // Projectile usage
+        if (record.projectileUsage != null && record.projectileUsage.Count > 0)
+        {
+            AddHeaderRow("Projectile Usage");
+            foreach (var proj in record.projectileUsage.OrderByDescending(p => p.shotsFired))
+            {
+                string projName = proj.projectileId;
+                AddStatRow($"{projName} Shots", NumberManager.FormatLargeNumber(proj.shotsFired, true));
+                AddStatRow($"{projName} Damage", NumberManager.FormatLargeNumber(proj.damageDealt));
+            }
+        }
+        
+        // Turret usage
+        if (record.turretUsage != null && record.turretUsage.Count > 0)
+        {
+            AddHeaderRow("Turret Usage");
+            foreach (var turret in record.turretUsage.OrderByDescending(t => t.shotsFired))
+            {
+                AddStatRow(turret.turretId, NumberManager.FormatLargeNumber(turret.shotsFired, true));
+            }
+        }
 
         // Currency section
         AddHeaderRow("Currency Earned");

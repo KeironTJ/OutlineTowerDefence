@@ -8,6 +8,7 @@ public static class EventNames
     public const string TowerSpawned = "TowerSpawned";
     public const string TowerDestroyed = "TowerDestroyed";
     public const string BulletFired = "BulletFired";
+    public const string DamageDealt = "DamageDealt";
 
     // Round Specific Events
     public const string RoundStatsUpdated = "RoundStatsUpdated";

@@ -86,6 +86,12 @@ public class PlayerData
 
     [Header("Enemy Kills (By Definition)")]
     public List<EnemyKillEntry> enemyKills = new List<EnemyKillEntry>(); // replaces EnemiesDestroyed
+    
+    [Header("Projectile & Turret Lifetime Stats")]
+    public List<ProjectileUsageSummary> lifetimeProjectileStats = new List<ProjectileUsageSummary>();
+    public List<TurretUsageSummary> lifetimeTurretStats = new List<TurretUsageSummary>();
+    public float lifetimeTotalDamage;
+    public int lifetimeCriticalHits;
 
     [Header("Round History")]
     public int totalRoundsCompleted;

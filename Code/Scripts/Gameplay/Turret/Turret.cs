@@ -312,7 +312,17 @@ public class Turret : MonoBehaviour
             }
         }
 
-        EventManager.TriggerEvent(EventNames.BulletFired, bulletScript);
+        // Get the turret ID for tracking
+        string turretId = activeDefinition != null ? activeDefinition.id : "UNKNOWN";
+        string actualProjectileId = projectileDefinitionId;
+        if (string.IsNullOrEmpty(actualProjectileId) && projDef != null)
+            actualProjectileId = projDef.id;
+        if (string.IsNullOrEmpty(actualProjectileId))
+            actualProjectileId = "LEGACY";
+
+        // Trigger enriched event with metadata
+        var enrichedEvent = new BulletFiredEvent(bulletScript, turretId, actualProjectileId, runtimeDamage);
+        EventManager.TriggerEvent(EventNames.BulletFired, enrichedEvent);
     }
 
     private void HandleTargeting()
