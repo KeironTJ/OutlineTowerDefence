@@ -1,0 +1,116 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40cfce9b3120f1847bbcd2de0296d33a, type: 3}
+  m_Name: ACH_DIFFICULTY_WAVE_MASTER_D2
+  m_EditorClassIdentifier: Assembly-CSharp::AchievementDefinition
+  id: ACH_DIFFICULTY_WAVE_MASTER_D2
+  displayName: Difficulty Wave Master - Difficulty 2
+  description: Reward players for reaching deep waves at each difficulty level.
+  category: 1
+  type: 5
+  tiers:
+  - tierLevel: 0
+    targetAmount: 10
+    requiredDifficultyLevel: 2
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 75
+      currencyType: 1
+    - rewardType: 0
+      rewardId: 
+      amount: 15
+      currencyType: 2
+    tierName: Difficulty 2 Wave 10
+    tierDescription: Reach wave 10 on difficulty 2.
+  - tierLevel: 1
+    targetAmount: 20
+    requiredDifficultyLevel: 2
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 100
+      currencyType: 1
+    - rewardType: 0
+      rewardId: 
+      amount: 18
+      currencyType: 2
+    tierName: Difficulty 2 Wave 20
+    tierDescription: Reach wave 20 on difficulty 2.
+  - tierLevel: 2
+    targetAmount: 50
+    requiredDifficultyLevel: 2
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 125
+      currencyType: 1
+    - rewardType: 0
+      rewardId: 
+      amount: 21
+      currencyType: 2
+    tierName: Difficulty 2 Wave 50
+    tierDescription: Reach wave 50 on difficulty 2.
+  - tierLevel: 3
+    targetAmount: 100
+    requiredDifficultyLevel: 2
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 150
+      currencyType: 1
+    - rewardType: 0
+      rewardId: 
+      amount: 24
+      currencyType: 2
+    tierName: Difficulty 2 Wave 100
+    tierDescription: Reach wave 100 on difficulty 2.
+  - tierLevel: 4
+    targetAmount: 500
+    requiredDifficultyLevel: 2
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 175
+      currencyType: 1
+    - rewardType: 0
+      rewardId: 
+      amount: 27
+      currencyType: 2
+    tierName: Difficulty 2 Wave 500
+    tierDescription: Reach wave 500 on difficulty 2.
+  - tierLevel: 5
+    targetAmount: 1000
+    requiredDifficultyLevel: 2
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 200
+      currencyType: 1
+    - rewardType: 0
+      rewardId: 
+      amount: 30
+      currencyType: 2
+    tierName: Difficulty 2 Wave 1000
+    tierDescription: Reach wave 1000 on difficulty 2.
+  targetDefinitionId: 
+  useTierFilter: 0
+  targetEnemyTier: 0
+  useFamilyFilter: 0
+  targetFamily: 
+  useTraitFilter: 0
+  targetTraits: 0
+  currencyType: 1
+  targetProjectileId: 
+  targetProjectileTrait: 0
+  icon: {fileID: 0}
+  isHidden: 0

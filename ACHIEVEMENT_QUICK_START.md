@@ -118,7 +118,19 @@ Tiers: Difficulty 2, 3, 4, 5
 Rewards: Cores, advanced turrets
 ```
 
-> Tip: Use **Tools → Achievements → Reach Difficulty Wizard** to auto-generate these difficulty tiers from your `DifficultyProgression` asset.
+> Tips:
+> - Use **Tools → Achievements → Reach Difficulty Wizard** to auto-generate these difficulty tiers from your `DifficultyProgression` asset.
+> - Use **Tools → Achievements → Difficulty Wave Wizard** if you want paired wave milestones once a new difficulty unlocks.
+
+#### Difficulty Wave Master
+```yaml
+Type: CompleteDifficultyWaves
+Difficulty Range: 1-5
+Wave Milestones: 10, 20, 50, 100, 500, 1000 (per difficulty)
+Rewards: Fragments & Prisms that scale with tier and difficulty
+```
+
+> Tip: Use **Tools → Achievements → Difficulty Wave Wizard** to produce staged wave milestones for every difficulty in a couple of clicks. Enable *Create Separate Asset Per Difficulty* when you prefer one achievement per difficulty level.
 
 ### Economy Achievements
 
@@ -149,6 +161,7 @@ Rewards: Cores, special unlocks
 | CompleteWaves | Waves finished | Complete 500 waves |
 | CompleteRounds | Rounds finished | Complete 100 rounds |
 | ReachDifficulty | Highest difficulty | Unlock difficulty 5 |
+| CompleteDifficultyWaves | Highest wave per difficulty | Reach wave 500 on difficulty 3 |
 | EarnCurrency | Currency gained | Earn 1,000,000 Cores |
 | SpendCurrency | Currency spent | Spend 500,000 Prisms |
 | UnlockTurret | Turrets unlocked | Unlock 10 turrets |

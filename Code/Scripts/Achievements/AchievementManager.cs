@@ -120,6 +120,12 @@ public class AchievementManager : MonoBehaviour
                     progressChanged = true;
                 }
 
+                if (progressData.difficultyWaveProgress == null)
+                {
+                    progressData.difficultyWaveProgress = new List<DifficultyWaveProgressEntry>();
+                    progressChanged = true;
+                }
+
                 activeAchievements.Add(new AchievementRuntime
                 {
                     definition = def,
@@ -147,6 +153,7 @@ public class AchievementManager : MonoBehaviour
         }
 
         progressChanged |= SyncReachDifficultyProgress();
+        progressChanged |= SyncDifficultyWaveProgress();
 
         if (progressChanged)
         {
@@ -201,6 +208,53 @@ public class AchievementManager : MonoBehaviour
         return changed;
     }
 
+    private bool SyncDifficultyWaveProgress()
+    {
+        bool changed = false;
+
+        foreach (var rt in activeAchievements)
+        {
+            if (rt.definition?.type != AchievementType.CompleteDifficultyWaves) continue;
+            if (rt.progressData == null) continue;
+
+            if (rt.progressData.difficultyWaveProgress == null)
+            {
+                rt.progressData.difficultyWaveProgress = new List<DifficultyWaveProgressEntry>();
+                changed = true;
+            }
+
+            if (rt.definition.tiers == null || rt.definition.tiers.Length == 0) continue;
+
+            int recalculatedHighest = rt.progressData.highestTierCompleted;
+            for (int i = 0; i < rt.definition.tiers.Length; i++)
+            {
+                var tier = rt.definition.tiers[i];
+                int requiredDifficulty = tier.requiredDifficultyLevel;
+                int bestWave = GetHighestWaveForDifficulty(rt.progressData, requiredDifficulty);
+                if (bestWave >= tier.targetAmount)
+                {
+                    recalculatedHighest = i;
+                    continue;
+                }
+                break;
+            }
+
+            if (recalculatedHighest != rt.progressData.highestTierCompleted)
+            {
+                rt.progressData.highestTierCompleted = recalculatedHighest;
+                changed = true;
+            }
+
+            if (UpdateDifficultyCurrentProgress(rt))
+            {
+                rt.progressData.lastUpdatedIsoUtc = System.DateTime.UtcNow.ToString("o");
+                changed = true;
+            }
+        }
+
+        return changed;
+    }
+
     public IReadOnlyList<AchievementRuntime> GetAllAchievements()
     {
         InitializeIfNeeded();
@@ -211,6 +265,82 @@ public class AchievementManager : MonoBehaviour
     {
         InitializeIfNeeded();
         return activeAchievements.FirstOrDefault(a => a.definition.id == achievementId);
+    }
+
+    private static int GetHighestWaveForDifficulty(AchievementProgressData data, int difficulty)
+    {
+        if (data?.difficultyWaveProgress == null || data.difficultyWaveProgress.Count == 0)
+            return 0;
+
+        if (difficulty <= 0)
+        {
+            int best = 0;
+            for (int i = 0; i < data.difficultyWaveProgress.Count; i++)
+                best = Mathf.Max(best, data.difficultyWaveProgress[i].highestWave);
+            return best;
+        }
+
+        for (int i = 0; i < data.difficultyWaveProgress.Count; i++)
+        {
+            var entry = data.difficultyWaveProgress[i];
+            if (entry.difficulty == difficulty)
+                return entry.highestWave;
+        }
+
+        return 0;
+    }
+
+    private static bool TryRecordDifficultyWave(AchievementProgressData data, int difficulty, int waveNumber)
+    {
+        if (data == null || difficulty <= 0) return false;
+
+        data.difficultyWaveProgress ??= new List<DifficultyWaveProgressEntry>();
+
+        for (int i = 0; i < data.difficultyWaveProgress.Count; i++)
+        {
+            var entry = data.difficultyWaveProgress[i];
+            if (entry.difficulty != difficulty) continue;
+
+            if (waveNumber > entry.highestWave)
+            {
+                entry.highestWave = waveNumber;
+                data.difficultyWaveProgress[i] = entry;
+                return true;
+            }
+
+            return false;
+        }
+
+        data.difficultyWaveProgress.Add(new DifficultyWaveProgressEntry(difficulty, waveNumber));
+        return true;
+    }
+
+    private bool UpdateDifficultyCurrentProgress(AchievementRuntime rt)
+    {
+        if (rt.definition?.tiers == null || rt.definition.tiers.Length == 0) return false;
+        if (rt.progressData == null) return false;
+
+        int nextIndex = rt.progressData.highestTierCompleted + 1;
+        float newProgress;
+
+        if (nextIndex >= rt.definition.tiers.Length)
+        {
+            newProgress = rt.definition.tiers[rt.definition.tiers.Length - 1].targetAmount;
+        }
+        else
+        {
+            var nextTier = rt.definition.tiers[nextIndex];
+            int difficulty = nextTier.requiredDifficultyLevel;
+            newProgress = GetHighestWaveForDifficulty(rt.progressData, difficulty);
+        }
+
+        if (!Mathf.Approximately(rt.progressData.currentProgress, newProgress))
+        {
+            rt.progressData.currentProgress = newProgress;
+            return true;
+        }
+
+        return false;
     }
 
     private void Progress(AchievementRuntime rt, float amount)
@@ -367,14 +497,77 @@ public class AchievementManager : MonoBehaviour
     {
         InitializeIfNeeded();
 
+        int waveNumber = 0;
+        int difficulty = 0;
+
+        switch (data)
+        {
+            case WaveCompletedEvent wce:
+                waveNumber = wce.waveNumber;
+                difficulty = wce.difficulty;
+                break;
+            case int wave:
+                waveNumber = wave;
+                break;
+            case float waveF:
+                waveNumber = Mathf.RoundToInt(waveF);
+                break;
+            case double waveD:
+                waveNumber = (int)System.Math.Round(waveD);
+                break;
+        }
+
         foreach (var rt in activeAchievements)
         {
             if (rt.IsComplete) continue;
 
-            if (rt.definition.type == AchievementType.CompleteWaves)
+            switch (rt.definition.type)
             {
-                Progress(rt, 1f);
+                case AchievementType.CompleteWaves:
+                    Progress(rt, 1f);
+                    break;
+                case AchievementType.CompleteDifficultyWaves:
+                    HandleDifficultyWaveAchievement(rt, waveNumber, difficulty);
+                    break;
             }
+        }
+    }
+
+    private void HandleDifficultyWaveAchievement(AchievementRuntime rt, int waveNumber, int difficulty)
+    {
+        if (rt?.definition?.tiers == null || rt.progressData == null) return;
+        if (waveNumber <= 0 || difficulty <= 0) return;
+
+        bool changed = TryRecordDifficultyWave(rt.progressData, difficulty, waveNumber);
+
+        int previousTier = rt.progressData.highestTierCompleted;
+
+        for (int i = previousTier + 1; i < rt.definition.tiers.Length; i++)
+        {
+            var tier = rt.definition.tiers[i];
+            int requiredDifficulty = tier.requiredDifficultyLevel > 0 ? tier.requiredDifficultyLevel : difficulty;
+            int bestWave = GetHighestWaveForDifficulty(rt.progressData, requiredDifficulty);
+
+            if (bestWave >= tier.targetAmount)
+            {
+                rt.progressData.highestTierCompleted = i;
+                OnTierCompleted(rt, tier, i);
+                changed = true;
+                continue;
+            }
+
+            if (requiredDifficulty == difficulty || tier.requiredDifficultyLevel > 0)
+                break;
+        }
+
+        if (UpdateDifficultyCurrentProgress(rt))
+            changed = true;
+
+        if (changed)
+        {
+            rt.progressData.lastUpdatedIsoUtc = System.DateTime.UtcNow.ToString("o");
+            SaveManager.main?.QueueImmediateSave();
+            OnProgress?.Invoke(rt);
         }
     }
 

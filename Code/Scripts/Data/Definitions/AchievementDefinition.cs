@@ -7,6 +7,7 @@ public enum AchievementType
     CompleteWaves, 
     CompleteRounds,
     ReachDifficulty,
+    CompleteDifficultyWaves,
     EarnCurrency,
     SpendCurrency,
     UnlockTurret,
@@ -96,6 +97,7 @@ public class AchievementTier
 {
     public int tierLevel = 1;
     public float targetAmount = 100f;
+    [Tooltip("Optional difficulty requirement for CompleteDifficultyWaves achievements")] public int requiredDifficultyLevel = 0;
     
     [Header("Rewards")]
     public AchievementReward[] rewards;

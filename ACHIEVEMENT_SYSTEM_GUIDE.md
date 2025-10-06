@@ -54,6 +54,7 @@ Central manager that:
 | **CompleteWaves** | Finish waves | Increments per wave completed |
 | **CompleteRounds** | Finish rounds | Increments per round completed |
 | **ReachDifficulty** | Unlock higher difficulties | Tracks highest difficulty reached |
+| **CompleteDifficultyWaves** | Reach specific waves at each difficulty | Tracks highest wave reached per difficulty and unlocks tiers when milestones are met |
 | **EarnCurrency** | Earn specific currency | Accumulates currency earned |
 | **SpendCurrency** | Spend specific currency | Accumulates currency spent |
 | **UnlockTurret** | Unlock turrets | Manual progression |
@@ -93,7 +94,9 @@ Example: "Enemy Eliminator"
 
 ## Creating Achievements
 
-> **Shortcut:** For difficulty-based achievements, open **Tools → Achievements → Reach Difficulty Wizard** to generate tiers automatically from your `DifficultyProgression` asset.
+> **Shortcuts:**
+> - For difficulty unlock achievements, open **Tools → Achievements → Reach Difficulty Wizard** to generate tiers automatically from your `DifficultyProgression` asset.
+> - For combined difficulty + wave milestones, open **Tools → Achievements → Difficulty Wave Wizard** to build staged progression (e.g., waves 10/20/50 at every difficulty). Toggle *Create Separate Asset Per Difficulty* if you prefer one achievement asset per difficulty tier.
 
 ### Step 1: Create Achievement Asset
 
@@ -140,6 +143,8 @@ Tiers (4 elements):
     ├── tierDescription: "Kill 10000 enemies"
     └── rewards: [10000 Cores, Unlock CHAIN_BULLET]
 ```
+
+For **CompleteDifficultyWaves** achievements, populate each tier's `requiredDifficultyLevel` with the target difficulty. The manager will automatically track the highest wave per difficulty and compare it to each tier's `targetAmount`. Mixing difficulties within a single achievement lets you build staged rewards such as "Difficulty 1 – Wave 10/20/50" followed by "Difficulty 2 – Wave 10/20/50". Alternatively, generate individual assets per difficulty via the wizard if you want to keep each difficulty's milestones completely independent (e.g., separate achievements for "Difficulty 1 Wave Master", "Difficulty 2 Wave Master", etc.).
 
 ### Step 4: Configure Filters (Optional)
 
