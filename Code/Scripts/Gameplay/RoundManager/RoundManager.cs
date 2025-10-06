@@ -44,6 +44,18 @@ public class RoundManager : MonoBehaviour
     private readonly Dictionary<string, int> enemyKillsByDefinition = new();
     private readonly Dictionary<EnemyTier, int> enemyKillsByTier = new();
     private readonly Dictionary<string, int> enemyKillsByFamily = new(StringComparer.Ordinal);
+    
+    // Projectile & Turret tracking
+    private readonly Dictionary<string, int> shotsByProjectile = new();
+    private readonly Dictionary<string, int> shotsByTurret = new();
+    private readonly Dictionary<string, float> damageByProjectile = new();
+    
+    // Damage tracking
+    private float totalDamageDealt;
+    private int criticalHitsThisRound;
+    
+    // Tower base tracking
+    private string currentTowerBaseId;
 
     private Dictionary<CurrencyType, float> currencyEarnedThisRound = new Dictionary<CurrencyType, float>
     {
@@ -92,7 +104,12 @@ public class RoundManager : MonoBehaviour
             currencyEarned = RoundDataConverters.ToCurrencyList(currencyEarnedThisRound),
             enemyKills = killSummaries,
             tierKills = RoundDataConverters.AggregateTierKills(killSummaries),
-            familyKills = RoundDataConverters.AggregateFamilyKills(killSummaries)
+            familyKills = RoundDataConverters.AggregateFamilyKills(killSummaries),
+            towerBaseId = currentTowerBaseId,
+            turretUsage = RoundDataConverters.ToTurretUsageSummaries(shotsByTurret),
+            projectileUsage = RoundDataConverters.ToProjectileUsageSummaries(shotsByProjectile, damageByProjectile),
+            totalDamageDealt = totalDamageDealt,
+            criticalHits = criticalHitsThisRound
         };
     }
 
@@ -112,6 +129,7 @@ public class RoundManager : MonoBehaviour
     {
         EventManager.StartListening(EventNames.RawEnemyRewardEvent, OnRawEnemyReward);
         EventManager.StartListening(EventNames.BulletFired, OnBulletFired);
+        EventManager.StartListening(EventNames.DamageDealt, OnDamageDealt);
         EventManager.StartListening(EventNames.EnemyDestroyedDefinition, OnEnemyDestroyedDefinition);
         EventManager.StartListening(EventNames.NewWaveStarted, OnNewWaveStarted);
 
@@ -121,6 +139,7 @@ public class RoundManager : MonoBehaviour
     {
         EventManager.StopListening(EventNames.RawEnemyRewardEvent, OnRawEnemyReward);
         EventManager.StopListening(EventNames.BulletFired, OnBulletFired);
+        EventManager.StopListening(EventNames.DamageDealt, OnDamageDealt);
         EventManager.StopListening(EventNames.EnemyDestroyedDefinition, OnEnemyDestroyedDefinition);
         EventManager.StopListening(EventNames.NewWaveStarted, OnNewWaveStarted);
 
@@ -179,6 +198,9 @@ public class RoundManager : MonoBehaviour
         ResetRoundStats();
         roundStartTime = Time.time;
         roundEndTime = 0f;
+        
+        // Capture tower base ID
+        currentTowerBaseId = playerManager.playerData.selectedTowerBaseId ?? "UNKNOWN";
 
         // Build round skill layer (copies persistent into round state)
         playerManager.OnRoundStarted(); // calls skillService.BuildRoundStates()
@@ -239,7 +261,12 @@ public class RoundManager : MonoBehaviour
             currencyEarned = RoundDataConverters.ToCurrencyList(currencyEarnedThisRound),
             enemyKills = killSummaries,
             tierKills = RoundDataConverters.AggregateTierKills(killSummaries),
-            familyKills = RoundDataConverters.AggregateFamilyKills(killSummaries)
+            familyKills = RoundDataConverters.AggregateFamilyKills(killSummaries),
+            towerBaseId = currentTowerBaseId,
+            turretUsage = RoundDataConverters.ToTurretUsageSummaries(shotsByTurret),
+            projectileUsage = RoundDataConverters.ToProjectileUsageSummaries(shotsByProjectile, damageByProjectile),
+            totalDamageDealt = totalDamageDealt,
+            criticalHits = criticalHitsThisRound
         };
 
         roundWallet?.ClearRound();
@@ -265,20 +292,57 @@ public class RoundManager : MonoBehaviour
         enemyKillsByDefinition.Clear();
         enemyKillsByTier.Clear();
         enemyKillsByFamily.Clear();
+        
+        shotsByProjectile.Clear();
+        shotsByTurret.Clear();
+        damageByProjectile.Clear();
+        
+        totalDamageDealt = 0f;
+        criticalHitsThisRound = 0;
 
         EventManager.TriggerEvent(EventNames.RoundStatsUpdated, GetCurrentRoundSummary());
     }
 
     private void OnBulletFired(object eventData)
     {
-        if (eventData is Bullet bullet)
+        bulletsFiredThisRound++;
+        
+        // Track by projectile type and turret type
+        if (eventData is BulletFiredEvent bfe)
         {
-            bulletsFiredThisRound++;
-            EventManager.TriggerEvent(EventNames.RoundStatsUpdated, GetCurrentRoundSummary());
+            // Track shots by projectile
+            if (!string.IsNullOrEmpty(bfe.projectileId))
+            {
+                shotsByProjectile[bfe.projectileId] = 
+                    shotsByProjectile.TryGetValue(bfe.projectileId, out var count) ? count + 1 : 1;
+            }
+            
+            // Track shots by turret
+            if (!string.IsNullOrEmpty(bfe.turretId))
+            {
+                shotsByTurret[bfe.turretId] = 
+                    shotsByTurret.TryGetValue(bfe.turretId, out var tcount) ? tcount + 1 : 1;
+            }
         }
-        else
+        
+        EventManager.TriggerEvent(EventNames.RoundStatsUpdated, GetCurrentRoundSummary());
+    }
+    
+    private void OnDamageDealt(object eventData)
+    {
+        if (eventData is DamageDealtEvent dde)
         {
-            Debug.LogWarning("BulletFired received unexpected event payload.");
+            totalDamageDealt += dde.damageAmount;
+            
+            if (dde.wasCritical)
+                criticalHitsThisRound++;
+            
+            // Track damage by projectile type
+            if (!string.IsNullOrEmpty(dde.projectileId))
+            {
+                damageByProjectile[dde.projectileId] = 
+                    damageByProjectile.TryGetValue(dde.projectileId, out var dmg) ? dmg + dde.damageAmount : dde.damageAmount;
+            }
         }
     }
 

@@ -379,6 +379,77 @@ public class PlayerManager : MonoBehaviour
         if (eventData is RoundRecord rr)
         {
             playerData.RoundHistory.Add(rr);
+            
+            // Accumulate lifetime stats
+            playerData.lifetimeTotalDamage += rr.totalDamageDealt;
+            playerData.lifetimeCriticalHits += rr.criticalHits;
+            
+            // Accumulate projectile stats
+            if (playerData.lifetimeProjectileStats == null)
+                playerData.lifetimeProjectileStats = new List<ProjectileUsageSummary>();
+                
+            if (rr.projectileUsage != null)
+            {
+                foreach (var usage in rr.projectileUsage)
+                {
+                    var existing = playerData.lifetimeProjectileStats.Find(p => p.projectileId == usage.projectileId);
+                    if (existing.projectileId == null)
+                    {
+                        // Not found, add new
+                        playerData.lifetimeProjectileStats.Add(new ProjectileUsageSummary
+                        {
+                            projectileId = usage.projectileId,
+                            shotsFired = usage.shotsFired,
+                            damageDealt = usage.damageDealt
+                        });
+                    }
+                    else
+                    {
+                        // Found, update existing
+                        int index = playerData.lifetimeProjectileStats.FindIndex(p => p.projectileId == usage.projectileId);
+                        if (index >= 0)
+                        {
+                            var updated = playerData.lifetimeProjectileStats[index];
+                            updated.shotsFired += usage.shotsFired;
+                            updated.damageDealt += usage.damageDealt;
+                            playerData.lifetimeProjectileStats[index] = updated;
+                        }
+                    }
+                }
+            }
+            
+            // Accumulate turret stats
+            if (playerData.lifetimeTurretStats == null)
+                playerData.lifetimeTurretStats = new List<TurretUsageSummary>();
+                
+            if (rr.turretUsage != null)
+            {
+                foreach (var usage in rr.turretUsage)
+                {
+                    var existing = playerData.lifetimeTurretStats.Find(t => t.turretId == usage.turretId);
+                    if (existing.turretId == null)
+                    {
+                        // Not found, add new
+                        playerData.lifetimeTurretStats.Add(new TurretUsageSummary
+                        {
+                            turretId = usage.turretId,
+                            shotsFired = usage.shotsFired
+                        });
+                    }
+                    else
+                    {
+                        // Found, update existing
+                        int index = playerData.lifetimeTurretStats.FindIndex(t => t.turretId == usage.turretId);
+                        if (index >= 0)
+                        {
+                            var updated = playerData.lifetimeTurretStats[index];
+                            updated.shotsFired += usage.shotsFired;
+                            playerData.lifetimeTurretStats[index] = updated;
+                        }
+                    }
+                }
+            }
+            
             SavePlayerData();
         }
     }

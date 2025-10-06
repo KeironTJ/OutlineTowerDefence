@@ -29,7 +29,6 @@ public class Bullet : MonoBehaviour
     
     // For homing projectiles
     private Transform homingTarget;
-
     private void Awake()
     {
         col = GetComponent<Collider2D>();
@@ -159,6 +158,12 @@ public class Bullet : MonoBehaviour
         float finalDamage = baseDamage * (isCrit ? critMultiplier : 1f);
         enemy.TakeDamage(finalDamage);
         hitEnemies.Add(enemy);
+
+        // Trigger damage event for tracking
+        string projectileId = projectileDefinition != null ? projectileDefinition.id : "LEGACY";
+        string enemyDefId = enemy.DefinitionId ?? "";
+        EventManager.TriggerEvent(EventNames.DamageDealt, 
+            new DamageDealtEvent(projectileId, finalDamage, isCrit, enemyDefId));
 
         // Ensure bullet continues with intended velocity to reduce deflection
         rb.linearVelocity = moveDirection * bulletSpeed;

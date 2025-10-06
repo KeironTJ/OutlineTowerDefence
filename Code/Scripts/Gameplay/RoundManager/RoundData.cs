@@ -22,6 +22,17 @@ public class RoundRecord
     // Optional aggregated views
     public List<TierKillSummary> tierKills = new List<TierKillSummary>();
     public List<FamilyKillSummary> familyKills = new List<FamilyKillSummary>();
+    
+    // Tower & Turret stats
+    public string towerBaseId;
+    public List<TurretUsageSummary> turretUsage = new List<TurretUsageSummary>();
+    
+    // Projectile stats
+    public List<ProjectileUsageSummary> projectileUsage = new List<ProjectileUsageSummary>();
+    
+    // Damage stats
+    public float totalDamageDealt;
+    public int criticalHits;
 }
 
 [Serializable] public struct CurrencyAmount { public CurrencyType type; public float amount; }
@@ -48,6 +59,21 @@ public struct FamilyKillSummary
 {
     public string family;
     public int count;
+}
+
+[Serializable]
+public struct TurretUsageSummary
+{
+    public string turretId;
+    public int shotsFired;
+}
+
+[Serializable]
+public struct ProjectileUsageSummary
+{
+    public string projectileId;
+    public int shotsFired;
+    public float damageDealt;
 }
 
 public static class RoundDataConverters
@@ -120,6 +146,45 @@ public static class RoundDataConverters
         var list = new List<FamilyKillSummary>();
         foreach (var kv in dict)
             list.Add(new FamilyKillSummary { family = kv.Key, count = kv.Value });
+        return list;
+    }
+    
+    public static List<TurretUsageSummary> ToTurretUsageSummaries(Dictionary<string, int> shotsByTurret)
+    {
+        var list = new List<TurretUsageSummary>();
+        if (shotsByTurret == null) return list;
+        
+        foreach (var kv in shotsByTurret)
+        {
+            list.Add(new TurretUsageSummary
+            {
+                turretId = kv.Key,
+                shotsFired = kv.Value
+            });
+        }
+        return list;
+    }
+    
+    public static List<ProjectileUsageSummary> ToProjectileUsageSummaries(
+        Dictionary<string, int> shotsByProjectile, 
+        Dictionary<string, float> damageByProjectile)
+    {
+        var list = new List<ProjectileUsageSummary>();
+        if (shotsByProjectile == null) return list;
+        
+        foreach (var kv in shotsByProjectile)
+        {
+            float damage = 0f;
+            if (damageByProjectile != null)
+                damageByProjectile.TryGetValue(kv.Key, out damage);
+            
+            list.Add(new ProjectileUsageSummary
+            {
+                projectileId = kv.Key,
+                shotsFired = kv.Value,
+                damageDealt = damage
+            });
+        }
         return list;
     }
 }
