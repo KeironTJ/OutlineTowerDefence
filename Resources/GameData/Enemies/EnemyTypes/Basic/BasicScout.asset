@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: BasicScout
   m_EditorClassIdentifier: 
   id: Basic_Scout
+  displayName: Basic Scout
+  description: A basic enemy.
   tier: 0
   family: Scout
   traits: 1

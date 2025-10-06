@@ -114,9 +114,11 @@ Rewards: Prisms, special unlocks
 #### Difficulty Climber
 ```yaml
 Type: ReachDifficulty
-Tiers: Wave 10, 25, 50, 100
+Tiers: Difficulty 2, 3, 4, 5
 Rewards: Cores, advanced turrets
 ```
+
+> Tip: Use **Tools → Achievements → Reach Difficulty Wizard** to auto-generate these difficulty tiers from your `DifficultyProgression` asset.
 
 ### Economy Achievements
 
@@ -146,7 +148,7 @@ Rewards: Cores, special unlocks
 | ShootProjectiles | Bullets fired | Fire 1,000,000 shots |
 | CompleteWaves | Waves finished | Complete 500 waves |
 | CompleteRounds | Rounds finished | Complete 100 rounds |
-| ReachDifficulty | Highest wave | Reach wave 100 |
+| ReachDifficulty | Highest difficulty | Unlock difficulty 5 |
 | EarnCurrency | Currency gained | Earn 1,000,000 Cores |
 | SpendCurrency | Currency spent | Spend 500,000 Prisms |
 | UnlockTurret | Turrets unlocked | Unlock 10 turrets |

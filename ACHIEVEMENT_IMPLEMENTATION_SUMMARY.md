@@ -39,7 +39,7 @@ A complete, production-ready achievement system with the following features:
 | ShootProjectiles | Projectiles fired | BulletFired |
 | CompleteWaves | Waves finished | WaveCompleted |
 | CompleteRounds | Rounds finished | RoundCompleted |
-| ReachDifficulty | Highest wave milestone | WaveCompleted |
+| ReachDifficulty | Highest difficulty milestone | DifficultyAchieved |
 | EarnCurrency | Currency earned | CurrencyEarned |
 | SpendCurrency | Currency spent | CurrencySpent |
 | UnlockTurret | Turrets unlocked | Manual tracking |

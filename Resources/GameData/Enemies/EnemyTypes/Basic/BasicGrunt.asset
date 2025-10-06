@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: BasicGrunt
   m_EditorClassIdentifier: 
   id: Basic_Grunt
+  displayName: Basic Grunt
+  description: A basic enemy.
   tier: 0
   family: Grunt
   traits: 0

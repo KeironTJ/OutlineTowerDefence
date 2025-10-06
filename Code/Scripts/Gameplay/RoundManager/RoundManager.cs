@@ -313,14 +313,14 @@ public class RoundManager : MonoBehaviour
             // Track shots by projectile
             if (!string.IsNullOrEmpty(bfe.projectileId))
             {
-                shotsByProjectile[bfe.projectileId] = 
+                shotsByProjectile[bfe.projectileId] =
                     shotsByProjectile.TryGetValue(bfe.projectileId, out var count) ? count + 1 : 1;
             }
-            
+
             // Track shots by turret
             if (!string.IsNullOrEmpty(bfe.turretId))
             {
-                shotsByTurret[bfe.turretId] = 
+                shotsByTurret[bfe.turretId] =
                     shotsByTurret.TryGetValue(bfe.turretId, out var tcount) ? tcount + 1 : 1;
             }
         }

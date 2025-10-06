@@ -5,6 +5,8 @@ public class EnemyTypeDefinition : ScriptableObject
 {
     [Header("Identity")]
     public string id;
+    public string displayName = "Enemy";
+    public string description = "A basic enemy.";
     public EnemyTier tier = EnemyTier.Basic;
     public string family = "Grunt";
     public EnemyTrait traits = EnemyTrait.None;

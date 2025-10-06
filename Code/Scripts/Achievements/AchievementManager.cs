@@ -35,6 +35,7 @@ public class AchievementManager : MonoBehaviour
         EventManager.StartListening(EventNames.CurrencyEarned, OnCurrencyEarned);
         EventManager.StartListening(EventNames.CurrencySpent, OnCurrencySpent);
         EventManager.StartListening(EventNames.BulletFired, OnProjectileFired);
+        EventManager.StartListening(EventNames.DifficultyAchieved, OnDifficultyAchieved);
     }
 
     private void OnDisable()
@@ -45,6 +46,7 @@ public class AchievementManager : MonoBehaviour
         EventManager.StopListening(EventNames.CurrencyEarned, OnCurrencyEarned);
         EventManager.StopListening(EventNames.CurrencySpent, OnCurrencySpent);
         EventManager.StopListening(EventNames.BulletFired, OnProjectileFired);
+        EventManager.StopListening(EventNames.DifficultyAchieved, OnDifficultyAchieved);
     }
 
     private void Start()
@@ -144,11 +146,59 @@ public class AchievementManager : MonoBehaviour
             progressChanged = true;
         }
 
+        progressChanged |= SyncReachDifficultyProgress();
+
         if (progressChanged)
         {
             pm.NotifyAchievementProgressChanged();
             SaveManager.main?.QueueImmediateSave();
         }
+    }
+
+    private bool SyncReachDifficultyProgress()
+    {
+        var pm = PlayerMgr;
+        if (pm == null) return false;
+
+        int highestDifficulty = pm.GetMaxDifficultyAchieved();
+        if (highestDifficulty <= 0) return false;
+
+        bool changed = false;
+
+        foreach (var rt in activeAchievements)
+        {
+            if (rt.definition?.type != AchievementType.ReachDifficulty) continue;
+            if (rt.progressData == null) continue;
+
+            if (rt.progressData.currentProgress >= highestDifficulty)
+                continue;
+
+            rt.progressData.currentProgress = highestDifficulty;
+            rt.progressData.lastUpdatedIsoUtc = System.DateTime.UtcNow.ToString("o");
+
+            if (rt.definition.tiers != null && rt.definition.tiers.Length > 0)
+            {
+                int newHighestTier = rt.progressData.highestTierCompleted;
+                for (int i = 0; i < rt.definition.tiers.Length; i++)
+                {
+                    if (highestDifficulty >= rt.definition.tiers[i].targetAmount)
+                    {
+                        newHighestTier = i;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                if (newHighestTier != rt.progressData.highestTierCompleted)
+                    rt.progressData.highestTierCompleted = newHighestTier;
+            }
+
+            changed = true;
+        }
+
+        return changed;
     }
 
     public IReadOnlyList<AchievementRuntime> GetAllAchievements()
@@ -317,15 +367,6 @@ public class AchievementManager : MonoBehaviour
     {
         InitializeIfNeeded();
 
-        int? waveNumber = data switch
-        {
-            WaveCompletedEvent wce => wce.waveNumber,
-            int i => i,
-            float f => Mathf.RoundToInt(f),
-            double d => (int)System.Math.Round(d),
-            _ => (int?)null
-        };
-
         foreach (var rt in activeAchievements)
         {
             if (rt.IsComplete) continue;
@@ -333,17 +374,6 @@ public class AchievementManager : MonoBehaviour
             if (rt.definition.type == AchievementType.CompleteWaves)
             {
                 Progress(rt, 1f);
-            }
-            else if (rt.definition.type == AchievementType.ReachDifficulty && waveNumber.HasValue)
-            {
-                // Track highest wave per difficulty
-                if (waveNumber.Value > rt.Current)
-                {
-                    rt.progressData.currentProgress = waveNumber.Value;
-                    rt.progressData.lastUpdatedIsoUtc = System.DateTime.UtcNow.ToString("o");
-                    SaveManager.main?.QueueImmediateSave();
-                    OnProgress?.Invoke(rt);
-                }
             }
         }
     }
@@ -357,6 +387,34 @@ public class AchievementManager : MonoBehaviour
             if (rt.definition.type == AchievementType.CompleteRounds && !rt.IsComplete)
             {
                 Progress(rt, 1f);
+            }
+        }
+    }
+
+    private void OnDifficultyAchieved(object data)
+    {
+        InitializeIfNeeded();
+
+        int difficulty = data switch
+        {
+            DifficultyAchievedEvent dae => dae.difficultyLevel,
+            int i => i,
+            float f => Mathf.RoundToInt(f),
+            double d => (int)System.Math.Round(d),
+            _ => 0
+        };
+
+        if (difficulty <= 0) return;
+
+        foreach (var rt in activeAchievements)
+        {
+            if (rt.definition.type != AchievementType.ReachDifficulty) continue;
+            if (rt.IsComplete && rt.Current >= difficulty) continue;
+
+            float delta = difficulty - rt.Current;
+            if (delta > 0f)
+            {
+                Progress(rt, delta);
             }
         }
     }

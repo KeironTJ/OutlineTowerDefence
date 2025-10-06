@@ -142,22 +142,22 @@ Tiers:
     Rewards: 50000 Cores, 5000 Prisms, 100 Loops
 ```
 
-### Difficulty Conqueror (Reach High Waves)
+### Difficulty Conqueror (Unlock Higher Difficulties)
 ```yaml
 ID: ACH_DIFFICULTY_MASTER
 Display Name: Difficulty Master
-Description: Reach incredible wave milestones
+Description: Unlock the toughest difficulties
 Category: Progression
 Type: ReachDifficulty
 
 Tiers:
-  [0] Novice - Reach wave 10
+  [0] Novice - Unlock difficulty 2
     Rewards: 500 Cores
-  [1] Intermediate - Reach wave 25
+  [1] Intermediate - Unlock difficulty 3
     Rewards: 2000 Cores
-  [2] Expert - Reach wave 50
+  [2] Expert - Unlock difficulty 4
     Rewards: 10000 Cores, Unlock ADVANCED_TURRET
-  [3] Master - Reach wave 100
+  [3] Master - Unlock difficulty 5
     Rewards: 50000 Cores, Unlock ELITE_PROJECTILE, 200 Loops
 ```
 

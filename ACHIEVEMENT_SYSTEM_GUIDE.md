@@ -53,7 +53,7 @@ Central manager that:
 | **ShootProjectiles** | Fire projectiles | Increments per bullet fired |
 | **CompleteWaves** | Finish waves | Increments per wave completed |
 | **CompleteRounds** | Finish rounds | Increments per round completed |
-| **ReachDifficulty** | Reach wave milestones | Tracks highest wave reached |
+| **ReachDifficulty** | Unlock higher difficulties | Tracks highest difficulty reached |
 | **EarnCurrency** | Earn specific currency | Accumulates currency earned |
 | **SpendCurrency** | Spend specific currency | Accumulates currency spent |
 | **UnlockTurret** | Unlock turrets | Manual progression |
@@ -92,6 +92,8 @@ Example: "Enemy Eliminator"
 ---
 
 ## Creating Achievements
+
+> **Shortcut:** For difficulty-based achievements, open **Tools → Achievements → Reach Difficulty Wizard** to generate tiers automatically from your `DifficultyProgression` asset.
 
 ### Step 1: Create Achievement Asset
 
@@ -308,7 +310,8 @@ The system listens to these events:
 | Event | Achievement Types Affected |
 |-------|---------------------------|
 | `EnemyDestroyedDefinition` | KillEnemies |
-| `WaveCompleted` | CompleteWaves, ReachDifficulty |
+| `WaveCompleted` | CompleteWaves |
+| `DifficultyAchieved` | ReachDifficulty |
 | `RoundCompleted` | CompleteRounds |
 | `CurrencyEarned` | EarnCurrency |
 | `CurrencySpent` | SpendCurrency |

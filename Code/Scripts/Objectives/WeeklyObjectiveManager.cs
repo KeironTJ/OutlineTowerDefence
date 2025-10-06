@@ -443,6 +443,7 @@ public class WeeklyObjectiveManager : MonoBehaviour
         // This would ideally be a ScriptableObject, but for now create programmatically
         var definition = ScriptableObject.CreateInstance<ObjectiveDefinition>();
         definition.id = $"weekly_daily_tier_{tierTarget}";
+        definition.displayName = $"Complete {tierTarget} Daily Objectives";
         definition.period = ObjectivePeriod.Weekly;
         definition.type = ObjectiveType.CompleteDailyObjectives;
         definition.targetAmount = tierTarget;

@@ -25,33 +25,67 @@ public class MainMenuScreen : MonoBehaviour
     [SerializeField] private int highestWave;
 
     private PlayerManager playerManager;
-    private int minDifficultyLevel = 1;
-    private int maxDifficultyLevel;
+
+    [Header("Difficulty Range")]
+    [SerializeField] private int minDifficultyLevel = 1;
+    [SerializeField] private int maxDifficultyUnlocked;
+    [SerializeField] private int maxDifficultyLevel = 9;
 
     private void Start()
     {
-        playerManager = PlayerManager.main;
+        if (!EnsurePlayerManager()) return;
 
+        RefreshDifficultyContext();
+
+        int initialDifficulty = playerManager.GetDifficulty();
+        if (!playerManager.CanSelectDifficulty(initialDifficulty))
+            initialDifficulty = playerManager.ClampDifficultyToUnlocked(initialDifficulty);
+
+        SetPlayerDifficulty(initialDifficulty > 0 ? initialDifficulty : minDifficultyLevel);
         DisplayPlayerUsername();
-        SetPlayerMaxDifficulty(playerManager.GetMaxDifficulty());
-        SetPlayerDifficulty(1);
         TriggerDifficultyButtons();
     }
 
     private void OnEnable()
     {
+        if (!EnsurePlayerManager()) return;
+
+        RefreshDifficultyContext();
         DisplayPlayerUsername();
+        TriggerDifficultyButtons();
+    }
+
+    private bool EnsurePlayerManager()
+    {
+        if (playerManager != null) return true;
+        playerManager = PlayerManager.main;
+        if (playerManager == null)
+        {
+            Debug.LogWarning("[MainMenuScreen] PlayerManager not ready; UI will retry next enable.");
+            return false;
+        }
+        return true;
+    }
+
+    private void RefreshDifficultyContext()
+    {
+        if (playerManager == null) return;
+        minDifficultyLevel = playerManager.GetMinDifficultyLevel();
+        maxDifficultyLevel = playerManager.GetMaxConfiguredDifficultyLevel();
+        maxDifficultyUnlocked = playerManager.GetHighestUnlockedDifficulty();
     }
 
     // ================= PLAYER / USERNAME =================
     public void DisplayPlayerUsername()
     {
+        if (!EnsurePlayerManager()) return;
         if (playerUsernameText && playerManager?.playerData != null)
             playerUsernameText.text = playerManager.playerData.Username;
     }
 
     public void OpenChangeUsernamePanel()
     {
+        if (!EnsurePlayerManager()) return;
         changeUsernameInputField.text = playerManager.playerData.Username;
         changeUsernamePanel.SetActive(true);
     }
@@ -63,6 +97,7 @@ public class MainMenuScreen : MonoBehaviour
     }
     public void ChangeUsername()
     {
+        if (!EnsurePlayerManager()) return;
         string newUsername = changeUsernameInputField.text.Trim();
         if (string.IsNullOrEmpty(newUsername))
         {
@@ -80,16 +115,33 @@ public class MainMenuScreen : MonoBehaviour
     }
 
     // ================= DIFFICULTY =================
-    public void DisplayDifficulty() => difficultySelectionUI.text = chosenDifficulty.ToString();
+    public void DisplayDifficulty()
+    {
+        if (difficultySelectionUI)
+            difficultySelectionUI.text = chosenDifficulty.ToString();
+    }
     public void DisplayHighestWave()
     {
+        if (!EnsurePlayerManager()) return;
         highestWave = playerManager.GetHighestWave(chosenDifficulty);
-        highestWaveUI.text = $"Best Wave: {highestWave}";
+        if (highestWaveUI)
+            highestWaveUI.text = $"Best Wave: {highestWave}";
     }
     public void TriggerDifficultyButtons()
     {
-        lowerDifficultyButton.gameObject.SetActive(chosenDifficulty > minDifficultyLevel);
-        increaseDifficultyButton.gameObject.SetActive(chosenDifficulty < maxDifficultyLevel);
+        if (!EnsurePlayerManager()) return;
+
+        RefreshDifficultyContext();
+
+        chosenDifficulty = playerManager.ClampDifficultyToUnlocked(chosenDifficulty);
+
+        if (lowerDifficultyButton)
+            lowerDifficultyButton.gameObject.SetActive(chosenDifficulty > minDifficultyLevel);
+
+        bool canIncrease = chosenDifficulty < maxDifficultyLevel && playerManager.CanSelectDifficulty(chosenDifficulty + 1);
+        if (increaseDifficultyButton)
+            increaseDifficultyButton.gameObject.SetActive(canIncrease);
+
         SetPlayerDifficulty(chosenDifficulty);
         SetPlayerHighestWave(chosenDifficulty);
         DisplayDifficulty();
@@ -97,23 +149,30 @@ public class MainMenuScreen : MonoBehaviour
     }
     public void LowerPlayerDifficulty()
     {
+        if (!EnsurePlayerManager()) return;
         if (chosenDifficulty <= minDifficultyLevel) return;
-        chosenDifficulty--;
+        SetPlayerDifficulty(chosenDifficulty - 1);
         TriggerDifficultyButtons();
     }
     public void IncreasePlayerDifficulty()
     {
-        if (chosenDifficulty >= maxDifficultyLevel) return;
-        chosenDifficulty++;
+        if (!EnsurePlayerManager()) return;
+        int target = Mathf.Min(chosenDifficulty + 1, maxDifficultyLevel);
+        if (!playerManager.CanSelectDifficulty(target)) return;
+        SetPlayerDifficulty(target);
         TriggerDifficultyButtons();
     }
     public void SetPlayerDifficulty(int d)
     {
-        chosenDifficulty = d;
+        if (!EnsurePlayerManager()) return;
+        chosenDifficulty = playerManager.ClampDifficultyToUnlocked(d);
         playerManager.SetDifficulty(chosenDifficulty);
     }
-    public void SetPlayerMaxDifficulty(int maxDifficulty) => maxDifficultyLevel = maxDifficulty;
-    public void SetPlayerHighestWave(int difficulty) => highestWave = playerManager.GetHighestWave(difficulty);
+    public void SetPlayerHighestWave(int difficulty)
+    {
+        if (!EnsurePlayerManager()) return;
+        highestWave = playerManager.GetHighestWave(difficulty);
+    }
 
     public void ChooseScene(string sceneName)
     {

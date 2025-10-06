@@ -34,44 +34,59 @@ public class GameStatsPanel : MonoBehaviour
         int totalWavesComplete = playerData.totalWavesCompleted;
         AddStatRow("Total Waves Completed", NumberManager.FormatLargeNumber(totalWavesComplete, true));
         
+        
+
+        // Difficulty section
+        AddHeaderRow("Difficulty","Best Wave",true);
+        var difficultyArray = playerData.difficultyMaxWaveAchieved;
+        if (difficultyArray != null && difficultyArray.Length > 0)
+        {
+            var pm = PlayerManager.main;
+            int minLevel = pm ? pm.GetMinDifficultyLevel() : 1;
+            for (int index = 0; index < difficultyArray.Length; index++)
+            {
+                int level = minLevel + index;
+                AddStatRow($"Level {level}", NumberManager.FormatLargeNumber(difficultyArray[index], true));
+            }
+        }
+
         // Combat Stats
         AddHeaderRow("Combat Stats");
+        AddStatRow("Projectiles Shot", NumberManager.FormatLargeNumber(playerData.lifetimeShotsFired, true));
         AddStatRow("Total Damage Dealt", NumberManager.FormatLargeNumber(playerData.lifetimeTotalDamage));
         AddStatRow("Critical Hits", NumberManager.FormatLargeNumber(playerData.lifetimeCriticalHits, true));
         
-        // Projectile Stats
-        if (playerData.lifetimeProjectileStats != null && playerData.lifetimeProjectileStats.Count > 0)
-        {
-            AddHeaderRow("Projectile Usage (Lifetime)", "", true);
-            foreach (var proj in playerData.lifetimeProjectileStats.OrderByDescending(p => p.shotsFired).Take(10))
-            {
-                string projName = proj.projectileId;
-                AddStatRow($"{projName} Shots", NumberManager.FormatLargeNumber(proj.shotsFired, true));
-                AddStatRow($"{projName} Damage", NumberManager.FormatLargeNumber(proj.damageDealt));
-            }
-        }
         
         // Turret Stats
         if (playerData.lifetimeTurretStats != null && playerData.lifetimeTurretStats.Count > 0)
         {
-            AddHeaderRow("Turret Usage (Lifetime)", "", true);
+            AddHeaderRow("Turrets", "", true);
             foreach (var turret in playerData.lifetimeTurretStats.OrderByDescending(t => t.shotsFired).Take(10))
             {
-                AddStatRow(turret.turretId, NumberManager.FormatLargeNumber(turret.shotsFired, true));
+                string turretName = DefinitionDisplayNameUtility.GetTurretName(turret.turretId);
+                AddStatRow($"{turretName} Shots", NumberManager.FormatLargeNumber(turret.shotsFired, true));
             }
         }
 
-        // Difficulty section
-        AddHeaderRow("Difficulty","",true);
-        for (int i = 0; i < playerData.difficultyMaxWaveAchieved.Length; i++)
+
+        // Projectile Stats
+        if (playerData.lifetimeProjectileStats != null && playerData.lifetimeProjectileStats.Count > 0)
         {
-            AddStatRow($"Level {i}", playerData.difficultyMaxWaveAchieved[i].ToString());
+            AddHeaderRow("Projectiles", "", true);
+            foreach (var proj in playerData.lifetimeProjectileStats.OrderByDescending(p => p.shotsFired).Take(10))
+            {
+                string projName = DefinitionDisplayNameUtility.GetProjectileName(proj.projectileId);
+                AddStatRow($"{projName} Shots", NumberManager.FormatLargeNumber(proj.shotsFired, true));
+                AddStatRow($"{projName} Damage", NumberManager.FormatLargeNumber(proj.damageDealt));
+            }
         }
 
-        // Enemy kills (new definition-based system)
+        
+
+        // Enemy kills
         var kills = playerData.enemyKills ?? new List<EnemyKillEntry>();
         int totalEnemiesKilled = kills.Sum(k => k.count);
-        AddHeaderRow("Enemies Killed", NumberManager.FormatLargeNumber(totalEnemiesKilled, true));
+        AddHeaderRow("Enemies Destroyed", NumberManager.FormatLargeNumber(totalEnemiesKilled, true));
 
         if (totalEnemiesKilled == 0)
         {
@@ -91,7 +106,8 @@ public class GameStatsPanel : MonoBehaviour
                              .OrderByDescending(e => e.count)
                              .ThenBy(e => e.definitionId))
                 {
-                    AddStatRow(entry.definitionId,
+                    string enemyName = DefinitionDisplayNameUtility.GetEnemyName(entry.definitionId);
+                    AddStatRow(enemyName,
                         NumberManager.FormatLargeNumber(entry.count, true));
                 }
             }

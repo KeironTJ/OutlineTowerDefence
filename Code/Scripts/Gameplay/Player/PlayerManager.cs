@@ -11,6 +11,10 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private SkillService skillService;      // Assign in scene (or auto‑find)
     [SerializeField] private SaveManager saveManager;        // Optional explicit reference
 
+    [Header("Difficulty")]
+    [SerializeField] private DifficultyProgression difficultyProgression;
+    [SerializeField] private string difficultyProgressionResourcePath = "Data/DifficultyProgression";
+
     [Header("Runtime State")]
     public PlayerData playerData;
 
@@ -22,7 +26,7 @@ public class PlayerManager : MonoBehaviour
     public int difficultySelected;
 
     private bool initialized;
-    private readonly Dictionary<string,int> enemyDestructionCounts = new();
+    private readonly Dictionary<string, int> enemyDestructionCounts = new();
 
     private Coroutine cloudWaitCoroutine; // added
 
@@ -37,6 +41,8 @@ public class PlayerManager : MonoBehaviour
 
         if (!skillService) skillService = SkillService.Instance;
         if (!saveManager) saveManager = SaveManager.main;
+        if (!difficultyProgression && !string.IsNullOrEmpty(difficultyProgressionResourcePath))
+            difficultyProgression = Resources.Load<DifficultyProgression>(difficultyProgressionResourcePath);
 
         if (saveManager) saveManager.OnAfterLoad += OnSaveLoaded;
     }
@@ -168,6 +174,98 @@ public class PlayerManager : MonoBehaviour
 
         if (string.IsNullOrEmpty(playerData.Username))
             playerData.Username = "Player_" + playerData.UUID[..8];
+
+        EnsureDifficultyArrayCapacity();
+        playerData.maxDifficultyAchieved = Mathf.Max(playerData.maxDifficultyAchieved, GetMinDifficultyLevel());
+        RefreshDifficultyProgressFromData();
+    }
+
+    private void EnsureDifficultyArrayCapacity()
+    {
+        if (playerData == null) return;
+        int desiredLength = Mathf.Max(GetMaxConfiguredDifficultyLevel(), playerData.difficultyMaxWaveAchieved?.Length ?? 0);
+        desiredLength = Mathf.Max(desiredLength, GetMinDifficultyLevel());
+
+        if (playerData.difficultyMaxWaveAchieved == null)
+        {
+            playerData.difficultyMaxWaveAchieved = new int[desiredLength];
+            return;
+        }
+
+        if (playerData.difficultyMaxWaveAchieved.Length < desiredLength)
+        {
+            Array.Resize(ref playerData.difficultyMaxWaveAchieved, desiredLength);
+        }
+    }
+
+    public int GetMinDifficultyLevel() => difficultyProgression ? difficultyProgression.MinLevel : 1;
+
+    public int GetMaxConfiguredDifficultyLevel()
+    {
+        if (difficultyProgression)
+            return Mathf.Max(difficultyProgression.MaxLevel, GetMinDifficultyLevel());
+
+        if (playerData?.difficultyMaxWaveAchieved != null && playerData.difficultyMaxWaveAchieved.Length > 0)
+            return playerData.difficultyMaxWaveAchieved.Length;
+
+        return GetMinDifficultyLevel();
+    }
+
+    public bool IsDifficultyUnlocked(int level)
+    {
+        if (playerData == null)
+            return level <= GetMinDifficultyLevel();
+
+        if (difficultyProgression)
+            return difficultyProgression.IsUnlocked(playerData, level);
+
+        return level <= Mathf.Max(GetMinDifficultyLevel(), playerData.maxDifficultyAchieved);
+    }
+
+    public int GetHighestUnlockedDifficulty()
+    {
+        if (playerData == null)
+            return GetMinDifficultyLevel();
+
+        if (difficultyProgression)
+            return Mathf.Max(GetMinDifficultyLevel(), difficultyProgression.GetHighestUnlocked(playerData));
+
+        return Mathf.Max(GetMinDifficultyLevel(), playerData.maxDifficultyAchieved);
+    }
+
+    public bool CanSelectDifficulty(int level)
+    {
+        level = Mathf.Clamp(level, GetMinDifficultyLevel(), GetMaxConfiguredDifficultyLevel());
+        return IsDifficultyUnlocked(level);
+    }
+
+    public int ClampDifficultyToUnlocked(int desired)
+    {
+        int min = GetMinDifficultyLevel();
+        int max = GetMaxConfiguredDifficultyLevel();
+        desired = Mathf.Clamp(desired, min, max);
+
+        while (desired > min && !IsDifficultyUnlocked(desired))
+            desired--;
+
+        return Mathf.Max(desired, min);
+    }
+
+    private void RefreshDifficultyProgressFromData(bool clampSelection = true)
+    {
+        if (playerData == null) return;
+
+        int highestUnlocked = Mathf.Max(GetMinDifficultyLevel(), GetHighestUnlockedDifficulty());
+        if (highestUnlocked > playerData.maxDifficultyAchieved)
+            playerData.maxDifficultyAchieved = highestUnlocked;
+        else if (playerData.maxDifficultyAchieved < GetMinDifficultyLevel())
+            playerData.maxDifficultyAchieved = GetMinDifficultyLevel();
+
+        if (clampSelection)
+        {
+            int desired = difficultySelected > 0 ? difficultySelected : playerData.maxDifficultyAchieved;
+            difficultySelected = ClampDifficultyToUnlocked(desired);
+        }
     }
 
     // ---------------- SKILL API (Persistent / Meta) ----------------
@@ -216,12 +314,12 @@ public class PlayerManager : MonoBehaviour
     // ===== Currency =====
     public float GetCores() => Wallet?.Get(CurrencyType.Cores) ?? 0f;
     public float GetPrisms() => Wallet?.Get(CurrencyType.Prisms) ?? 0f;
-    public float GetLoops()  => Wallet?.Get(CurrencyType.Loops)  ?? 0f;
+    public float GetLoops() => Wallet?.Get(CurrencyType.Loops) ?? 0f;
 
     public bool TrySpend(CurrencyType type, float amount) =>
         amount <= 0f || (Wallet != null && Wallet.TrySpend(type, amount));
 
-    public void AddCurrency(float fragments=0, float cores=0, float prisms=0, float loops=0)
+    public void AddCurrency(float fragments = 0, float cores = 0, float prisms = 0, float loops = 0)
     {
         Wallet?.Add(CurrencyType.Fragments, fragments);
         Wallet?.Add(CurrencyType.Cores, cores);
@@ -294,45 +392,79 @@ public class PlayerManager : MonoBehaviour
     }
 
     // ---------------- DIFFICULTY ----------------
-    public int GetMaxDifficulty() => playerData.maxDifficultyAchieved;
-    public void SetDifficulty(int d) => difficultySelected = d;
-    public int GetDifficulty() => difficultySelected;
+    public int GetMaxDifficulty() => Mathf.Max(GetMinDifficultyLevel(), playerData?.maxDifficultyAchieved ?? GetMinDifficultyLevel());
+
+    public void SetDifficulty(int d)
+    {
+        difficultySelected = ClampDifficultyToUnlocked(d);
+    }
+
+    public int GetDifficulty() => Mathf.Max(GetMinDifficultyLevel(), difficultySelected);
 
     // Return highest difficulty achieved (fixed signature)
-    public int GetHighestDifficulty() => playerData.maxDifficultyAchieved;
+    public int GetHighestDifficulty() => GetMaxDifficulty();
 
     // Compatibility alias: some code expects this name
-    public int GetMaxDifficultyAchieved() => playerData.maxDifficultyAchieved;
+    public int GetMaxDifficultyAchieved() => GetMaxDifficulty();
 
 
     public void IncreaseMaxDifficulty()
     {
-        playerData.maxDifficultyAchieved++;
-        SavePlayerData();
+        SetMaxDifficultyAchieved(playerData.maxDifficultyAchieved + 1);
     }
 
     public void SetMaxDifficultyAchieved(int d)
     {
-        if (d > playerData.maxDifficultyAchieved)
+        if (playerData == null) return;
+        int clamped = Mathf.Clamp(d, GetMinDifficultyLevel(), GetMaxConfiguredDifficultyLevel());
+        if (!IsDifficultyUnlocked(clamped))
         {
-            playerData.maxDifficultyAchieved = d;
+            RefreshDifficultyProgressFromData(false);
+            return;
+        }
+
+        if (clamped > playerData.maxDifficultyAchieved)
+        {
+            playerData.maxDifficultyAchieved = clamped;
             SavePlayerData();
         }
     }
 
-    public void SetMaxWaveAchieved(int difficulty, int wave)
+    public bool SetMaxWaveAchieved(int difficulty, int wave, bool autoSave = true)
     {
-        if (difficulty < 0) return;
-        if (difficulty >= playerData.difficultyMaxWaveAchieved.Length) return;
-        if (wave > playerData.difficultyMaxWaveAchieved[difficulty])
+        if (playerData == null) return false;
+        if (difficulty < GetMinDifficultyLevel()) return false;
+
+        EnsureDifficultyArrayCapacity();
+
+        int index = Mathf.Clamp(difficulty - 1, 0, playerData.difficultyMaxWaveAchieved.Length - 1);
+        bool changed = false;
+
+        if (wave > playerData.difficultyMaxWaveAchieved[index])
         {
-            playerData.difficultyMaxWaveAchieved[difficulty] = wave;
-            SavePlayerData();
+            playerData.difficultyMaxWaveAchieved[index] = wave;
+            changed = true;
         }
+
+        int before = playerData.maxDifficultyAchieved;
+        RefreshDifficultyProgressFromData(false);
+        if (playerData.maxDifficultyAchieved > before)
+            changed = true;
+
+        if (changed && autoSave)
+            SavePlayerData();
+
+        return changed;
     }
 
-    public int GetHighestWave(int difficulty) =>
-        playerData.difficultyMaxWaveAchieved[difficulty];
+    public int GetHighestWave(int difficulty)
+    {
+        if (playerData?.difficultyMaxWaveAchieved == null || playerData.difficultyMaxWaveAchieved.Length == 0)
+            return 0;
+
+        int index = Mathf.Clamp(difficulty - 1, 0, playerData.difficultyMaxWaveAchieved.Length - 1);
+        return playerData.difficultyMaxWaveAchieved[index];
+    }
 
 
     public bool UpdateUsername(string newUsername)
@@ -362,7 +494,8 @@ public class PlayerManager : MonoBehaviour
         var entry = playerData.enemyKills.Find(k => k.definitionId == e.definitionId);
         if (entry == null)
         {
-            playerData.enemyKills.Add(new EnemyKillEntry {
+            playerData.enemyKills.Add(new EnemyKillEntry
+            {
                 definitionId = e.definitionId,
                 tier = e.tier,
                 family = e.family,
@@ -379,15 +512,16 @@ public class PlayerManager : MonoBehaviour
         if (eventData is RoundRecord rr)
         {
             playerData.RoundHistory.Add(rr);
-            
+
             // Accumulate lifetime stats
+            playerData.lifetimeShotsFired += rr.bulletsFired;
             playerData.lifetimeTotalDamage += rr.totalDamageDealt;
             playerData.lifetimeCriticalHits += rr.criticalHits;
-            
+
             // Accumulate projectile stats
             if (playerData.lifetimeProjectileStats == null)
                 playerData.lifetimeProjectileStats = new List<ProjectileUsageSummary>();
-                
+
             if (rr.projectileUsage != null)
             {
                 foreach (var usage in rr.projectileUsage)
@@ -417,11 +551,11 @@ public class PlayerManager : MonoBehaviour
                     }
                 }
             }
-            
+
             // Accumulate turret stats
             if (playerData.lifetimeTurretStats == null)
                 playerData.lifetimeTurretStats = new List<TurretUsageSummary>();
-                
+
             if (rr.turretUsage != null)
             {
                 foreach (var usage in rr.turretUsage)
@@ -449,7 +583,7 @@ public class PlayerManager : MonoBehaviour
                     }
                 }
             }
-            
+
             SavePlayerData();
         }
     }
@@ -477,8 +611,53 @@ public class PlayerManager : MonoBehaviour
 
     private void OnWaveCompleted(object eventData)
     {
+        if (playerData == null) return;
+
+        int difficulty = GetDifficulty();
+        int waveNumber = 0;
+
+        switch (eventData)
+        {
+            case WaveCompletedEvent wce:
+                waveNumber = Mathf.Max(0, wce.waveNumber);
+                if (wce.difficulty > 0)
+                    difficulty = Mathf.Max(GetMinDifficultyLevel(), wce.difficulty);
+                break;
+            case int i:
+                waveNumber = Mathf.Max(0, i);
+                break;
+            case float f:
+                waveNumber = Mathf.Max(0, Mathf.RoundToInt(f));
+                break;
+            case double d:
+                waveNumber = Mathf.Max(0, (int)System.Math.Round(d));
+                break;
+        }
+
+        int previousMaxDifficulty = playerData.maxDifficultyAchieved;
+
+        if (waveNumber > 0)
+        {
+            SetMaxWaveAchieved(difficulty, waveNumber, false);
+        }
+
         playerData.totalWavesCompleted++;
         SavePlayerData();
+
+        if (playerData.maxDifficultyAchieved > previousMaxDifficulty)
+        {
+            int newMax = playerData.maxDifficultyAchieved;
+            var payload = new DifficultyAchievedEvent
+            {
+                difficultyLevel = newMax,
+                previousMaxDifficulty = previousMaxDifficulty,
+                triggeredDifficulty = difficulty,
+                waveNumber = waveNumber,
+                highestWaveAtNewDifficulty = GetHighestWave(newMax)
+            };
+
+            EventManager.TriggerEvent(EventNames.DifficultyAchieved, payload);
+        }
     }
 
     public void OnRoundStarted()
@@ -549,7 +728,7 @@ public class PlayerManager : MonoBehaviour
         SavePlayerData();
         Debug.Log($"SetSelectedTurretForSlot({index}) = {id}");
     }
-    
+
     // --- Projectile Management API ---
     public bool IsProjectileUnlocked(string projectileId)
     {
@@ -580,7 +759,7 @@ public class PlayerManager : MonoBehaviour
     public string GetSelectedProjectileForSlot(int slotIndex)
     {
         if (playerData == null || playerData.selectedProjectilesBySlot == null) return string.Empty;
-        
+
         var assignment = playerData.selectedProjectilesBySlot.Find(x => x.slotIndex == slotIndex);
         return assignment?.projectileId ?? string.Empty;
     }
@@ -588,7 +767,7 @@ public class PlayerManager : MonoBehaviour
     public void SetSelectedProjectileForSlot(int slotIndex, string projectileId)
     {
         if (playerData == null) return;
-        if (playerData.selectedProjectilesBySlot == null) 
+        if (playerData.selectedProjectilesBySlot == null)
             playerData.selectedProjectilesBySlot = new List<ProjectileSlotAssignment>();
 
         // Validate projectile is unlocked
@@ -604,7 +783,7 @@ public class PlayerManager : MonoBehaviour
         {
             var turretDef = TurretDefinitionManager.Instance?.GetById(turretId);
             var projDef = ProjectileDefinitionManager.Instance?.GetById(projectileId);
-            
+
             if (turretDef != null && projDef != null)
             {
                 if (!turretDef.AcceptsProjectileType(projDef.projectileType))
@@ -623,45 +802,45 @@ public class PlayerManager : MonoBehaviour
         }
         else
         {
-            playerData.selectedProjectilesBySlot.Add(new ProjectileSlotAssignment 
-            { 
-                slotIndex = slotIndex, 
-                projectileId = projectileId ?? string.Empty 
+            playerData.selectedProjectilesBySlot.Add(new ProjectileSlotAssignment
+            {
+                slotIndex = slotIndex,
+                projectileId = projectileId ?? string.Empty
             });
         }
-        
+
         SavePlayerData();
         Debug.Log($"SetSelectedProjectileForSlot({slotIndex}) = {projectileId}");
     }
-    
+
     // --- Projectile Upgrade Management API ---
     public int GetProjectileUpgradeLevel(string projectileId)
     {
         if (string.IsNullOrEmpty(projectileId) || playerData == null) return 0;
         if (playerData.projectileUpgradeLevels == null) return 0;
-        
+
         var upgrade = playerData.projectileUpgradeLevels.Find(x => x.projectileId == projectileId);
         return upgrade?.level ?? 0;
     }
-    
+
     public bool CanUpgradeProjectile(string projectileId, out string reason, out int cost)
     {
         reason = "";
         cost = 0;
-        
+
         if (string.IsNullOrEmpty(projectileId) || playerData == null)
         {
             reason = "Invalid projectile";
             return false;
         }
-        
+
         // Check if projectile is unlocked
         if (!IsProjectileUnlocked(projectileId))
         {
             reason = "Projectile not unlocked";
             return false;
         }
-        
+
         // Get projectile definition
         var projDef = ProjectileDefinitionManager.Instance?.GetById(projectileId);
         if (projDef == null)
@@ -669,7 +848,7 @@ public class PlayerManager : MonoBehaviour
             reason = "Projectile definition not found";
             return false;
         }
-        
+
         // Check current level
         int currentLevel = GetProjectileUpgradeLevel(projectileId);
         if (currentLevel >= projDef.maxUpgradeLevel)
@@ -677,39 +856,39 @@ public class PlayerManager : MonoBehaviour
             reason = "Max level reached";
             return false;
         }
-        
+
         // Calculate cost
         cost = projDef.GetUpgradeCost(currentLevel);
-        
+
         // Check if player can afford
         if (playerData.prisms < cost)
         {
             reason = $"Need {cost} Prisms";
             return false;
         }
-        
+
         reason = "Available";
         return true;
     }
-    
+
     public bool TryUpgradeProjectile(string projectileId, out string failReason)
     {
         failReason = "";
-        
+
         if (!CanUpgradeProjectile(projectileId, out failReason, out int cost))
             return false;
-        
+
         // Spend currency
         if (!TrySpend(CurrencyType.Prisms, cost))
         {
             failReason = "Failed to spend currency";
             return false;
         }
-        
+
         // Initialize list if needed
         if (playerData.projectileUpgradeLevels == null)
             playerData.projectileUpgradeLevels = new List<ProjectileUpgradeLevel>();
-        
+
         // Find or create upgrade entry
         var upgrade = playerData.projectileUpgradeLevels.Find(x => x.projectileId == projectileId);
         if (upgrade != null)
@@ -724,9 +903,21 @@ public class PlayerManager : MonoBehaviour
                 level = 1
             });
         }
-        
+
         SavePlayerData();
         Debug.Log($"Upgraded projectile {projectileId} to level {GetProjectileUpgradeLevel(projectileId)}");
         return true;
     }
+    
+    public float CalculateTotalShotsFired()
+    {
+        if (playerData == null || playerData.lifetimeTurretStats == null) return 0f;
+        float total = 0f;
+        foreach (var turret in playerData.lifetimeTurretStats)
+        {
+            total += turret.shotsFired;
+        }
+        return total;
+    }
+
 }

@@ -68,6 +68,9 @@ public class LoadoutScreen : MonoBehaviour
 
     private void OnEnable()
     {
+        playerManager = PlayerManager.main;
+        skillService = SkillService.Instance;
+        
         SetTowerBaseImage();
         UpdateSlotButtons();
     }
@@ -504,7 +507,7 @@ public class LoadoutScreen : MonoBehaviour
         var transform = button.transform;
         return new ProjectileSlotUIElements
         {
-            nameText = transform.Find("Info/ProjectileName")?.GetComponent<TextMeshProUGUI>(),
+            nameText = transform.Find("ProjectileName")?.GetComponent<TextMeshProUGUI>(),
             descriptionText = transform.Find("Info/ProjectileDescription")?.GetComponent<TextMeshProUGUI>(),
             previewImage = transform.Find("Image")?.GetComponent<Image>(),
             lockedPanel = transform.Find("LockedPanel")?.gameObject,

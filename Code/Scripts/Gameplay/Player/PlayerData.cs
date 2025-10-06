@@ -90,6 +90,7 @@ public class PlayerData
     [Header("Projectile & Turret Lifetime Stats")]
     public List<ProjectileUsageSummary> lifetimeProjectileStats = new List<ProjectileUsageSummary>();
     public List<TurretUsageSummary> lifetimeTurretStats = new List<TurretUsageSummary>();
+    public float lifetimeShotsFired;
     public float lifetimeTotalDamage;
     public int lifetimeCriticalHits;
 

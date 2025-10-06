@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: BasicBossLeader
   m_EditorClassIdentifier: 
   id: Basic_Boss_Leader
+  displayName: Basic Boss Leader
+  description: A basic enemy.
   tier: 3
   family: Boss
   traits: 0

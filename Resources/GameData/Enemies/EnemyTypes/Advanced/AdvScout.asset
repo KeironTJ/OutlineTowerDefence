@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: AdvScout
   m_EditorClassIdentifier: 
   id: Adv_Scout
+  displayName: Advanced Scout
+  description: A basic enemy.
   tier: 1
   family: Scout
   traits: 1

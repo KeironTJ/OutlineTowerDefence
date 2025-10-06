@@ -22,6 +22,9 @@ public static class EventNames
     public const string NewWaveStarted = "NewWaveStarted";
     public const string WaveCompleted = "WaveCompleted";
 
+    // Difficulty Events
+    public const string DifficultyAchieved = "DifficultyAchieved";
+
     // Enemy Events
     public const string EnemySpawned = "EnemySpawned";
     public const string EnemyDestroyed = "EnemyDestroyed";

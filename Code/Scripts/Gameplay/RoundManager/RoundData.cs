@@ -29,7 +29,7 @@ public class RoundRecord
     
     // Projectile stats
     public List<ProjectileUsageSummary> projectileUsage = new List<ProjectileUsageSummary>();
-    
+
     // Damage stats
     public float totalDamageDealt;
     public int criticalHits;

@@ -1,0 +1,149 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40cfce9b3120f1847bbcd2de0296d33a, type: 3}
+  m_Name: ACH_DIFFICULTY_MASTER
+  m_EditorClassIdentifier: 
+  id: ACH_DIFFICULTY_MASTER
+  displayName: Difficulty Master
+  description: Reward players for pushing into higher difficulty levels.
+  category: 1
+  type: 4
+  tiers:
+  - tierLevel: 0
+    targetAmount: 2
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 50
+      currencyType: 0
+    - rewardType: 0
+      rewardId: 
+      amount: 1
+      currencyType: 2
+    tierName: Difficulty 2
+    tierDescription: Reach difficulty level 2.
+  - tierLevel: 1
+    targetAmount: 3
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 150
+      currencyType: 0
+    - rewardType: 0
+      rewardId: 
+      amount: 2
+      currencyType: 2
+    tierName: Difficulty 3
+    tierDescription: Reach difficulty level 3.
+  - tierLevel: 2
+    targetAmount: 4
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 250
+      currencyType: 0
+    - rewardType: 0
+      rewardId: 
+      amount: 3
+      currencyType: 2
+    tierName: Difficulty 4
+    tierDescription: Reach difficulty level 4.
+  - tierLevel: 3
+    targetAmount: 5
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 350
+      currencyType: 0
+    - rewardType: 0
+      rewardId: 
+      amount: 4
+      currencyType: 2
+    tierName: Difficulty 5
+    tierDescription: Reach difficulty level 5.
+  - tierLevel: 4
+    targetAmount: 6
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 450
+      currencyType: 0
+    - rewardType: 0
+      rewardId: 
+      amount: 5
+      currencyType: 2
+    tierName: Difficulty 6
+    tierDescription: Reach difficulty level 6.
+  - tierLevel: 5
+    targetAmount: 7
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 550
+      currencyType: 0
+    - rewardType: 0
+      rewardId: 
+      amount: 6
+      currencyType: 2
+    tierName: Difficulty 7
+    tierDescription: Reach difficulty level 7.
+  - tierLevel: 6
+    targetAmount: 8
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 650
+      currencyType: 0
+    - rewardType: 0
+      rewardId: 
+      amount: 7
+      currencyType: 2
+    tierName: Difficulty 8
+    tierDescription: Reach difficulty level 8.
+  - tierLevel: 7
+    targetAmount: 9
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 750
+      currencyType: 0
+    - rewardType: 0
+      rewardId: 
+      amount: 8
+      currencyType: 2
+    tierName: Difficulty 9
+    tierDescription: Reach difficulty level 9.
+  - tierLevel: 8
+    targetAmount: 10
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 850
+      currencyType: 0
+    - rewardType: 0
+      rewardId: 
+      amount: 9
+      currencyType: 2
+    tierName: Difficulty 10
+    tierDescription: Reach difficulty level 10.
+  targetDefinitionId: 
+  useTierFilter: 0
+  targetEnemyTier: 0
+  useFamilyFilter: 0
+  targetFamily: 
+  useTraitFilter: 0
+  targetTraits: 0
+  currencyType: 1
+  targetProjectileId: 
+  targetProjectileTrait: 0
+  icon: {fileID: 0}
+  isHidden: 0

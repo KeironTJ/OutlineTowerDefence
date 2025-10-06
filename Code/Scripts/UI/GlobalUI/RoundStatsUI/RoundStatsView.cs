@@ -47,7 +47,8 @@ public class RoundStatsView : MonoBehaviour
 
     private void OnEnable()
     {
-        if (liveMode) {
+        if (liveMode)
+        {
             Subscribe();
             if (boundRoundManager != null)
                 Populate(boundRoundManager.GetLiveRoundRecord());
@@ -98,50 +99,58 @@ public class RoundStatsView : MonoBehaviour
         AddStatRow("Duration", FormatDuration(record.durationSeconds));
         AddStatRow("Difficulty", record.difficulty.ToString());
         AddStatRow("Highest Wave", record.highestWave.ToString());
-        
-        // Tower Base
-        if (!string.IsNullOrEmpty(record.towerBaseId))
-            AddStatRow("Tower Base", record.towerBaseId);
-        
-        // Combat stats
-        AddHeaderRow("Combat Stats");
-        AddStatRow("Bullets Fired", NumberManager.FormatLargeNumber(record.bulletsFired, true));
-        AddStatRow("Total Damage", NumberManager.FormatLargeNumber(record.totalDamageDealt));
-        AddStatRow("Critical Hits", NumberManager.FormatLargeNumber(record.criticalHits, true));
 
-        // Projectile usage
-        if (record.projectileUsage != null && record.projectileUsage.Count > 0)
-        {
-            AddHeaderRow("Projectile Usage");
-            foreach (var proj in record.projectileUsage.OrderByDescending(p => p.shotsFired))
-            {
-                string projName = proj.projectileId;
-                AddStatRow($"{projName} Shots", NumberManager.FormatLargeNumber(proj.shotsFired, true));
-                AddStatRow($"{projName} Damage", NumberManager.FormatLargeNumber(proj.damageDealt));
-            }
-        }
-        
-        // Turret usage
-        if (record.turretUsage != null && record.turretUsage.Count > 0)
-        {
-            AddHeaderRow("Turret Usage");
-            foreach (var turret in record.turretUsage.OrderByDescending(t => t.shotsFired))
-            {
-                AddStatRow(turret.turretId, NumberManager.FormatLargeNumber(turret.shotsFired, true));
-            }
-        }
+
 
         // Currency section
         AddHeaderRow("Currency Earned");
         foreach (var c in record.currencyEarned.OrderBy(c => c.type))
             AddStatRow(c.type.ToString(), NumberManager.FormatLargeNumber(c.amount));
 
+        // Combat stats
+        AddHeaderRow("Combat Stats");
+        AddStatRow("Projectiles Fired", NumberManager.FormatLargeNumber(record.bulletsFired, true));
+        AddStatRow("Total Damage", NumberManager.FormatLargeNumber(record.totalDamageDealt));
+        AddStatRow("Critical Hits", NumberManager.FormatLargeNumber(record.criticalHits, true));
+
+        // Tower Base
+        AddHeaderRow("Tower Base");
+        if (!string.IsNullOrEmpty(record.towerBaseId))
+        {
+            string towerbaseName = DefinitionDisplayNameUtility.GetTowerBaseName(record.towerBaseId);
+            AddStatRow(towerbaseName, "");
+        }
+
+        // Turret usage
+        if (record.turretUsage != null && record.turretUsage.Count > 0)
+        {
+            AddHeaderRow("Turrets");
+            foreach (var turret in record.turretUsage.OrderByDescending(t => t.shotsFired))
+            {
+                string turretName = DefinitionDisplayNameUtility.GetTurretName(turret.turretId);
+                AddStatRow(turretName, NumberManager.FormatLargeNumber(turret.shotsFired, true));
+            }
+        }
+
+        // Projectile usage
+        if (record.projectileUsage != null && record.projectileUsage.Count > 0)
+        {
+            AddHeaderRow("Projectiles");
+            foreach (var proj in record.projectileUsage.OrderByDescending(p => p.shotsFired))
+            {
+                string projName = DefinitionDisplayNameUtility.GetProjectileName(proj.projectileId);
+                AddStatRow($"{projName} Shots", NumberManager.FormatLargeNumber(proj.shotsFired, true));
+                AddStatRow($"{projName} Damage", NumberManager.FormatLargeNumber(proj.damageDealt));
+            }
+        }
+
+
         // Enemy breakdown section
         AddHeaderRow("Enemies Destroyed", NumberManager.FormatLargeNumber(record.enemiesKilled, true));
 
         var kills = record.enemyKills != null
-            ? record.enemyKills.ConvertAll(k => new EnemyKillEntry { definitionId = k.definitionId, tier = k.tier, count = k.count })
-            : new List<EnemyKillEntry>();
+            ? new List<EnemyKillSummary>(record.enemyKills)
+            : new List<EnemyKillSummary>();
 
         if (record.enemiesKilled == 0)
         {
@@ -161,7 +170,8 @@ public class RoundStatsView : MonoBehaviour
                             .OrderByDescending(e => e.count)
                             .ThenBy(e => e.definitionId))
             {
-                AddStatRow(entry.definitionId,
+                string enemyName = DefinitionDisplayNameUtility.GetEnemyName(entry.definitionId);
+                AddStatRow(enemyName,
                     NumberManager.FormatLargeNumber(entry.count, true));
             }
         }

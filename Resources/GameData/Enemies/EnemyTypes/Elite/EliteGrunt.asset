@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: EliteGrunt
   m_EditorClassIdentifier: 
   id: Elite_Grunt
+  displayName: Elite Grunt
+  description: A basic enemy.
   tier: 2
   family: Grunt
   traits: 0

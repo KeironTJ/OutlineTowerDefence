@@ -100,7 +100,12 @@ public class WaveManager : MonoBehaviour
             }
 
             if (isWaveActive)
-                EventManager.TriggerEvent(EventNames.WaveCompleted, currentWave);
+            {
+                var playerManager = PlayerManager.main;
+                int difficulty = playerManager ? playerManager.GetDifficulty() : 1;
+
+                EventManager.TriggerEvent(EventNames.WaveCompleted, new WaveCompletedEvent(currentWave, difficulty));
+            }
 
             isWaveActive = false;
             if (tower == null) yield break;
