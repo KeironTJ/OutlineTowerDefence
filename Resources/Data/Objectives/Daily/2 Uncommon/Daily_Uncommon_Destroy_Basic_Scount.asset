@@ -10,26 +10,26 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b587523b96e89a4f94ee01d37383eed, type: 3}
-  m_Name: CompleteRoundCommon
+  m_Name: Daily_Uncommon_Destroy_Basic_Scount
   m_EditorClassIdentifier: 
-  id: 1100
-  displayName: Complete Rounds
+  id: D_UC_DBASICS
+  displayName: Destroy Basic Scouts
   period: 0
-  type: 1
-  rarity: 0
-  targetAmount: 1
-  anyEnemy: 1
-  targetDefinitionId: 
-  useTierFilter: 0
+  type: 0
+  rarity: 1
+  targetAmount: 250
+  anyEnemy: 0
+  targetDefinitionId: Basic_Scout
+  useTierFilter: 1
   targetTier: 0
-  useFamilyFilter: 0
-  targetFamily: 
+  useFamilyFilter: 1
+  targetFamily: Scout
   useTraitFilter: 0
   targetTraits: 0
   currencyType: 1
   skillId: 
   rewardType: 1
-  rewardAmount: 50
+  rewardAmount: 75
   manualClaim: 1
-  description: 'Complete 1 round. '
+  description: Destroy 250 Basic Scouts
   debugMatch: 0

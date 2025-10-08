@@ -10,26 +10,26 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b587523b96e89a4f94ee01d37383eed, type: 3}
-  m_Name: CompleteWavesCommon
+  m_Name: Daily_Rare_Destroy_Adv_Scout
   m_EditorClassIdentifier: 
-  id: 1200
-  displayName: Complete Waves
+  id: D_R_DADVS
+  displayName: Destroy Advanced Scouts
   period: 0
-  type: 2
-  rarity: 0
-  targetAmount: 50
-  anyEnemy: 1
-  targetDefinitionId: 
-  useTierFilter: 0
-  targetTier: 0
-  useFamilyFilter: 0
-  targetFamily: 
+  type: 0
+  rarity: 1
+  targetAmount: 100
+  anyEnemy: 0
+  targetDefinitionId: Basic_Scout
+  useTierFilter: 1
+  targetTier: 1
+  useFamilyFilter: 1
+  targetFamily: Scout
   useTraitFilter: 0
   targetTraits: 0
   currencyType: 1
   skillId: 
   rewardType: 1
-  rewardAmount: 50
+  rewardAmount: 250
   manualClaim: 1
-  description: Complete 50 waves.
+  description: Destroy 100 Advanced Scouts
   debugMatch: 0

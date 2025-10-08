@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b587523b96e89a4f94ee01d37383eed, type: 3}
-  m_Name: EarnCoresUncommon
+  m_Name: Daily_Common_Complete_Waves
   m_EditorClassIdentifier: 
-  id: 1051
-  displayName: Earn Cores
+  id: D_C_CW
+  displayName: Complete Waves
   period: 0
-  type: 5
-  rarity: 1
-  targetAmount: 250
+  type: 2
+  rarity: 0
+  targetAmount: 50
   anyEnemy: 1
   targetDefinitionId: 
   useTierFilter: 0
@@ -29,7 +29,7 @@ MonoBehaviour:
   currencyType: 1
   skillId: 
   rewardType: 1
-  rewardAmount: 75
+  rewardAmount: 50
   manualClaim: 1
-  description: 'Earn 250 Cores from killing enemies. '
+  description: Complete 50 waves.
   debugMatch: 0

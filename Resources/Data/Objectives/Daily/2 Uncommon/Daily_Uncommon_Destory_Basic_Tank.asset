@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b587523b96e89a4f94ee01d37383eed, type: 3}
-  m_Name: KillBasicTankEnemyUncommon
+  m_Name: Daily_Uncommon_Destory_Basic_Tank
   m_EditorClassIdentifier: 
-  id: 1003
+  id: D_UC_DBASICT
   displayName: Destroy Basic Tanks
   period: 0
   type: 0
   rarity: 1
-  targetAmount: 100
+  targetAmount: 50
   anyEnemy: 0
   targetDefinitionId: Basic_Tank
   useTierFilter: 1
@@ -31,5 +31,5 @@ MonoBehaviour:
   rewardType: 1
   rewardAmount: 75
   manualClaim: 1
-  description: Kill 100 Basic Tanks..
+  description: Kill 50 Basic Tanks..
   debugMatch: 0

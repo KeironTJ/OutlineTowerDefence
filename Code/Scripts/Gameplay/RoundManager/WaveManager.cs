@@ -272,6 +272,23 @@ public class WaveManager : MonoBehaviour
         if (enemyCmp) enemyCmp.SetDefinitionId(def.id);
     }
 
+    public WaveContext GetCurrentWaveContext()
+    {
+        int wave = Mathf.Max(1, currentWave);
+        var context = new WaveContext
+        {
+            wave = wave,
+            healthMult = roundType ? roundType.healthCurve.Evaluate(wave) : 1f,
+            speedMult = roundType ? roundType.speedCurve.Evaluate(wave) : 1f,
+            damageMult = roundType ? roundType.damageCurve.Evaluate(wave) : 1f,
+            rewardMult = roundType ? roundType.rewardCurve.Evaluate(wave) : 1f,
+            eliteChance = roundType ? roundType.eliteChanceCurve.Evaluate(wave) : 0f,
+            rng = new System.Random(baseSeed + wave)
+        };
+
+        return context;
+    }
+
     public void EndAllWaves()
     {
         isWaveActive = false;

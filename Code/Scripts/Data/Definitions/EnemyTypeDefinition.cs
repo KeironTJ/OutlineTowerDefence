@@ -68,6 +68,10 @@ public class EnemyTypeDefinition : ScriptableObject
         int lo = ScaleReward(baseLoops, mult);
 
         runtime.SetRewards(fr, co, pr, lo);
+
+        // ---- Definition Metadata ----
+        runtime.SetDefinitionId(id);
+        runtime.CacheDefinitionMeta(tier, family, traits);
     }
 
     private int ScaleReward(int baseValue, float mult)

@@ -18,8 +18,8 @@ MonoBehaviour:
   tier: 2
   family: Tank
   traits: 2
-  unlockWave: 350
-  replaceFamilyFromWave: 0
+  unlockWave: 600
+  replaceFamilyFromWave: 850
   weightByWave:
     serializedVersion: 2
     m_Curve:

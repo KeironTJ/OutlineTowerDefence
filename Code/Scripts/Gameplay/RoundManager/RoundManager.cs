@@ -399,6 +399,8 @@ public class RoundManager : MonoBehaviour
         return dict;
     }
 
+    public IReadOnlyDictionary<string, int> GetEnemyKillsByDefinition() => enemyKillsByDefinition;
+
     // PLAYER MANAGEMENT
     private void SetHighestWaves()
     {

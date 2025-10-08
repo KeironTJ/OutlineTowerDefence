@@ -18,8 +18,8 @@ MonoBehaviour:
   tier: 1
   family: Scout
   traits: 1
-  unlockWave: 75
-  replaceFamilyFromWave: 0
+  unlockWave: 125
+  replaceFamilyFromWave: 275
   weightByWave:
     serializedVersion: 2
     m_Curve:

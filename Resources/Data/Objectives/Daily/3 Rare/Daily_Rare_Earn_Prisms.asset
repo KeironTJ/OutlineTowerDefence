@@ -10,26 +10,26 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b587523b96e89a4f94ee01d37383eed, type: 3}
-  m_Name: KillBasicGruntUncommon
+  m_Name: Daily_Rare_Earn_Prisms
   m_EditorClassIdentifier: 
-  id: 1001
-  displayName: Destroy Basic Grunts
+  id: D_R_EP
+  displayName: Earn Prisms
   period: 0
-  type: 0
+  type: 5
   rarity: 1
-  targetAmount: 1000
-  anyEnemy: 0
-  targetDefinitionId: Basic_Grunt
-  useTierFilter: 1
+  targetAmount: 10
+  anyEnemy: 1
+  targetDefinitionId: 
+  useTierFilter: 0
   targetTier: 0
   useFamilyFilter: 0
-  targetFamily: Grunt
+  targetFamily: 
   useTraitFilter: 0
   targetTraits: 0
-  currencyType: 1
+  currencyType: 2
   skillId: 
   rewardType: 1
-  rewardAmount: 75
+  rewardAmount: 250
   manualClaim: 1
-  description: Kill 1000 Basic Grunts.
+  description: Earn 10 Prisms from Destroying Enemies.
   debugMatch: 0

@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b587523b96e89a4f94ee01d37383eed, type: 3}
-  m_Name: KillBasicEnemiesCommon
+  m_Name: Daily_Common_Destroy_Basic
   m_EditorClassIdentifier: 
-  id: 1500
-  displayName: Kill Basic Enemies
+  id: D_C_DBASIC
+  displayName: Destroy Basic Enemies
   period: 0
   type: 0
   rarity: 0
-  targetAmount: 500
+  targetAmount: 250
   anyEnemy: 0
   targetDefinitionId: 
   useTierFilter: 1
@@ -31,5 +31,5 @@ MonoBehaviour:
   rewardType: 1
   rewardAmount: 50
   manualClaim: 1
-  description: Destory 500 Basic Enemies.
-  debugMatch: 1
+  description: Destory 250 Basic Enemies.
+  debugMatch: 0

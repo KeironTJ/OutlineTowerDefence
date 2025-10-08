@@ -10,26 +10,26 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b587523b96e89a4f94ee01d37383eed, type: 3}
-  m_Name: KillBossEnemiesCommon
+  m_Name: Daily_Rare_Destroy_Adv_Grunt
   m_EditorClassIdentifier: 
-  id: 1501
-  displayName: Kill Boss Enemies
+  id: D_R_DADVG
+  displayName: Destroy Advanced Grunts
   period: 0
   type: 0
-  rarity: 0
-  targetAmount: 5
+  rarity: 1
+  targetAmount: 250
   anyEnemy: 0
-  targetDefinitionId: 
+  targetDefinitionId: Basic_Grunt
   useTierFilter: 1
-  targetTier: 3
-  useFamilyFilter: 0
-  targetFamily: 
+  targetTier: 1
+  useFamilyFilter: 1
+  targetFamily: Grunt
   useTraitFilter: 0
   targetTraits: 0
   currencyType: 1
   skillId: 
   rewardType: 1
-  rewardAmount: 50
+  rewardAmount: 250
   manualClaim: 1
-  description: Destroy 5 Bosses.
+  description: Destroy 250 Advanced Grunts.
   debugMatch: 0

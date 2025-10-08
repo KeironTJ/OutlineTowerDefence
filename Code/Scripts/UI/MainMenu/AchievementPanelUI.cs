@@ -320,7 +320,7 @@ public class AchievementPanelUI : MonoBehaviour
         var manager = AchievementManager.Instance;
         if (manager == null) return;
 
-        if (manager.ClaimAllPendingTiers(runtime) > 0)
+        if (manager.ClaimNextTier(runtime))
         {
             Refresh();
         }

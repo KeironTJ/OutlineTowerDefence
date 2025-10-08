@@ -18,8 +18,8 @@ MonoBehaviour:
   tier: 2
   family: Grunt
   traits: 0
-  unlockWave: 250
-  replaceFamilyFromWave: 0
+  unlockWave: 500
+  replaceFamilyFromWave: 750
   weightByWave:
     serializedVersion: 2
     m_Curve:
