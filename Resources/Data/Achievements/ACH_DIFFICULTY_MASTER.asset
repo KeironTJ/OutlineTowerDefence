@@ -20,11 +20,12 @@ MonoBehaviour:
   tiers:
   - tierLevel: 0
     targetAmount: 2
+    requiredDifficultyLevel: 0
     rewards:
     - rewardType: 0
       rewardId: 
       amount: 50
-      currencyType: 0
+      currencyType: 1
     - rewardType: 0
       rewardId: 
       amount: 1
@@ -33,11 +34,12 @@ MonoBehaviour:
     tierDescription: Reach difficulty level 2.
   - tierLevel: 1
     targetAmount: 3
+    requiredDifficultyLevel: 0
     rewards:
     - rewardType: 0
       rewardId: 
       amount: 150
-      currencyType: 0
+      currencyType: 1
     - rewardType: 0
       rewardId: 
       amount: 2
@@ -46,11 +48,12 @@ MonoBehaviour:
     tierDescription: Reach difficulty level 3.
   - tierLevel: 2
     targetAmount: 4
+    requiredDifficultyLevel: 0
     rewards:
     - rewardType: 0
       rewardId: 
       amount: 250
-      currencyType: 0
+      currencyType: 1
     - rewardType: 0
       rewardId: 
       amount: 3
@@ -59,11 +62,12 @@ MonoBehaviour:
     tierDescription: Reach difficulty level 4.
   - tierLevel: 3
     targetAmount: 5
+    requiredDifficultyLevel: 0
     rewards:
     - rewardType: 0
       rewardId: 
       amount: 350
-      currencyType: 0
+      currencyType: 1
     - rewardType: 0
       rewardId: 
       amount: 4
@@ -72,11 +76,12 @@ MonoBehaviour:
     tierDescription: Reach difficulty level 5.
   - tierLevel: 4
     targetAmount: 6
+    requiredDifficultyLevel: 0
     rewards:
     - rewardType: 0
       rewardId: 
       amount: 450
-      currencyType: 0
+      currencyType: 1
     - rewardType: 0
       rewardId: 
       amount: 5
@@ -85,11 +90,12 @@ MonoBehaviour:
     tierDescription: Reach difficulty level 6.
   - tierLevel: 5
     targetAmount: 7
+    requiredDifficultyLevel: 0
     rewards:
     - rewardType: 0
       rewardId: 
       amount: 550
-      currencyType: 0
+      currencyType: 1
     - rewardType: 0
       rewardId: 
       amount: 6
@@ -98,11 +104,12 @@ MonoBehaviour:
     tierDescription: Reach difficulty level 7.
   - tierLevel: 6
     targetAmount: 8
+    requiredDifficultyLevel: 0
     rewards:
     - rewardType: 0
       rewardId: 
       amount: 650
-      currencyType: 0
+      currencyType: 1
     - rewardType: 0
       rewardId: 
       amount: 7
@@ -111,11 +118,12 @@ MonoBehaviour:
     tierDescription: Reach difficulty level 8.
   - tierLevel: 7
     targetAmount: 9
+    requiredDifficultyLevel: 0
     rewards:
     - rewardType: 0
       rewardId: 
       amount: 750
-      currencyType: 0
+      currencyType: 1
     - rewardType: 0
       rewardId: 
       amount: 8
@@ -124,11 +132,12 @@ MonoBehaviour:
     tierDescription: Reach difficulty level 9.
   - tierLevel: 8
     targetAmount: 10
+    requiredDifficultyLevel: 0
     rewards:
     - rewardType: 0
       rewardId: 
       amount: 850
-      currencyType: 0
+      currencyType: 1
     - rewardType: 0
       rewardId: 
       amount: 9
