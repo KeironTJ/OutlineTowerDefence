@@ -125,10 +125,10 @@ public class WaveManager : MonoBehaviour
         currentWaveContext = new WaveContext
         {
             wave = currentWave,
-            healthMult = roundType.healthCurve.Evaluate(currentWave),
-            speedMult = roundType.speedCurve.Evaluate(currentWave),
-            damageMult = roundType.damageCurve.Evaluate(currentWave),
-            rewardMult = roundType.rewardCurve.Evaluate(currentWave),
+            healthMult = roundType.GetHealthMultiplier(currentWave),
+            speedMult = roundType.GetSpeedMultiplier(currentWave),
+            damageMult = roundType.GetDamageMultiplier(currentWave),
+            rewardMult = roundType.GetRewardMultiplier(currentWave),
             rng = new System.Random(baseSeed + currentWave),
             eliteChance = roundType.eliteChanceCurve.Evaluate(currentWave)
         };
@@ -278,10 +278,10 @@ public class WaveManager : MonoBehaviour
         var context = new WaveContext
         {
             wave = wave,
-            healthMult = roundType ? roundType.healthCurve.Evaluate(wave) : 1f,
-            speedMult = roundType ? roundType.speedCurve.Evaluate(wave) : 1f,
-            damageMult = roundType ? roundType.damageCurve.Evaluate(wave) : 1f,
-            rewardMult = roundType ? roundType.rewardCurve.Evaluate(wave) : 1f,
+            healthMult = roundType ? roundType.GetHealthMultiplier(wave) : 1f,
+            speedMult = roundType ? roundType.GetSpeedMultiplier(wave) : 1f,
+            damageMult = roundType ? roundType.GetDamageMultiplier(wave) : 1f,
+            rewardMult = roundType ? roundType.GetRewardMultiplier(wave) : 1f,
             eliteChance = roundType ? roundType.eliteChanceCurve.Evaluate(wave) : 0f,
             rng = new System.Random(baseSeed + wave)
         };

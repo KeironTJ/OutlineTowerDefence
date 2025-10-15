@@ -46,7 +46,7 @@ MonoBehaviour:
     m_RotationOrder: 4
   prefab: {fileID: 913476891759774307, guid: 8d3f9bb6cc850c146ba72c2f54056f0b, type: 3}
   budgetCost: 1
-  baseHealth: 1
+  baseHealth: 2
   baseSpeed: 1
   baseDamage: 1
   damageInterval: 1
