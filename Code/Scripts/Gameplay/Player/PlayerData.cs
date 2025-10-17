@@ -116,6 +116,11 @@ public class PlayerData
     [Header("Loadout")]
     public string selectedLoadoutId = "";
 
+    [Header("Chips System")]
+    public ChipSystemConfig chipConfig = new ChipSystemConfig();
+    public List<ChipProgressData> chipProgress = new List<ChipProgressData>();
+    public List<ChipSlotData> equippedChips = new List<ChipSlotData>();
+
     public PlayerData()
     {
         UUID = Guid.NewGuid().ToString();
@@ -130,5 +135,10 @@ public class PlayerData
         unlockedProjectileIds = new List<string> { "STD_BULLET" };
         selectedProjectilesBySlot = new List<ProjectileSlotAssignment>();
         projectileUpgradeLevels = new List<ProjectileUpgradeLevel>();
+        
+        // Initialize chip system
+        chipConfig = new ChipSystemConfig();
+        chipProgress = new List<ChipProgressData>();
+        equippedChips = new List<ChipSlotData>();
     }
 }

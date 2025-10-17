@@ -42,4 +42,11 @@ public static class EventNames
     // Achievement Events
     public const string AchievementTierCompleted = "AchievementTierCompleted";
 
+    // Chip Events
+    public const string ChipUnlocked = "ChipUnlocked";
+    public const string ChipUpgraded = "ChipUpgraded";
+    public const string ChipEquipped = "ChipEquipped";
+    public const string ChipUnequipped = "ChipUnequipped";
+    public const string ChipSlotUnlocked = "ChipSlotUnlocked";
+
 }

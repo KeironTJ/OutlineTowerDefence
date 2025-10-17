@@ -920,4 +920,34 @@ public class PlayerManager : MonoBehaviour
         return total;
     }
 
+    // --- Chip Management API ---
+    public ChipSystemConfig GetChipConfig()
+    {
+        if (playerData == null)
+        {
+            playerData = new PlayerData();
+        }
+        if (playerData.chipConfig == null)
+        {
+            playerData.chipConfig = new ChipSystemConfig();
+        }
+        return playerData.chipConfig;
+    }
+    
+    public List<ChipProgressData> GetChipProgress()
+    {
+        if (playerData == null) return null;
+        if (playerData.chipProgress == null)
+            playerData.chipProgress = new List<ChipProgressData>();
+        return playerData.chipProgress;
+    }
+    
+    public List<ChipSlotData> GetEquippedChips()
+    {
+        if (playerData == null) return null;
+        if (playerData.equippedChips == null)
+            playerData.equippedChips = new List<ChipSlotData>();
+        return playerData.equippedChips;
+    }
+
 }
