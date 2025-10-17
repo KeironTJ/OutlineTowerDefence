@@ -45,8 +45,8 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   prefab: {fileID: 913476891759774307, guid: ee17c5b5d08ecc24bac8ddf64e5a0d58, type: 3}
-  budgetCost: 4
-  baseHealth: 4
+  budgetCost: 3
+  baseHealth: 5
   baseSpeed: 1.25
   baseDamage: 2.5
   damageInterval: 1
