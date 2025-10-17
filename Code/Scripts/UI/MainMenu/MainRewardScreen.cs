@@ -79,7 +79,7 @@ public class MainRewardSceen : MonoBehaviour
         AchievementManager.OnProgress += HandleAchievementProgress;
         AchievementManager.OnTierCompletedEvent += HandleAchievementTierCompleted;
         UpdateDailyLoginUI();
-        OpenDailyRewardTab();
+        OpenDailyRewards();
         StartCoroutine(DelayedPopulate());
     }
 
@@ -119,7 +119,7 @@ public class MainRewardSceen : MonoBehaviour
         UpdateDailyLoginUI();
     }
 
-    public void OpenDailyRewardTab()
+    public void OpenDailyRewards()
     {
         CloseSubTabScreens();
         HighlightButton(dailyRewardButton);
@@ -127,7 +127,7 @@ public class MainRewardSceen : MonoBehaviour
         PopulateDailyObjectives();
     }
 
-    public void OpenWeeklyRewardTab()
+    public void OpenWeeklyRewards()
     {
         CloseSubTabScreens();
         HighlightButton(weeklyRewardButton);
@@ -135,7 +135,7 @@ public class MainRewardSceen : MonoBehaviour
         PopulateWeeklyObjectives();
     }
 
-    public void OpenAchievementRewardTab()
+    public void OpenAchievements()
     {
         CloseSubTabScreens();
         HighlightButton(achievementRewardButton);

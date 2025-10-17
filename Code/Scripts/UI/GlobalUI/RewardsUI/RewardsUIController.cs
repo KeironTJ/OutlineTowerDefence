@@ -74,4 +74,22 @@ public class RewardsUIController : MonoBehaviour
     {
         if (instance == null || !instance.activeSelf) Show(); else Hide();
     }
+
+    public void OpenDailyRewards()
+    {
+        Show();
+        screen?.OpenDailyRewards();
+    }
+
+    public void OpenWeeklyRewards()
+    {
+        Show();
+        screen?.OpenWeeklyRewards();
+    }
+
+    public void OpenAchievements()
+    {
+        Show();
+        screen?.OpenAchievements();
+    }
 }

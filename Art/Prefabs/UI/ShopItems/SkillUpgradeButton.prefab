@@ -856,7 +856,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_EffectColor: {r: 0, g: 1, b: 1, a: 1}
-  m_EffectDistance: {x: 5, y: 5}
+  m_EffectDistance: {x: 3, y: 3}
   m_UseGraphicAlpha: 1
 --- !u!114 &7640778888686595095
 MonoBehaviour:
@@ -960,12 +960,12 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 540266938247651775}
+  m_Father: {fileID: 7160923249991560829}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 40, y: -1.25}
-  m_SizeDelta: {x: 80, y: 80}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 125.67, y: -52.5}
+  m_SizeDelta: {x: 251.34, y: 105}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5275526052959928674
 CanvasRenderer:
@@ -1523,7 +1523,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4925401020443975826, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4925401020443975826, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
       propertyPath: m_AnchorMax.y
@@ -1531,19 +1531,35 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4925401020443975826, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4925401020443975826, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
       propertyPath: m_SizeDelta.x
-      value: -80
+      value: 528.66003
       objectReference: {fileID: 0}
     - target: {fileID: 4925401020443975826, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 105
       objectReference: {fileID: 0}
     - target: {fileID: 4925401020443975826, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 80
+      value: 251.34
+      objectReference: {fileID: 0}
+    - target: {fileID: 4925401020443975826, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -52.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7073149319118661415, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
+      propertyPath: m_Color.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7073149319118661415, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
+      propertyPath: m_Color.g
+      value: 0.6431373
+      objectReference: {fileID: 0}
+    - target: {fileID: 7073149319118661415, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
+      propertyPath: m_Color.r
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7546425846214219452, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
       propertyPath: m_Color.b
@@ -1551,19 +1567,46 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7546425846214219452, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
       propertyPath: m_Color.g
-      value: 0.58412194
+      value: 0.2976693
       objectReference: {fileID: 0}
     - target: {fileID: 7546425846214219452, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
       propertyPath: m_Color.r
+      value: 0.509434
+      objectReference: {fileID: 0}
+    - target: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
+      propertyPath: m_AnchorMax.y
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 780
+      objectReference: {fileID: 0}
+    - target: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 105
+      objectReference: {fileID: 0}
+    - target: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 400
+      objectReference: {fileID: 0}
+    - target: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -62.5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 806210747919451208, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
       insertIndex: 0
       addedObject: {fileID: 3306584542646839353}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7836302855995693753, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5967369014548530752}
   m_SourcePrefab: {fileID: 100100000, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
 --- !u!224 &540266938247651775 stripped
 RectTransform:
@@ -1581,6 +1624,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &6957910105978601294 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7836302855995693753, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
+  m_PrefabInstance: {fileID: 887021718411208183}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5967369014548530752
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6957910105978601294}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.HorizontalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_Spacing: 0
+  m_ChildForceExpandWidth: 1
+  m_ChildForceExpandHeight: 1
+  m_ChildControlWidth: 1
+  m_ChildControlHeight: 1
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
+--- !u!224 &7160923249991560829 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
+  m_PrefabInstance: {fileID: 887021718411208183}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &9150089266442721820 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8265495342738980843, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}

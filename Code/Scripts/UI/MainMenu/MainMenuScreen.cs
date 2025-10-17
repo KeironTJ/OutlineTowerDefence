@@ -89,6 +89,7 @@ public class MainMenuScreen : MonoBehaviour
         changeUsernameInputField.text = playerManager.playerData.Username;
         changeUsernamePanel.SetActive(true);
     }
+    
     public void CloseChangeUsernamePanel()
     {
         changeUsernamePanel.SetActive(false);
@@ -118,14 +119,14 @@ public class MainMenuScreen : MonoBehaviour
     public void DisplayDifficulty()
     {
         if (difficultySelectionUI)
-            difficultySelectionUI.text = chosenDifficulty.ToString();
+            difficultySelectionUI.text = $"{chosenDifficulty}";
     }
     public void DisplayHighestWave()
     {
         if (!EnsurePlayerManager()) return;
         highestWave = playerManager.GetHighestWave(chosenDifficulty);
         if (highestWaveUI)
-            highestWaveUI.text = $"Best Wave: {highestWave}";
+            highestWaveUI.text = $"{highestWave}";
     }
     public void TriggerDifficultyButtons()
     {

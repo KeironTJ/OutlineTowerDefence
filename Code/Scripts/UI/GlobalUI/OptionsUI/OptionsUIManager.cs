@@ -118,4 +118,35 @@ public class OptionsUIManager : MonoBehaviour
         else
             Debug.LogWarning("RewardsUIController not found. Make sure it's added in MainMenu and persists.");
     }
+
+    public void OnRewardsButtonDaily()
+    {
+        if (rewardsController == null)
+            rewardsController = FindFirstObjectByType<RewardsUIController>();
+        if (rewardsController != null)
+            rewardsController.OpenDailyRewards();
+        else
+            Debug.LogWarning("RewardsUIController not found. Make sure it's added in MainMenu and persists.");
+    }
+
+    public void OnRewardsButtonWeekly()
+    {
+        if (rewardsController == null)
+            rewardsController = FindFirstObjectByType<RewardsUIController>();
+        if (rewardsController != null)
+            rewardsController.OpenWeeklyRewards();
+        else
+            Debug.LogWarning("RewardsUIController not found. Make sure it's added in MainMenu and persists.");
+    }
+
+    public void OnRewardsButtonAchievements()
+    {
+        if (rewardsController == null)
+            rewardsController = FindFirstObjectByType<RewardsUIController>();
+        if (rewardsController != null)
+            rewardsController.OpenAchievements();
+        else
+            Debug.LogWarning("RewardsUIController not found. Make sure it's added in MainMenu and persists.");
+    }
+
 }

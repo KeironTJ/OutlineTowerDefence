@@ -12,5 +12,8 @@ public class OptionsUIButtonProxy : MonoBehaviour
     public void ShowGameStats() => OptionsUIManager.Instance?.ShowGameStats();
     public void ShowRoundHistory() => OptionsUIManager.Instance?.ShowRoundHistory();
     public void ShowRewards() => OptionsUIManager.Instance?.ShowRewards();
+    public void ShowDailyRewards() => OptionsUIManager.Instance?.OnRewardsButtonDaily();
+    public void ShowWeeklyRewards() => OptionsUIManager.Instance?.OnRewardsButtonWeekly();
+    public void ShowAchievements() => OptionsUIManager.Instance?.OnRewardsButtonAchievements();
 }
 
