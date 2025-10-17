@@ -28,6 +28,10 @@ public class LoadoutScreen : MonoBehaviour
     [SerializeField] private Transform projectileSlotsContainer;
     [SerializeField] private GameObject projectileSlotButtonPrefab;
 
+    [Header("Chip Selection")]
+    [SerializeField] private GameObject chipSelectionPanel;
+    [SerializeField] private Button openChipSelectorButton;
+
     private PlayerManager playerManager;
     private readonly List<Button> turretSlotButtons = new List<Button>();
     private readonly List<Button> projectileButtons = new List<Button>();
@@ -64,6 +68,9 @@ public class LoadoutScreen : MonoBehaviour
 
         SetTowerBaseImage();
         UpdateSlotButtons();
+        
+        if (openChipSelectorButton != null)
+            openChipSelectorButton.onClick.AddListener(OnOpenChipSelector);
     }
 
     private void OnEnable()
@@ -563,6 +570,32 @@ public class LoadoutScreen : MonoBehaviour
         {
             var es = new GameObject("EventSystem", typeof(UnityEngine.EventSystems.EventSystem), typeof(UnityEngine.EventSystems.StandaloneInputModule));
             Debug.LogWarning("[LoadoutScreen] No EventSystem found. Created one at runtime.");
+        }
+    }
+    
+    // ================= CHIP SELECTION =================
+    private void OnOpenChipSelector()
+    {
+        if (chipSelectionPanel == null)
+        {
+            Debug.LogError("[LoadoutScreen] Chip selection panel reference is missing.");
+            return;
+        }
+        
+        chipSelectionPanel.SetActive(true);
+        
+        var chipSelector = chipSelectionPanel.GetComponent<ChipSelectorUI>();
+        if (chipSelector == null)
+            chipSelector = chipSelectionPanel.GetComponentInChildren<ChipSelectorUI>(true);
+        
+        if (chipSelector != null)
+        {
+            chipSelector.SetLoadoutScreen(this);
+            chipSelector.RefreshUI();
+        }
+        else
+        {
+            Debug.LogError("[LoadoutScreen] ChipSelectorUI component not found under 'chipSelectionPanel'.");
         }
     }
 }
