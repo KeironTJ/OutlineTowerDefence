@@ -50,7 +50,7 @@ public class ChipAchievementRewards : MonoBehaviour
             if (reward.achievementId != evt.achievementId) continue;
             
             // Create unique key to prevent duplicate rewards
-            string rewardKey = $"{evt.achievementId}_{evt.tier}";
+            string rewardKey = $"{evt.achievementId}_{evt.tierIndex}";
             if (rewardedAchievements.Contains(rewardKey))
             {
                 if (logRewards)
@@ -69,7 +69,7 @@ public class ChipAchievementRewards : MonoBehaviour
                 if (logRewards)
                 {
                     Debug.Log($"[ChipAchievementRewards] Granted {reward.chipCount}x {chipName} " +
-                             $"for completing {evt.achievementId} tier {evt.tier}");
+                             $"for completing {evt.achievementId} tier {evt.tierIndex}");
                 }
                 
                 // Optional: Show notification to player

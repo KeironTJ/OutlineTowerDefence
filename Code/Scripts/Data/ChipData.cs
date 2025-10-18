@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 [Serializable]
 public class ChipProgressData
@@ -36,9 +37,9 @@ public class ChipSystemConfig
 {
     public int unlockedSlots; // Number of chip slots the player has unlocked
     public int maxSlots = 10; // Maximum number of slots that can be unlocked
-    public int baseSlotCost = 100; // Base cost in Prisms to unlock a slot
+    public int baseSlotCost = 50; // Base cost in Prisms to unlock a slot
     public float slotCostMultiplier = 1.5f; // Multiplier for each additional slot
-    public int basePurchaseCost = 50; // Base cost in Prisms to purchase a chip pack
+    public int basePurchaseCost = 20; // Base cost in Prisms to purchase a chip pack
     
     public ChipSystemConfig()
     {

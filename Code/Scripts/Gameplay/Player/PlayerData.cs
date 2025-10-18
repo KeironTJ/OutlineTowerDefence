@@ -125,8 +125,12 @@ public class PlayerData
     {
         UUID = Guid.NewGuid().ToString();
         Username = UUID;
+
+        // Initialize tower base data
         unlockedTowerBases = new List<string> { "0001", "0002", "0003" };
         selectedTowerBaseId = "0001";
+
+        // Initialize turret data
         unlockedTurretIds = new List<string> { "STD" };
         if (selectedTurretIds == null) selectedTurretIds = new List<string> { "", "", "", "" };
         selectedTurretIds[0] = "STD";

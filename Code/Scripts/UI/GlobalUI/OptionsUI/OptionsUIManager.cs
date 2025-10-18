@@ -10,6 +10,7 @@ public class OptionsUIManager : MonoBehaviour
     [SerializeField] private GameObject profilePanel;
     [SerializeField] private GameObject gameStatsPanel;
     [SerializeField] private GameObject roundHistoryPanel;   // the panel root in Options
+    [SerializeField] private GameObject storePanel;
     [SerializeField] private GameObject settingsPanel;
 
     [SerializeField] private RewardsUIController rewardsController; // assign in Inspector if possible
@@ -35,6 +36,7 @@ public class OptionsUIManager : MonoBehaviour
         if (!gameStatsPanel) gameStatsPanel = transform.Find("GameStatsPanel") ? transform.Find("GameStatsPanel").gameObject : null;
         if (!roundHistoryPanel) roundHistoryPanel = transform.Find("RoundHistoryPanel") ? transform.Find("RoundHistoryPanel").gameObject : null;
         if (!settingsPanel) settingsPanel = transform.Find("SettingsPanel") ? transform.Find("SettingsPanel").gameObject : null;
+        if (!storePanel) storePanel = transform.Find("StorePanel") ? transform.Find("StorePanel").gameObject : null;
 
         CloseOptions();
     }
@@ -68,6 +70,7 @@ public class OptionsUIManager : MonoBehaviour
     public void ShowSettings() => ShowSubPanel(settingsPanel);
     public void ShowRoundHistory() => ShowSubPanel(roundHistoryPanel);
     public void ShowRewards() => OnRewardsButton();
+    public void ShowStore() => ShowSubPanel(storePanel);
 
     public void ShowPanel(GameObject panel)
     {
@@ -81,8 +84,8 @@ public class OptionsUIManager : MonoBehaviour
         if (!IsValid(panel)) { Debug.LogWarning("OptionsUIManager: SubPanel missing."); return; }
 
         // Ensure menu is open
-        SafeSetActive(background, true);
-        SafeSetActive(optionsPanel, true);
+        //SafeSetActive(background, true);
+        //SafeSetActive(optionsPanel, true);
 
         // Show just the requested subpanel
         HideSubPanels();
@@ -95,6 +98,7 @@ public class OptionsUIManager : MonoBehaviour
         SafeSetActive(gameStatsPanel, false);
         SafeSetActive(settingsPanel, false);
         SafeSetActive(roundHistoryPanel, false);
+        SafeSetActive(storePanel, false);
     }
 
     private bool IsOpen()

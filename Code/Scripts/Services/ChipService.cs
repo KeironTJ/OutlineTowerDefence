@@ -19,6 +19,28 @@ public class ChipService : MonoBehaviour
     public event Action<int> SlotUnlocked;
     
     private PlayerManager playerManager;
+
+    private bool EnsurePlayerManager()
+    {
+        if (playerManager == null)
+            playerManager = PlayerManager.main;
+        return playerManager != null;
+    }
+
+    private ChipSystemConfig GetChipConfigInternal()
+    {
+        return EnsurePlayerManager() ? playerManager.GetChipConfig() : null;
+    }
+
+    private List<ChipProgressData> GetChipProgressInternal()
+    {
+        return EnsurePlayerManager() ? playerManager.GetChipProgress() : null;
+    }
+
+    private List<ChipSlotData> GetEquippedSlotsInternal()
+    {
+        return EnsurePlayerManager() ? playerManager.GetEquippedChips() : null;
+    }
     
     private void Awake()
     {
@@ -124,34 +146,39 @@ public class ChipService : MonoBehaviour
     
     public IEnumerable<ChipDefinition> GetUnlockedDefinitions()
     {
-        if (playerManager?.playerData == null) return Enumerable.Empty<ChipDefinition>();
-        
-        var unlockedIds = playerManager.playerData.chipProgress
-            .Where(p => p.unlocked)
+        var progressList = GetChipProgressInternal();
+        if (progressList == null) return Enumerable.Empty<ChipDefinition>();
+
+        var unlockedIds = progressList
+            .Where(p => p != null && p.unlocked)
             .Select(p => p.chipId)
             .ToHashSet();
-            
+
         return definitions.Values.Where(d => unlockedIds.Contains(d.id));
     }
     
     // Chip Progress
     public ChipProgressData GetOrCreateProgress(string chipId)
     {
-        if (playerManager?.playerData == null) return null;
-        
-        var progress = playerManager.playerData.chipProgress.Find(p => p.chipId == chipId);
+        var progressList = GetChipProgressInternal();
+        if (progressList == null) return null;
+
+        var progress = progressList.Find(p => p.chipId == chipId);
         if (progress == null)
         {
             progress = new ChipProgressData(chipId);
-            playerManager.playerData.chipProgress.Add(progress);
+            progressList.Add(progress);
+            if (EnsurePlayerManager())
+                playerManager.SavePlayerData();
         }
         return progress;
     }
     
     public ChipProgressData GetProgress(string chipId)
     {
-        if (playerManager?.playerData == null) return null;
-        return playerManager.playerData.chipProgress.Find(p => p.chipId == chipId);
+        var progressList = GetChipProgressInternal();
+        if (progressList == null) return null;
+        return progressList.Find(p => p.chipId == chipId);
     }
     
     public bool IsChipUnlocked(string chipId)
@@ -165,7 +192,7 @@ public class ChipService : MonoBehaviour
     {
         if (string.IsNullOrEmpty(chipId) || count <= 0) return false;
         if (!definitions.ContainsKey(chipId)) return false;
-        if (playerManager?.playerData == null) return false;
+    if (!EnsurePlayerManager()) return false;
         
         var progress = GetOrCreateProgress(chipId);
         var def = definitions[chipId];
@@ -205,64 +232,114 @@ public class ChipService : MonoBehaviour
     // Slot Management
     public int GetUnlockedSlotCount()
     {
-        if (playerManager?.playerData?.chipConfig == null) return 0;
-        return playerManager.playerData.chipConfig.unlockedSlots;
+        var config = GetChipConfigInternal();
+        if (config == null) return 0;
+
+        int unlocked = Mathf.Clamp(config.unlockedSlots, 0, config.maxSlots);
+        if (unlocked < 1)
+            unlocked = 1;
+
+        var equipped = GetEquippedSlotsInternal();
+        if (equipped != null)
+        {
+            foreach (var slot in equipped)
+            {
+                if (slot == null) continue;
+                int desiredCount = slot.slotIndex + 1;
+                if (desiredCount > unlocked)
+                    unlocked = Mathf.Min(desiredCount, config.maxSlots);
+            }
+        }
+
+        if (config.unlockedSlots != unlocked)
+        {
+            config.unlockedSlots = Mathf.Min(unlocked, config.maxSlots);
+            if (EnsurePlayerManager())
+                playerManager.SavePlayerData();
+        }
+
+        return Mathf.Min(unlocked, config.maxSlots);
     }
     
     public int GetMaxSlotCount()
     {
-        if (playerManager?.playerData?.chipConfig == null) return 10;
-        return playerManager.playerData.chipConfig.maxSlots;
+        var config = GetChipConfigInternal();
+        return config?.maxSlots ?? 10;
     }
     
     public int GetNextSlotCost()
     {
-        if (playerManager?.playerData?.chipConfig == null) return int.MaxValue;
-        int nextSlot = playerManager.playerData.chipConfig.unlockedSlots + 1;
-        return playerManager.playerData.chipConfig.GetSlotUnlockCost(nextSlot);
+        var config = GetChipConfigInternal();
+        if (config == null) return int.MaxValue;
+
+        int unlocked = GetUnlockedSlotCount();
+        if (unlocked >= config.maxSlots) return int.MaxValue;
+
+        int nextSlot = Mathf.Clamp(unlocked + 1, 1, config.maxSlots);
+        return config.GetSlotUnlockCost(nextSlot);
     }
     
     public bool CanUnlockSlot()
     {
-        if (playerManager?.playerData == null) return false;
+        if (!EnsurePlayerManager()) return false;
         
-        int current = GetUnlockedSlotCount();
-        int max = GetMaxSlotCount();
+        var config = GetChipConfigInternal();
+        if (config == null) return false;
         
-        if (current >= max) return false;
+        int unlocked = GetUnlockedSlotCount();
+        if (unlocked >= config.maxSlots) return false;
         
         int cost = GetNextSlotCost();
+        if (cost == int.MaxValue) return false;
+        
         return playerManager.GetPrisms() >= cost;
     }
     
     public bool TryUnlockSlot()
     {
         if (!CanUnlockSlot()) return false;
-        
+
+        var config = GetChipConfigInternal();
+        if (config == null) return false;
+
         int cost = GetNextSlotCost();
+        if (cost == int.MaxValue) return false;
         if (!playerManager.TrySpend(CurrencyType.Prisms, cost))
             return false;
-        
-        playerManager.playerData.chipConfig.unlockedSlots++;
+
+        int unlockedBefore = GetUnlockedSlotCount();
+        config.unlockedSlots = Mathf.Min(unlockedBefore + 1, config.maxSlots);
         playerManager.SavePlayerData();
         
-        SlotUnlocked?.Invoke(playerManager.playerData.chipConfig.unlockedSlots);
+        SlotUnlocked?.Invoke(config.unlockedSlots);
         return true;
     }
     
     // Equip Management
     public string GetEquippedChip(int slotIndex)
     {
-        if (playerManager?.playerData?.equippedChips == null) return string.Empty;
-        
-        var slot = playerManager.playerData.equippedChips.Find(s => s.slotIndex == slotIndex);
+        var equipped = GetEquippedSlotsInternal();
+        if (equipped == null) return string.Empty;
+
+        var slot = equipped.Find(s => s.slotIndex == slotIndex);
         return slot?.equippedChipId ?? string.Empty;
     }
     
+    public int GetSlotIndexForChip(string chipId)
+    {
+        if (string.IsNullOrEmpty(chipId)) return -1;
+        var equipped = GetEquippedSlotsInternal();
+        if (equipped == null) return -1;
+
+        var slot = equipped.Find(s => s.equippedChipId == chipId);
+        return slot?.slotIndex ?? -1;
+    }
+
     public bool IsChipEquipped(string chipId)
     {
-        if (playerManager?.playerData?.equippedChips == null) return false;
-        return playerManager.playerData.equippedChips.Any(s => s.equippedChipId == chipId);
+        var equipped = GetEquippedSlotsInternal();
+        if (equipped == null) return false;
+        return equipped.Any(s => s.equippedChipId == chipId);
     }
     
     public bool CanEquipChip(string chipId, int slotIndex)
@@ -280,17 +357,17 @@ public class ChipService : MonoBehaviour
     public bool TryEquipChip(string chipId, int slotIndex)
     {
         if (!CanEquipChip(chipId, slotIndex)) return false;
-        if (playerManager?.playerData == null) return false;
+        if (!EnsurePlayerManager()) return false;
         
-        if (playerManager.playerData.equippedChips == null)
-            playerManager.playerData.equippedChips = new List<ChipSlotData>();
+        var equipped = GetEquippedSlotsInternal();
+        if (equipped == null) return false;
         
         // Find or create slot
-        var slot = playerManager.playerData.equippedChips.Find(s => s.slotIndex == slotIndex);
+        var slot = equipped.Find(s => s.slotIndex == slotIndex);
         if (slot == null)
         {
             slot = new ChipSlotData(slotIndex);
-            playerManager.playerData.equippedChips.Add(slot);
+            equipped.Add(slot);
         }
         
         slot.equippedChipId = chipId;
@@ -302,9 +379,10 @@ public class ChipService : MonoBehaviour
     
     public bool TryUnequipChip(int slotIndex)
     {
-        if (playerManager?.playerData?.equippedChips == null) return false;
+    var equipped = GetEquippedSlotsInternal();
+    if (equipped == null) return false;
         
-        var slot = playerManager.playerData.equippedChips.Find(s => s.slotIndex == slotIndex);
+    var slot = equipped.Find(s => s.slotIndex == slotIndex);
         if (slot == null || string.IsNullOrEmpty(slot.equippedChipId)) return false;
         
         slot.equippedChipId = string.Empty;
@@ -319,10 +397,11 @@ public class ChipService : MonoBehaviour
     {
         var bonuses = new Dictionary<ChipBonusType, float>();
         
-        if (playerManager?.playerData?.equippedChips == null)
+        var equipped = GetEquippedSlotsInternal();
+        if (equipped == null)
             return bonuses;
         
-        foreach (var slot in playerManager.playerData.equippedChips)
+        foreach (var slot in equipped)
         {
             if (string.IsNullOrEmpty(slot.equippedChipId)) continue;
             
@@ -352,13 +431,13 @@ public class ChipService : MonoBehaviour
     // Purchase System
     public int GetChipPurchaseCost()
     {
-        if (playerManager?.playerData?.chipConfig == null) return 50;
-        return playerManager.playerData.chipConfig.basePurchaseCost;
+        var config = GetChipConfigInternal();
+        return config?.basePurchaseCost ?? 50;
     }
     
     public bool CanPurchaseChip()
     {
-        if (playerManager == null) return false;
+        if (!EnsurePlayerManager()) return false;
         int cost = GetChipPurchaseCost();
         return playerManager.GetPrisms() >= cost;
     }
@@ -367,6 +446,7 @@ public class ChipService : MonoBehaviour
     {
         purchasedChipId = null;
         
+        if (!EnsurePlayerManager()) return false;
         if (!CanPurchaseChip()) return false;
         
         int cost = GetChipPurchaseCost();
