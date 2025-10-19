@@ -1257,30 +1257,38 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StoreService
   prismPackDefinitions:
-  - id: S_PP_100
-    displayName: 100 Prisms
+  - id: SPP_1_100
+    displayName: Prism Pack 1
     description: 
     icon: {fileID: 0}
     prismAmount: 100
-    basePrice: 0
+    basePrice: 0.99
     discountPercent: 0
-    productId: PP100
-  - id: S_PP_1000
-    displayName: 1000 Prisms
-    description: 
-    icon: {fileID: 0}
-    prismAmount: 1000
-    basePrice: 0
-    discountPercent: 0
-    productId: PP1000
-  - id: S_PP_250
-    displayName: 250 Prisms
+    productId: PPACK1
+  - id: SPP_2_250
+    displayName: Prism Pack 2
     description: 
     icon: {fileID: 0}
     prismAmount: 250
-    basePrice: 0
-    discountPercent: 0
-    productId: PP250
+    basePrice: 2.49
+    discountPercent: 10
+    productId: PPACK2
+  - id: SPP_3_500
+    displayName: Prism Pack 3
+    description: 
+    icon: {fileID: 0}
+    prismAmount: 500
+    basePrice: 4.99
+    discountPercent: 15
+    productId: PPACK3
+  - id: SPP_4_1000
+    displayName: Prism Pack 4
+    description: 
+    icon: {fileID: 0}
+    prismAmount: 1000
+    basePrice: 9.99
+    discountPercent: 20
+    productId: PPACK4
   currencySymbol: "\xA3"
 --- !u!4 &1294452309
 Transform:

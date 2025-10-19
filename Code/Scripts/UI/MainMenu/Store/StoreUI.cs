@@ -69,46 +69,8 @@ public class StoreUI : MonoBehaviour
                 continue;
             }
 
-            BindPack(view, pack, currencySymbol);
+            view.Apply(pack, currencySymbol, () => OnPurchaseClicked(pack.id));
             packViews.Add(view);
-        }
-    }
-
-    private void BindPack(PrismPackView view, PrismPackDefinition pack, string currencySymbol)
-    {
-        if (view.purchaseButton == null)
-            view.purchaseButton = view.GetComponent<Button>();
-
-        if (view.titleText != null)
-            view.titleText.text = pack.displayName;
-
-        if (view.prismsAmountText != null)
-            view.prismsAmountText.text = $"{pack.prismAmount:N0} Prisms";
-
-        if (view.priceText != null)
-            view.priceText.text = pack.GetFormattedPrice(currencySymbol);
-
-        if (view.discountText != null)
-        {
-            bool hasDiscount = pack.discountPercent > 0f;
-            view.discountText.gameObject.SetActive(hasDiscount);
-            if (hasDiscount)
-                view.discountText.text = $"Save {pack.discountPercent:0}%";
-        }
-
-        if (view.descriptionText != null)
-            view.descriptionText.text = pack.description;
-
-        if (view.iconImage != null)
-        {
-            view.iconImage.sprite = pack.icon;
-            view.iconImage.enabled = pack.icon != null;
-        }
-
-        if (view.purchaseButton != null)
-        {
-            view.purchaseButton.onClick.RemoveAllListeners();
-            view.purchaseButton.onClick.AddListener(() => OnPurchaseClicked(pack.id));
         }
     }
 
@@ -136,7 +98,7 @@ public class StoreUI : MonoBehaviour
         if (balanceText == null || playerManager == null) return;
 
         float prisms = playerManager.GetPrisms();
-        balanceText.text = $"Prisms: {prisms:N0}";
+        balanceText.text = $"{prisms:N0}";
     }
 
     private void ClearExistingViews()
