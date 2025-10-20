@@ -15,7 +15,7 @@ MonoBehaviour:
   id: ATK_BOOST_01
   chipName: Power Surge
   description: Increases attack damage by a percentage
-  icon: {fileID: 0}
+  icon: {fileID: 4095009884088325651, guid: 7efcb8d5aae4c5542b81dd9c72941cbe, type: 3}
   bonusType: 0
   baseBonus: 5
   bonusPerRarity: 3

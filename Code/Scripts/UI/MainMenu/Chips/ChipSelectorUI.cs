@@ -154,62 +154,27 @@ public class ChipSelectorUI : MonoBehaviour
             if (view.gameObject != null)
                 view.gameObject.SetActive(withinUnlocked);
 
-            if (!withinUnlocked)
-                continue;
-
-            var button = view.button ?? view.GetComponent<Button>();
-            if (button == null)
-            {
-                Debug.LogError("[ChipSelectorUI] ChipSlotView is missing a Button component.");
-                continue;
-            }
-
-            button.onClick.RemoveAllListeners();
             int slotIndex = i;
-            button.onClick.AddListener(() => OnSlotClicked(slotIndex));
+            view.ConfigureButton(withinUnlocked ? () => OnSlotClicked(slotIndex) : (UnityEngine.Events.UnityAction)null);
 
-            button.interactable = true;
-
-            if (view.lockedPanel != null)
-                view.lockedPanel.SetActive(false);
-
-            if (view.emptyPanel != null)
-                view.emptyPanel.SetActive(true);
-
-            if (view.icon != null)
+            if (!withinUnlocked)
             {
-                view.icon.sprite = null;
-                view.icon.enabled = false;
+                view.BindLocked();
+                continue;
             }
-
-            if (view.chipName != null)
-                view.chipName.text = "Empty";
 
             string equippedChipId = chipService.GetEquippedChip(slotIndex);
             bool hasChip = !string.IsNullOrEmpty(equippedChipId);
 
             if (!hasChip)
             {
-                if (view.emptyPanel != null)
-                    view.emptyPanel.SetActive(true);
+                view.BindEmpty(slotIndex == selectedSlotIndex);
                 continue;
             }
 
             var def = chipService.GetDefinition(equippedChipId);
-            if (view.chipName != null)
-                view.chipName.text = def != null ? def.chipName : equippedChipId;
-
-            if (view.icon != null)
-            {
-                view.icon.sprite = def != null ? def.icon : null;
-                view.icon.enabled = def != null && def.icon != null;
-            }
-
-            if (view.lockedPanel != null)
-                view.lockedPanel.SetActive(false);
-
-            if (view.emptyPanel != null)
-                view.emptyPanel.SetActive(false);
+            var progress = chipService.GetProgress(equippedChipId);
+            view.BindChip(def, progress, slotIndex == selectedSlotIndex, chipButtonPrefab);
         }
     }
     
@@ -243,58 +208,9 @@ public class ChipSelectorUI : MonoBehaviour
                 continue;
             }
 
-            if (view.button == null)
-                view.button = view.GetComponent<Button>();
-
-            if (view.button == null)
-            {
-                Debug.LogError("[ChipSelectorUI] ChipListItemView is missing a Button component. Destroying the instance to avoid an infinite loop.");
-                Destroy(instance);
-                continue;
-            }
-            
-            bool isUnlocked = progress != null && progress.unlocked;
-            
-            if (view.chipName != null)
-                view.chipName.text = isUnlocked ? def.chipName : "???";
-
-            if (view.icon != null)
-            {
-                if (isUnlocked)
-                {
-                    view.icon.sprite = def.icon;
-                    view.icon.enabled = def.icon != null;
-                }
-                else
-                {
-                    view.icon.sprite = null;
-                    view.icon.enabled = false;
-                }
-            }
-
-            if (view.rarityText != null)
-            {
-                if (isUnlocked)
-                {
-                    var rarity = def.GetRarityEnum(progress.rarityLevel);
-                    view.rarityText.text = rarity.ToString();
-                    view.rarityText.color = GetRarityColor(rarity);
-                }
-                else
-                {
-                    view.rarityText.text = "Unknown";
-                    view.rarityText.color = Color.white;
-                }
-            }
-
-            if (view.lockedPanel != null)
-                view.lockedPanel.SetActive(!isUnlocked);
-
-            if (view.equippedIndicator != null)
-                view.equippedIndicator.SetActive(isUnlocked && chipService.IsChipEquipped(def.id));
+            view.Bind(def, progress, chipService.IsChipEquipped(def.id));
 
             string chipId = def.id;
-            view.button.onClick.RemoveAllListeners();
 
             var controller = instance.GetComponent<ChipListItemController>();
             if (controller == null)
