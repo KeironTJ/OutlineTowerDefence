@@ -15,7 +15,7 @@ MonoBehaviour:
   id: ATK_SPD_01
   chipName: Rapid Fire
   description: Increases attack speed for faster shots
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 80d6bdffbfe5094448209b1c93e06c48, type: 3}
   bonusType: 1
   baseBonus: 8
   bonusPerRarity: 4
