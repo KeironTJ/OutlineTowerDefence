@@ -362,6 +362,37 @@ public class DailyObjectiveManager : MonoBehaviour
         SaveManager.main.QueueImmediateSave();
         CloudSyncService.main?.ScheduleUpload();
         OnProgress?.Invoke(rt);
+
+        // Trigger notification for claimed objective
+        if (NotificationManager.Instance != null)
+        {
+            var rewards = new NotificationReward[]
+            {
+                new NotificationReward(
+                    NotificationRewardType.Currency, 
+                    "", 
+                    rt.definition.rewardAmount, 
+                    ConvertCurrencyType(rt.definition.rewardType))
+            };
+            NotificationManager.Instance.ShowQuickNotification(
+                "Daily Objective Complete!",
+                $"{rt.definition.displayName} - Claimed {rt.definition.rewardAmount} {rt.definition.rewardType}",
+                NotificationSource.Objective,
+                3f
+            );
+        }
+    }
+
+    private CurrencyTypes ConvertCurrencyType(CurrencyType oldType)
+    {
+        switch (oldType)
+        {
+            case CurrencyType.Cores: return CurrencyTypes.Cores;
+            case CurrencyType.Prisms: return CurrencyTypes.PrismShards;
+            case CurrencyType.Loops: return CurrencyTypes.Loops;
+            case CurrencyType.Fragments: return CurrencyTypes.Fragments;
+            default: return CurrencyTypes.PrismShards;
+        }
     }
 
     // Optional immediate prune helper (only used if you uncomment above)
@@ -384,6 +415,19 @@ public class DailyObjectiveManager : MonoBehaviour
             {
                 GrantReward(rt.definition);
                 rt.progressData.claimed = true;
+            }
+            else
+            {
+                // Trigger notification for completed objective that needs claiming
+                if (NotificationManager.Instance != null)
+                {
+                    NotificationManager.Instance.ShowQuickNotification(
+                        "Daily Objective Complete!",
+                        $"{rt.definition.displayName} - Ready to claim!",
+                        NotificationSource.Objective,
+                        4f
+                    );
+                }
             }
             SaveManager.main.QueueSave();
             OnDailyObjectiveCompleted?.Invoke(); // Notify weekly objectives
