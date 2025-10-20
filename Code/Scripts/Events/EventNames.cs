@@ -49,4 +49,9 @@ public static class EventNames
     public const string ChipUnequipped = "ChipUnequipped";
     public const string ChipSlotUnlocked = "ChipSlotUnlocked";
 
+    // Notification Events
+    public const string NotificationTriggered = "NotificationTriggered";
+    public const string NotificationDismissed = "NotificationDismissed";
+    public const string NotificationIndicatorUpdate = "NotificationIndicatorUpdate";
+
 }
