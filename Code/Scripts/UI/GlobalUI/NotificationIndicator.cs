@@ -13,8 +13,8 @@ public class NotificationIndicator : MonoBehaviour
     [SerializeField] private bool showCount = true;
     
     [Header("UI Elements")]
-    [SerializeField] private GameObject indicatorObject; // The red dot or badge container
-    [SerializeField] private TextMeshProUGUI countText; // Optional count text
+    [SerializeField] public GameObject indicatorObject; // The red dot or badge container
+    [SerializeField] public TextMeshProUGUI countText; // Optional count text
     [SerializeField] private Image badgeImage; // Optional badge background image
     
     [Header("Visual Settings")]
