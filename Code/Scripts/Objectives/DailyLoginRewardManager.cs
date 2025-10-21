@@ -1,46 +1,47 @@
-using System;
 using UnityEngine;
 
+/// <summary>
+/// Legacy bridge maintained for backwards compatibility.
+/// Routes daily login calls into the store's daily free prism pack.
+/// </summary>
 public class DailyLoginRewardManager : MonoBehaviour
 {
     public static DailyLoginRewardManager main;
 
-    [SerializeField] int dailyCoresReward = 250;
+    [SerializeField] private string dailyPackId = "pack_prisms_daily";
 
     private void Awake()
     {
+        if (main != null && main != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         main = this;
+        DontDestroyOnLoad(gameObject);
     }
 
     public bool CanClaimToday()
     {
-        var pd = SaveManager.main?.Current?.player;
-        if (pd == null) return false;
-        if (string.IsNullOrEmpty(pd.lastDailyLoginIsoUtc)) return true;
+        var store = StoreService.Instance;
+        if (store == null)
+            return false;
 
-        DateTime lastClaim;
-        if (!DateTime.TryParse(pd.lastDailyLoginIsoUtc, null, System.Globalization.DateTimeStyles.RoundtripKind, out lastClaim))
-            return true;
-
-        return DateTime.UtcNow.Date > lastClaim.Date;
+        var availability = store.GetPrismPackAvailability(dailyPackId);
+        return availability.isAvailable;
     }
 
     public void ClaimToday()
     {
-        var pd = SaveManager.main?.Current?.player;
-        if (pd == null || !CanClaimToday()) return;
+        var store = StoreService.Instance;
+        if (store == null)
+        {
+            Debug.LogWarning("[DailyLoginRewardManager] StoreService unavailable.");
+            return;
+        }
 
-        pd.lastDailyLoginIsoUtc = DateTime.UtcNow.ToString("o");
-        PlayerManager.main?.AddCurrency(
-            fragments: 0,
-            cores: dailyCoresReward,
-            prisms: 0,
-            loops: 0
-        );
-        pd.dailyLoginStreak = (pd.dailyLoginStreak == 0 || DateTime.UtcNow.Date == DateTime.Parse(pd.lastDailyLoginIsoUtc).AddDays(1).Date)
-            ? pd.dailyLoginStreak + 1 : 1;
-
-        SaveManager.main.QueueSave();
-        CloudSyncService.main?.ScheduleUpload();
+        if (!store.TryPurchasePrismPack(dailyPackId))
+            Debug.LogWarning("[DailyLoginRewardManager] Daily pack claim failed. It may already be claimed for today.");
     }
 }

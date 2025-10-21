@@ -40,6 +40,13 @@ public class ObjectiveProgressData
 }
 
 [Serializable]
+public class StorePackClaimRecord
+{
+    public string packId;
+    public string lastClaimIsoUtc;
+}
+
+[Serializable]
 public class PlayerData
 {
     [Header("Player Information")]
@@ -103,6 +110,9 @@ public class PlayerData
     public string lastDailyLoginIsoUtc = "";
     public int dailyLoginStreak = 0;
 
+    [Header("Store")]
+    public List<StorePackClaimRecord> storePackClaims = new List<StorePackClaimRecord>();
+
     [Header("Objectives")]
     public List<ObjectiveProgressData> dailyObjectives = new List<ObjectiveProgressData>();
     public List<ObjectiveProgressData> weeklyObjectives = new List<ObjectiveProgressData>();
@@ -144,5 +154,7 @@ public class PlayerData
         chipConfig = new ChipSystemConfig();
         chipProgress = new List<ChipProgressData>();
         equippedChips = new List<ChipSlotData>();
+
+        storePackClaims = new List<StorePackClaimRecord>();
     }
 }

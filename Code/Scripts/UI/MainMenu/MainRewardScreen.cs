@@ -17,7 +17,7 @@ public class MainRewardSceen : MonoBehaviour
     public GameObject achievementRewardTab;
 
 
-    [Header("Daily Login Reward")]
+    [Header("Daily Reward Info")]
     public Button claimButton;
     public TextMeshProUGUI statusText;
 
@@ -78,7 +78,7 @@ public class MainRewardSceen : MonoBehaviour
         WeeklyObjectiveManager.OnSlotRollover += HandleWeeklySlotRollover;
         AchievementManager.OnProgress += HandleAchievementProgress;
         AchievementManager.OnTierCompletedEvent += HandleAchievementTierCompleted;
-        UpdateDailyLoginUI();
+        SetupDailyRewardInfo();
         OpenDailyRewards();
         StartCoroutine(DelayedPopulate());
     }
@@ -91,32 +91,25 @@ public class MainRewardSceen : MonoBehaviour
         WeeklyObjectiveManager.OnSlotRollover -= HandleWeeklySlotRollover;
         AchievementManager.OnProgress -= HandleAchievementProgress;
         AchievementManager.OnTierCompletedEvent -= HandleAchievementTierCompleted;
-        if (claimButton) claimButton.interactable = false;
+        if (claimButton)
+        {
+            claimButton.onClick.RemoveAllListeners();
+            claimButton.interactable = false;
+        }
         if (statusText) statusText.text = "";
     }
-    
-    void UpdateDailyLoginUI()
+
+    void SetupDailyRewardInfo()
     {
-        var dlm = DailyLoginRewardManager.main;
-        if (dlm == null)
+        if (claimButton != null)
         {
-            if (claimButton) claimButton.interactable = false;
-            if (statusText) statusText.text = "Daily login unavailable";
-            Debug.LogWarning("[MainRewardSceen] DailyLoginRewardManager.main is null; login UI disabled.");
-            return;
+            claimButton.interactable = true;
+            claimButton.onClick.RemoveAllListeners();
+            claimButton.onClick.AddListener(OpenStoreForDailyPack);
         }
 
-        bool canClaim = dlm.CanClaimToday();
-        if (claimButton) claimButton.interactable = canClaim;
-        if (statusText) statusText.text = canClaim ? "Daily login reward available!" : "Already claimed today.";
-    }
-    
-    public void OnClaimDailyLogin()
-    {
-        var dlm = DailyLoginRewardManager.main;
-        if (dlm == null) { Debug.LogWarning("[MainRewardSceen] Can't claim: DailyLoginRewardManager.main is null"); return; }
-        dlm.ClaimToday();
-        UpdateDailyLoginUI();
+        if (statusText != null)
+            statusText.text = "Claim your free Prism pack each day from the Store.";
     }
 
     public void OpenDailyRewards()
@@ -361,7 +354,7 @@ public class MainRewardSceen : MonoBehaviour
         DailyObjectiveManager.main?.EnsureInitialized();
         WeeklyObjectiveManager.main?.EnsureInitialized();
         AchievementManager.Instance?.EnsureInitialized();
-        UpdateDailyLoginUI();
+        SetupDailyRewardInfo();
         PopulateDailyObjectives();
         PopulateWeeklyObjectives();
         PopulateAchievements();
@@ -371,5 +364,10 @@ public class MainRewardSceen : MonoBehaviour
     public void Close()
     {
         gameObject.SetActive(false);
+    }
+
+    private void OpenStoreForDailyPack()
+    {
+        OptionsUIManager.Instance?.ShowStore();
     }
 }

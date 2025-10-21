@@ -179,7 +179,7 @@ public class NotificationModalUI : MonoBehaviour
                     var wallet = playerManager.GetComponent<PlayerCurrencyWallet>();
                     if (wallet != null)
                     {
-                        wallet.AddCurrency(reward.currencyType, reward.amount);
+                        wallet.Add(reward.currencyType, reward.amount);
                     }
                     break;
 

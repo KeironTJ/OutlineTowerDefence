@@ -95,13 +95,13 @@ public class NotificationExamples : MonoBehaviour
                 NotificationRewardType.Currency,
                 "",
                 1000,
-                CurrencyTypes.PrismShards
+                CurrencyType.Prisms
             ),
             new NotificationReward(
                 NotificationRewardType.Currency,
                 "",
                 50,
-                CurrencyTypes.Cores
+                CurrencyType.Cores
             )
         };
 
@@ -128,7 +128,7 @@ public class NotificationExamples : MonoBehaviour
                 NotificationRewardType.Currency,
                 "",
                 500,
-                CurrencyTypes.PrismShards
+                CurrencyType.Prisms
             ),
             new NotificationReward(
                 NotificationRewardType.UnlockChip,
@@ -174,7 +174,7 @@ public class NotificationExamples : MonoBehaviour
             new NotificationReward(NotificationRewardType.UnlockChip, "damage_chip"),
             new NotificationReward(NotificationRewardType.UnlockChip, "speed_chip"),
             new NotificationReward(NotificationRewardType.UnlockTurret, "laser_turret"),
-            new NotificationReward(NotificationRewardType.Currency, "", 1000, CurrencyTypes.PrismShards)
+            new NotificationReward(NotificationRewardType.Currency, "", 1000, CurrencyType.Prisms)
         };
 
         NotificationManager.Instance.ShowModalNotification(
@@ -239,7 +239,7 @@ public class NotificationExamples : MonoBehaviour
                 NotificationRewardType.Currency,
                 "",
                 newLevel * 100, // Scale reward with level
-                CurrencyTypes.PrismShards
+                CurrencyType.Prisms
             )
         };
 

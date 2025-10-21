@@ -39,6 +39,14 @@ public class OptionsUIManager : MonoBehaviour
         if (!storePanel) storePanel = transform.Find("StorePanel") ? transform.Find("StorePanel").gameObject : null;
 
         CloseOptions();
+
+        
+        NotificationManager.Instance.ShowQuickNotification(
+            "Test Title",
+            "This is a test notification.",
+            NotificationSource.System,
+            duration: 3f
+        );
     }
 
     public void OpenOptions()

@@ -70,9 +70,6 @@ public class NotificationManager : MonoBehaviour
         if (enableDebugLogs)
             Debug.Log($"[NotificationManager] Queued notification: {notification.title}");
 
-        // Trigger event for UI to listen to
-        EventManager.TriggerEvent(EventNames.NotificationTriggered, notification);
-
         // Process immediately if not already processing
         if (!isProcessing)
             ProcessNextNotification();
@@ -121,6 +118,8 @@ public class NotificationManager : MonoBehaviour
     {
         if (currentNotification != null)
         {
+            CancelInvoke(nameof(DismissCurrentNotification));
+
             // Decrease pending count for this source
             if (pendingNotificationsBySource.ContainsKey(currentNotification.source))
             {
@@ -163,6 +162,7 @@ public class NotificationManager : MonoBehaviour
     /// </summary>
     public void ClearAllNotifications()
     {
+        CancelInvoke(nameof(DismissCurrentNotification));
         notificationQueue.Clear();
         pendingNotificationsBySource.Clear();
         currentNotification = null;
@@ -181,10 +181,14 @@ public class NotificationManager : MonoBehaviour
         if (enableDebugLogs)
             Debug.Log($"[NotificationManager] Processing notification: {currentNotification.title}");
 
+        // Notify UI that a notification is ready to display
+        EventManager.TriggerEvent(EventNames.NotificationTriggered, currentNotification);
+
         // The UI will handle the actual display
         // For quick notifications, we could auto-dismiss after duration
         if (currentNotification.type == NotificationType.Quick && currentNotification.displayDuration > 0)
         {
+            CancelInvoke(nameof(DismissCurrentNotification));
             Invoke(nameof(DismissCurrentNotification), currentNotification.displayDuration);
         }
     }

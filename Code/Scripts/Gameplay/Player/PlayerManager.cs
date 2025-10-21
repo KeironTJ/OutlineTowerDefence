@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections; // added for IEnumerator
+using System.Globalization;
 using UnityEngine;
 
 public class PlayerManager : MonoBehaviour
@@ -339,6 +340,42 @@ public class PlayerManager : MonoBehaviour
         if (prisms > 0 && !Wallet.TrySpend(CurrencyType.Prisms, prisms)) return false;
         if (loops > 0 && !Wallet.TrySpend(CurrencyType.Loops, loops)) return false;
         return true;
+    }
+
+    // ===== Store =====
+    public DateTime? GetLastStorePackClaimTime(string packId)
+    {
+        if (playerData == null || string.IsNullOrEmpty(packId))
+            return null;
+
+        playerData.storePackClaims ??= new List<StorePackClaimRecord>();
+
+        var entry = playerData.storePackClaims.Find(e => e != null && e.packId == packId);
+        if (entry == null || string.IsNullOrEmpty(entry.lastClaimIsoUtc))
+            return null;
+
+        if (DateTime.TryParse(entry.lastClaimIsoUtc, null, DateTimeStyles.RoundtripKind, out var parsed))
+            return parsed;
+
+        return null;
+    }
+
+    public void RecordStorePackClaim(string packId, DateTime timestampUtc)
+    {
+        if (playerData == null || string.IsNullOrEmpty(packId))
+            return;
+
+        playerData.storePackClaims ??= new List<StorePackClaimRecord>();
+
+        var entry = playerData.storePackClaims.Find(e => e != null && e.packId == packId);
+        if (entry == null)
+        {
+            entry = new StorePackClaimRecord { packId = packId };
+            playerData.storePackClaims.Add(entry);
+        }
+
+        entry.lastClaimIsoUtc = timestampUtc.ToString("o");
+        SavePlayerData();
     }
 
     // ===== Achievement Progress =====

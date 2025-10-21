@@ -383,15 +383,15 @@ public class DailyObjectiveManager : MonoBehaviour
         }
     }
 
-    private CurrencyTypes ConvertCurrencyType(CurrencyType oldType)
+    private CurrencyType ConvertCurrencyType(CurrencyType oldType)
     {
         switch (oldType)
         {
-            case CurrencyType.Cores: return CurrencyTypes.Cores;
-            case CurrencyType.Prisms: return CurrencyTypes.PrismShards;
-            case CurrencyType.Loops: return CurrencyTypes.Loops;
-            case CurrencyType.Fragments: return CurrencyTypes.Fragments;
-            default: return CurrencyTypes.PrismShards;
+            case CurrencyType.Cores: return CurrencyType.Cores;
+            case CurrencyType.Prisms: return CurrencyType.Prisms;
+            case CurrencyType.Loops: return CurrencyType.Loops;
+            case CurrencyType.Fragments: return CurrencyType.Fragments;
+            default: return CurrencyType.Prisms;
         }
     }
 

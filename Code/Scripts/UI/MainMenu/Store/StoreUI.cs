@@ -69,7 +69,8 @@ public class StoreUI : MonoBehaviour
                 continue;
             }
 
-            view.Apply(pack, currencySymbol, () => OnPurchaseClicked(pack.id));
+            var availability = storeService.GetPrismPackAvailability(pack);
+            view.Apply(pack, currencySymbol, availability, () => OnPurchaseClicked(pack.id));
             packViews.Add(view);
         }
     }
@@ -91,6 +92,7 @@ public class StoreUI : MonoBehaviour
     private void OnPackPurchased(PrismPackDefinition pack)
     {
         UpdateBalanceText();
+        PopulateStore();
     }
 
     private void UpdateBalanceText()

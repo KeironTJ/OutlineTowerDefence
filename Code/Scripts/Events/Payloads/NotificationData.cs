@@ -65,9 +65,9 @@ public class NotificationReward
     public NotificationRewardType rewardType;
     public string rewardId;
     public int amount;
-    public CurrencyTypes currencyType;
-    
-    public NotificationReward(NotificationRewardType type, string id = "", int amount = 0, CurrencyTypes currency = CurrencyTypes.PrismShards)
+    public CurrencyType currencyType;
+
+    public NotificationReward(NotificationRewardType type, string id = "", int amount = 0, CurrencyType currency = CurrencyType.Prisms)
     {
         rewardType = type;
         rewardId = id;

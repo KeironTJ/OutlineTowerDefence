@@ -89,14 +89,14 @@ A comprehensive notification system has been implemented to alert players about 
 **Location**: `Code/Scripts/Objectives/DailyObjectiveManager.cs`
 - Added notification on objective completion (manual claim)
 - Added notification on objective claim
-- Converts CurrencyType to CurrencyTypes for rewards
+- Converts CurrencyType to CurrencyType for rewards
 - Shows completion status and reward amount
 
 #### 9. WeeklyObjectiveManager.cs Updates
 **Location**: `Code/Scripts/Objectives/WeeklyObjectiveManager.cs`
 - Added notification on weekly objective completion (manual claim)
 - Added notification on weekly objective claim
-- Converts CurrencyType to CurrencyTypes for rewards
+- Converts CurrencyType to CurrencyType for rewards
 - Shows completion status and reward amount
 
 #### 10. AchievementManager.cs Updates
@@ -219,7 +219,7 @@ NotificationManager.Instance.ShowQuickNotification(
 ```csharp
 var rewards = new NotificationReward[]
 {
-    new NotificationReward(NotificationRewardType.Currency, "", 100, CurrencyTypes.PrismShards)
+    new NotificationReward(NotificationRewardType.Currency, "", 100, CurrencyType.Prisms)
 };
 
 NotificationManager.Instance.ShowModalNotification(

@@ -88,7 +88,7 @@ var rewards = new NotificationReward[]
         NotificationRewardType.Currency, 
         "", 
         100, 
-        CurrencyTypes.PrismShards
+        CurrencyType.Prisms
     )
 };
 

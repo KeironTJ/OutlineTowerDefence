@@ -42,16 +42,20 @@ public class NotificationPopupUI : MonoBehaviour
     {
         EventManager.StartListening(EventNames.NotificationTriggered, OnNotificationTriggered);
         EventManager.StartListening(EventNames.NotificationDismissed, OnNotificationDismissed);
+        Debug.Log("[NotificationPopupUI] Listening for notifications");
+
     }
 
     private void OnDisable()
     {
         EventManager.StopListening(EventNames.NotificationTriggered, OnNotificationTriggered);
         EventManager.StopListening(EventNames.NotificationDismissed, OnNotificationDismissed);
+        Debug.Log("[NotificationPopupUI] Stopped listening for notifications");
     }
 
     private void OnNotificationTriggered(object eventData)
     {
+        Debug.Log("[NotificationPopupUI] Notification triggered");
         if (eventData is NotificationData notification)
         {
             // Only handle quick notifications

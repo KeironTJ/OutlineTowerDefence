@@ -153,7 +153,7 @@ NotificationManager.Instance.ShowQuickNotification(
 ```csharp
 var rewards = new NotificationReward[]
 {
-    new NotificationReward(NotificationRewardType.Currency, "", 100, CurrencyTypes.PrismShards),
+    new NotificationReward(NotificationRewardType.Currency, "", 100, CurrencyType.Prisms),
     new NotificationReward(NotificationRewardType.UnlockChip, "speed_chip_1")
 };
 

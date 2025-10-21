@@ -255,6 +255,52 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 86805682}
   m_CullTransparentMesh: 1
+--- !u!1 &218564043
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 218564045}
+  - component: {fileID: 218564044}
+  m_Layer: 0
+  m_Name: NotificationManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &218564044
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 218564043}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e5f8a9b3d4c5e6a8b9c0d1e2f3a4b5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NotificationManager
+  maxQueueSize: 50
+  enableDebugLogs: 0
+--- !u!4 &218564045
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 218564043}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &306972544
 GameObject:
   m_ObjectHideFlags: 0
@@ -1257,6 +1303,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StoreService
   prismPackDefinitions:
+  - id: SPP_0_50
+    displayName: Daily Prism Pack
+    description: Claim your free daily prism pack
+    icon: {fileID: 0}
+    prismAmount: 50
+    basePrice: 0
+    discountPercent: 0
+    productId: PPACK0
+    isDailyFree: 1
+    dailyClaimCooldownHours: 23
   - id: SPP_1_100
     displayName: Prism Pack 1
     description: 
@@ -1265,6 +1321,8 @@ MonoBehaviour:
     basePrice: 0.99
     discountPercent: 0
     productId: PPACK1
+    isDailyFree: 0
+    dailyClaimCooldownHours: 24
   - id: SPP_2_250
     displayName: Prism Pack 2
     description: 
@@ -1273,6 +1331,8 @@ MonoBehaviour:
     basePrice: 2.49
     discountPercent: 10
     productId: PPACK2
+    isDailyFree: 0
+    dailyClaimCooldownHours: 24
   - id: SPP_3_500
     displayName: Prism Pack 3
     description: 
@@ -1281,6 +1341,8 @@ MonoBehaviour:
     basePrice: 4.99
     discountPercent: 15
     productId: PPACK3
+    isDailyFree: 0
+    dailyClaimCooldownHours: 24
   - id: SPP_4_1000
     displayName: Prism Pack 4
     description: 
@@ -1289,6 +1351,8 @@ MonoBehaviour:
     basePrice: 9.99
     discountPercent: 20
     productId: PPACK4
+    isDailyFree: 0
+    dailyClaimCooldownHours: 24
   currencySymbol: "\xA3"
 --- !u!4 &1294452309
 Transform:
@@ -2019,3 +2083,4 @@ SceneRoots:
   - {fileID: 526383371}
   - {fileID: 891980235}
   - {fileID: 1294452309}
+  - {fileID: 218564045}
