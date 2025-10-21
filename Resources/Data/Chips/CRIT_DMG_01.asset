@@ -18,8 +18,8 @@ MonoBehaviour:
   icon: {fileID: 0}
   bonusType: 6
   baseBonus: 25
-  bonusPerRarity: 10
+  bonusPerRarity: 25
   bonusFormat: +{0}%
-  chipsNeededForRarity: 000000000300000005000000070000000a000000
+  chipsNeededForRarity: 0000000003000000080000000f00000019000000
   canChangeInRound: 1
   unlockWave: 1
