@@ -459,6 +459,17 @@ public class AchievementManager : MonoBehaviour
             claimedCount++;
             OnTierClaimedEvent?.Invoke(rt, tier);
 
+            // Trigger notification for claimed achievement tier
+            if (NotificationManager.Instance != null && tier != null)
+            {
+                NotificationManager.Instance.ShowQuickNotification(
+                    "Achievement Unlocked!",
+                    $"{rt.definition.displayName} - {tier.tierName} claimed!",
+                    NotificationSource.Achievement,
+                    3f
+                );
+            }
+
             if (!claimAll)
                 break;
         }
