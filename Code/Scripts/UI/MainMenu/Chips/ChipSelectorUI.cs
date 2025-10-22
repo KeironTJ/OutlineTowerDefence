@@ -20,15 +20,7 @@ public class ChipSelectorUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI slotsInfoText;
     
     [Header("Chip Details Panel")]
-    [SerializeField] private GameObject chipDetailsPanel;
-    [SerializeField] private TextMeshProUGUI chipNameText;
-    [SerializeField] private TextMeshProUGUI chipDescriptionText;
-    [SerializeField] private Image chipIconImage;
-    [SerializeField] private TextMeshProUGUI chipRarityText;
-    [SerializeField] private TextMeshProUGUI chipBonusText;
-    [SerializeField] private TextMeshProUGUI chipProgressText;
-    [SerializeField] private Button equipButton;
-    [SerializeField] private Button unequipButton;
+    [SerializeField] private ChipDetailsPanelView chipDetailsView;
     
     private ChipService chipService;
     private PlayerManager playerManager;
@@ -53,12 +45,6 @@ public class ChipSelectorUI : MonoBehaviour
         
         if (unlockSlotButton != null)
             unlockSlotButton.onClick.AddListener(OnUnlockSlotClicked);
-        
-        if (equipButton != null)
-            equipButton.onClick.AddListener(OnEquipClicked);
-        
-        if (unequipButton != null)
-            unequipButton.onClick.AddListener(OnUnequipClicked);
     }
     
     private void OnEnable()
@@ -260,78 +246,30 @@ public class ChipSelectorUI : MonoBehaviour
     
     private void RefreshDetailsPanel()
     {
-        if (chipDetailsPanel == null) return;
-        
-        bool hasSelection = !string.IsNullOrEmpty(selectedChipId);
-        chipDetailsPanel.SetActive(hasSelection);
-        
-        if (!hasSelection) return;
-        
+        if (chipDetailsView == null)
+            return;
+
+        if (string.IsNullOrEmpty(selectedChipId))
+        {
+            chipDetailsView.Hide();
+            return;
+        }
+
         var def = chipService.GetDefinition(selectedChipId);
-        if (def == null) return;
-        
         var progress = chipService.GetProgress(selectedChipId);
         bool isUnlocked = progress != null && progress.unlocked;
 
-        if (!isUnlocked)
+        if (def == null || !isUnlocked)
         {
             selectedChipId = null;
-            chipDetailsPanel.SetActive(false);
+            chipDetailsView.Hide();
             return;
         }
-        
-        if (chipNameText != null)
-            chipNameText.text = def.chipName;
-        
-        if (chipDescriptionText != null)
-            chipDescriptionText.text = def.description;
-        
-        if (chipIconImage != null)
-        {
-            chipIconImage.sprite = def.icon;
-            chipIconImage.enabled = def.icon != null;
-        }
 
-        var rarity = def.GetRarityEnum(progress.rarityLevel);
-        if (chipRarityText != null)
-        {
-            chipRarityText.text = $"Rarity: {rarity}";
-            chipRarityText.color = GetRarityColor(rarity);
-        }
-        
-        if (chipBonusText != null)
-            chipBonusText.text = $"Bonus: {def.GetFormattedBonus(progress.rarityLevel)} {def.bonusType}";
-        
-        if (chipProgressText != null)
-        {
-            int current = progress.chipCount;
-            int nextRarity = progress.rarityLevel + 1;
-            if (nextRarity <= def.GetMaxRarity())
-            {
-                int needed = def.GetChipsNeededForRarity(nextRarity);
-                chipProgressText.text = $"Progress: {current}/{needed} (Next: {def.GetRarityEnum(nextRarity)})";
-            }
-            else
-            {
-                chipProgressText.text = "Progress: MAX RARITY";
-            }
-        }
-        
-        // Equip/Unequip buttons
         bool isEquipped = chipService.IsChipEquipped(selectedChipId);
-        bool canEquip = selectedSlotIndex >= 0 && isUnlocked && chipService.CanEquipChip(selectedChipId, selectedSlotIndex);
-        
-        if (equipButton != null)
-        {
-            equipButton.gameObject.SetActive(!isEquipped && isUnlocked);
-            equipButton.interactable = canEquip;
-        }
-        
-        if (unequipButton != null)
-        {
-            unequipButton.gameObject.SetActive(isEquipped);
-            unequipButton.interactable = true;
-        }
+        bool canEquip = selectedSlotIndex >= 0 && chipService.CanEquipChip(selectedChipId, selectedSlotIndex);
+
+        chipDetailsView.Show(def, progress, isEquipped, canEquip, OnEquipClicked, OnUnequipClicked);
     }
     
     private void OnSlotClicked(int slotIndex)
@@ -513,19 +451,6 @@ public class ChipSelectorUI : MonoBehaviour
             loadoutScreen.UpdateSlotButtons();
     }
 
-    private Color GetRarityColor(ChipRarity rarity)
-    {
-        return rarity switch
-        {
-            ChipRarity.Common => Color.white,
-            ChipRarity.Uncommon => Color.green,
-            ChipRarity.Rare => Color.blue,
-            ChipRarity.Epic => new Color(0.6f, 0f, 1f), // Purple
-            ChipRarity.Legendary => new Color(1f, 0.5f, 0f), // Orange
-            _ => Color.white
-        };
-    }
-
     private int FindFirstEmptySlot()
     {
         if (chipService == null) return -1;
@@ -543,7 +468,6 @@ public class ChipSelectorUI : MonoBehaviour
     public void CloseDetailsPanel()
     {
         selectedChipId = null;
-        if (chipDetailsPanel != null)
-            chipDetailsPanel.SetActive(false);
+        chipDetailsView?.Hide();
     }
 }

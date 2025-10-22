@@ -852,7 +852,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &6557549020635854288
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1915,37 +1915,25 @@ PrefabInstance:
       propertyPath: m_Name
       value: ClaimRewardsButton
       objectReference: {fileID: 0}
+    - target: {fileID: 3633720829354571511, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4205624918217558665, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
       propertyPath: m_text
       value: Claim Reward
       objectReference: {fileID: 0}
+    - target: {fileID: 7073149319118661415, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
+      propertyPath: m_Color.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7073149319118661415, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
+      propertyPath: m_Color.g
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 7836302855995693753, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
       propertyPath: m_Name
       value: ClaimButtonColour
-      objectReference: {fileID: 0}
-    - target: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

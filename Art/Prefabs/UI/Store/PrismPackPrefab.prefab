@@ -825,6 +825,7 @@ MonoBehaviour:
   priceText: {fileID: 8378861514408832167}
   discountText: {fileID: 3216448925915158183}
   discountContainer: {fileID: 4727111618888751155}
+  statusText: {fileID: 0}
 --- !u!1 &8966681809324185579
 GameObject:
   m_ObjectHideFlags: 0
@@ -1096,30 +1097,6 @@ PrefabInstance:
     - target: {fileID: 7073149319118661415, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
       propertyPath: m_Color.r
       value: 0.75
-      objectReference: {fileID: 0}
-    - target: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8011868882667162506, guid: 4b644b31254db9d4fb60abbe735a470d, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
