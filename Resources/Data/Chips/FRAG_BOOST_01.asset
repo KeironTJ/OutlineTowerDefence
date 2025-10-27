@@ -15,7 +15,7 @@ MonoBehaviour:
   id: FRAG_BOOST_01
   chipName: Wealth
   description: Increases fragments earned from enemies
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: c6029c5c589919542ae919fd4e78b760, type: 3}
   bonusType: 4
   baseBonus: 15
   bonusPerRarity: 5

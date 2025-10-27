@@ -15,7 +15,7 @@ MonoBehaviour:
   id: HEALTH_REGEN_01
   chipName: Regeneration
   description: Increases health recovery speed
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: a4c32f1f84c2bfe4b9237417b55b9276, type: 3}
   bonusType: 3
   baseBonus: 25
   bonusPerRarity: 25

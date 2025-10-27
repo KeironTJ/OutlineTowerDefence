@@ -2,11 +2,11 @@ using UnityEngine;
 
 public enum ChipRarity
 {
-    Common = 0,
-    Uncommon = 1,
-    Rare = 2,
-    Epic = 3,
-    Legendary = 4
+    Level1 = 0,
+    Level2 = 1,
+    Level3 = 2,
+    Level4 = 3,
+    Level5 = 4
 }
 
 public enum ChipBonusType
@@ -46,7 +46,7 @@ public class ChipDefinition : ScriptableObject
     
     [Header("Rarity Progression")]
     [Tooltip("Number of chips needed to reach each rarity level. Array size = max rarity level")]
-    public int[] chipsNeededForRarity = new int[] { 0, 3, 5, 7, 10 }; // Common, Uncommon, Rare, Epic, Legendary
+    public int[] chipsNeededForRarity = new int[] { 0, 3, 5, 7, 10 }; // Level1 to Level5
     
     [Header("Restrictions")]
     [Tooltip("Can this chip be changed during a round?")]

@@ -15,7 +15,7 @@ MonoBehaviour:
   id: CRIT_DMG_01
   chipName: Devastation
   description: Increases damage of critical hits
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 5b217290994eb4046ba9818d627e5b11, type: 3}
   bonusType: 6
   baseBonus: 25
   bonusPerRarity: 25

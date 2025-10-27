@@ -99,11 +99,11 @@ public class ChipDetailsPanelView : MonoBehaviour
     {
         return rarity switch
         {
-            ChipRarity.Common => Color.white,
-            ChipRarity.Uncommon => Color.green,
-            ChipRarity.Rare => Color.blue,
-            ChipRarity.Epic => new Color(0.6f, 0f, 1f),
-            ChipRarity.Legendary => new Color(1f, 0.5f, 0f),
+            ChipRarity.Level1 => Color.white,
+            ChipRarity.Level2 => Color.green,
+            ChipRarity.Level3 => Color.blue,
+            ChipRarity.Level4 => new Color(0.6f, 0f, 1f),
+            ChipRarity.Level5 => new Color(1f, 0.5f, 0f),
             _ => Color.white
         };
     }
