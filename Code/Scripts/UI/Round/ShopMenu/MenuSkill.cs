@@ -38,6 +38,10 @@ public class MenuSkill : MonoBehaviour
     private bool inRound;
     private bool subscribed;
     private int multiplier = 1;
+    private TowerStatPipeline statPipeline;
+    private bool pipelineSubscribed;
+    private ChipService chipService;
+    private bool chipsSubscribed;
 
     public void Bind(string skillId, ICurrencyWallet wallet, bool inRound)
     {
@@ -50,11 +54,23 @@ public class MenuSkill : MonoBehaviour
         if (currencyImage)
             currencyImage.sprite = currency == CurrencyType.Fragments ? fragmentsIcon : coresIcon;
 
+        EnsurePipelineHook();
         Subscribe();
         Refresh();
     }
 
     private void OnDestroy() => Unsubscribe();
+
+    private void OnEnable()
+    {
+        if (!string.IsNullOrEmpty(skillId))
+            EnsurePipelineHook();
+    }
+
+    private void OnDisable()
+    {
+        UnhookPipeline();
+    }
 
     private void Subscribe()
     {
@@ -64,6 +80,16 @@ public class MenuSkill : MonoBehaviour
         {
             SkillService.Instance.SkillUpgraded += OnSkillEvent;
             SkillService.Instance.SkillValueChanged += OnSkillEvent;
+        }
+        chipService = ChipService.Instance;
+        if (chipService != null && !chipsSubscribed)
+        {
+            chipService.ChipEquipped += OnChipChanged;
+            chipService.ChipUnequipped += OnChipSlotChanged;
+            chipService.ChipUpgraded += OnChipLevelChanged;
+            chipService.ChipUnlocked += OnChipUnlocked;
+            chipService.SlotUnlocked += OnChipSlotUnlocked;
+            chipsSubscribed = true;
         }
         subscribed = true;
     }
@@ -77,7 +103,18 @@ public class MenuSkill : MonoBehaviour
             SkillService.Instance.SkillUpgraded -= OnSkillEvent;
             SkillService.Instance.SkillValueChanged -= OnSkillEvent;
         }
+        if (chipService != null && chipsSubscribed)
+        {
+            chipService.ChipEquipped -= OnChipChanged;
+            chipService.ChipUnequipped -= OnChipSlotChanged;
+            chipService.ChipUpgraded -= OnChipLevelChanged;
+            chipService.ChipUnlocked -= OnChipUnlocked;
+            chipService.SlotUnlocked -= OnChipSlotUnlocked;
+            chipsSubscribed = false;
+            chipService = null;
+        }
         subscribed = false;
+        UnhookPipeline();
     }
 
     private void OnWalletChanged(CurrencyType type, float _) { if (type == currency) Refresh(); }
@@ -168,12 +205,18 @@ public class MenuSkill : MonoBehaviour
         var def = svc.GetDefinition(skillId);
         if (!def) return;
 
+        float currentBaseValue = svc.GetValue(skillId);
+
         // If we’re in-round and this skill is main-menu-only, show message and disable
         if (inRound && !svc.IsUpgradableInRound(skillId))
         {
             if (skillHeaderText) skillHeaderText.text = def.displayName;
             if (skillLevelText)  skillLevelText.text  = $"{svc.GetLevel(skillId)}/{def.maxLevel}";
-            if (skillValueText)  skillValueText.text  = NumberManager.FormatLargeNumber(svc.GetValue(skillId));
+            if (skillValueText)
+            {
+                float displayValue = ResolveCurrentDisplayValue(svc, currentBaseValue);
+                skillValueText.text = BuildValueString(displayValue, def.valueFormat);
+            }
             if (skillCostText)   { skillCostText.text = "Main Menu Only"; skillCostText.color = Color.white; }
             if (skillNextValueText) skillNextValueText.text = "";
             if (currencyImage) currencyImage.enabled = false;
@@ -187,8 +230,11 @@ public class MenuSkill : MonoBehaviour
 
         if (skillHeaderText) skillHeaderText.text = def.displayName;
         if (skillLevelText)  skillLevelText.text  = $"{lvl}/{max}";
-        if (skillValueText)  skillValueText.text  = $"{NumberManager.FormatLargeNumber(svc.GetValue(skillId))}" +
-            (string.IsNullOrWhiteSpace(def.valueFormat) ? "" : $" {def.valueFormat}");
+        if (skillValueText)
+        {
+            float displayValue = ResolveCurrentDisplayValue(svc, currentBaseValue);
+            skillValueText.text = BuildValueString(displayValue, def.valueFormat);
+        }
 
         float available = wallet.Get(currency);
 
@@ -212,7 +258,7 @@ public class MenuSkill : MonoBehaviour
             // Find how many steps up to MAX are affordable
             int affordable = 0;
             float costAffordable = 0f;
-            float valueAffordable = svc.GetValue(skillId);
+            float baseAffordable = currentBaseValue;
             for (int i = 1; i <= remaining; i++)
             {
                 var p = svc.GetUpgradePreview(skillId, currency, lvl, i);
@@ -220,7 +266,7 @@ public class MenuSkill : MonoBehaviour
                 {
                     affordable = i;
                     costAffordable = p.cost;
-                    valueAffordable = p.nextValue;
+                    baseAffordable = p.nextValue;
                 }
                 else break;
             }
@@ -234,7 +280,10 @@ public class MenuSkill : MonoBehaviour
                     skillCostText.color = Color.red;
                 }
                 if (skillNextValueText)
-                    skillNextValueText.text = $"x1 -> {NumberManager.FormatLargeNumber(firstStep.nextValue)}";
+                {
+                    float projected = ProjectDisplayValue(currentBaseValue, firstStep.nextValue);
+                    skillNextValueText.text = $"x1 -> {NumberManager.FormatLargeNumber(projected)}";
+                }
 
                 if (button) button.interactable = false;
                 if (currencyImage) currencyImage.enabled = true;
@@ -248,7 +297,10 @@ public class MenuSkill : MonoBehaviour
                     skillCostText.color = Color.white;
                 }
                 if (skillNextValueText)
-                    skillNextValueText.text = $"x{affordable} -> {NumberManager.FormatLargeNumber(valueAffordable)}";
+                {
+                    float projected = ProjectDisplayValue(currentBaseValue, baseAffordable);
+                    skillNextValueText.text = $"x{affordable} -> {NumberManager.FormatLargeNumber(projected)}";
+                }
 
                 if (button) button.interactable = true;
                 if (currencyImage) currencyImage.enabled = true;
@@ -271,7 +323,10 @@ public class MenuSkill : MonoBehaviour
                 skillCostText.color = canAffordFull ? Color.white : Color.red;
             }
             if (skillNextValueText)
-                skillNextValueText.text = $"x{multiplier} -> {NumberManager.FormatLargeNumber(bundle.nextValue)}";
+            {
+                float projected = ProjectDisplayValue(currentBaseValue, bundle.nextValue);
+                skillNextValueText.text = $"x{desired} -> {NumberManager.FormatLargeNumber(projected)}";
+            }
 
             if (button) button.interactable = canAffordFull;
             if (currencyImage) currencyImage.enabled = true;
@@ -288,7 +343,10 @@ public class MenuSkill : MonoBehaviour
                 skillCostText.color = (available >= capPreview.cost) ? Color.white : Color.red;
             }
             if (skillNextValueText)
-                skillNextValueText.text = $"x{remaining} -> {NumberManager.FormatLargeNumber(capPreview.nextValue)}";
+            {
+                float projected = ProjectDisplayValue(currentBaseValue, capPreview.nextValue);
+                skillNextValueText.text = $"x{remaining} -> {NumberManager.FormatLargeNumber(projected)}";
+            }
 
             if (button) button.interactable = available >= capPreview.cost;
             if (currencyImage) currencyImage.enabled = true;
@@ -345,5 +403,96 @@ public class MenuSkill : MonoBehaviour
         if (unlockPanel) unlockPanel.SetActive(false);
         // Show standard upgrade panel when hiding unlock panel
         if (standardPanel) standardPanel.SetActive(true);
+    }
+
+    private float ResolveCurrentDisplayValue(SkillService svc, float currentBase)
+    {
+        if (svc == null)
+            return 0f;
+
+        EnsurePipelineHook();
+        if (SkillStatDisplayUtility.TryGetEffectiveValue(skillId, out float effective))
+            return effective;
+
+        return currentBase;
+    }
+
+    private static string BuildValueString(float value, string valueFormat)
+    {
+        string formatted = NumberManager.FormatLargeNumber(value);
+        if (!string.IsNullOrWhiteSpace(valueFormat))
+            formatted += $" {valueFormat}";
+        return formatted;
+    }
+
+    private float ProjectDisplayValue(float currentBase, float projectedBase)
+    {
+        EnsurePipelineHook();
+        if (SkillStatDisplayUtility.TryProjectEffectiveValue(skillId, currentBase, projectedBase, out float projected))
+            return projected;
+        return projectedBase;
+    }
+
+    private void EnsurePipelineHook()
+    {
+        var pipeline = TowerStatPipeline.Instance;
+        if (pipeline == null)
+            return;
+
+        if (pipelineSubscribed && statPipeline == pipeline)
+            return;
+
+        UnhookPipeline();
+
+        statPipeline = pipeline;
+        statPipeline.EnsureServiceHooks();
+        statPipeline.StatsRebuilt -= OnPipelineStatsRebuilt;
+        statPipeline.StatsRebuilt += OnPipelineStatsRebuilt;
+        pipelineSubscribed = true;
+    }
+
+    private void UnhookPipeline()
+    {
+        if (!pipelineSubscribed || statPipeline == null)
+            return;
+
+        statPipeline.StatsRebuilt -= OnPipelineStatsRebuilt;
+        pipelineSubscribed = false;
+        statPipeline = null;
+    }
+
+    private void OnPipelineStatsRebuilt(TowerStatBundle _)
+    {
+        Refresh();
+    }
+
+    private void OnChipChanged(int _, string __)
+    {
+        TowerStatPipeline.SignalDirty();
+        Refresh();
+    }
+
+    private void OnChipSlotChanged(int _)
+    {
+        TowerStatPipeline.SignalDirty();
+        Refresh();
+    }
+
+    private void OnChipLevelChanged(string __, int ___)
+    {
+        TowerStatPipeline.SignalDirty();
+        Refresh();
+    }
+
+    private void OnChipUnlocked(string __)
+    {
+        TowerStatPipeline.SignalDirty();
+        Refresh();
+    }
+
+    private void OnChipSlotUnlocked(int _)
+    {
+        TowerStatPipeline.SignalDirty();
+        Refresh();
     }
 }

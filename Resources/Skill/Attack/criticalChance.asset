@@ -18,8 +18,8 @@ MonoBehaviour:
   category: 0
   startsUnlocked: 0
   upgradableInRound: 1
-  maxLevel: 99
-  maxResearchLevel: 99
+  maxLevel: 49
+  maxResearchLevel: 39
   baseValue: 1
   valueFormat: '%'
   baseFragmentsCost: 5
@@ -27,7 +27,7 @@ MonoBehaviour:
   prerequisiteSkillId: Targeting Range
   coresToUnlock: 100
   requiredTurretId: 
-  valueCurve: 0
+  valueCurve: 5
   valueGrowth: 1
   fragmentsCostCurve: 1
   fragmentsCostGrowth: 1.25
@@ -69,3 +69,12 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  primaryStat: 4
+  statContributionKind: 1
+  projectionMode: 0
+  pipelineScale: 1
+  displayScale: 1
+  pipelineMin: -Infinity
+  pipelineMax: Infinity
+  useSafeValue: 0
+  requiresUnlockForContribution: 0

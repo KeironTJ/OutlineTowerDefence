@@ -10,29 +10,29 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1da1f865474384f43843a9059a5f7782, type: 3}
-  m_Name: attackDamage
-  m_EditorClassIdentifier: 
-  id: Attack Damage
-  displayName: Attack Damage
-  description: 
-  category: 0
-  startsUnlocked: 1
+  m_Name: coresperkillmultiplier
+  m_EditorClassIdentifier: Assembly-CSharp::SkillDefinition
+  id: coresPerKillMultiplier
+  displayName: Cores Per Kill Multiplier
+  description: 'Multiplies the numher of cores earned from killing enemies. '
+  category: 2
+  startsUnlocked: 0
   upgradableInRound: 1
-  maxLevel: 999
-  maxResearchLevel: 99
-  baseValue: 3
-  valueFormat: 
-  baseFragmentsCost: 1
+  maxLevel: 200
+  maxResearchLevel: 200
+  baseValue: 1
+  valueFormat: x
+  baseFragmentsCost: 3
   baseCoresCost: 30
   prerequisiteSkillId: 
-  coresToUnlock: 0
+  coresToUnlock: 250
   requiredTurretId: 
-  valueCurve: 1
-  valueGrowth: 1.1
+  valueCurve: 5
+  valueGrowth: 0.025
   fragmentsCostCurve: 1
-  fragmentsCostGrowth: 1.15
+  fragmentsCostGrowth: 1.25
   coresCostCurve: 1
-  coresCostGrowth: 1.25
+  coresCostGrowth: 1.35
   customValueCurve:
     serializedVersion: 2
     m_Curve: []
@@ -41,25 +41,7 @@ MonoBehaviour:
     m_RotationOrder: 4
   customCostCurveFragments:
     serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0.2
-      outSlope: 0.2
-      tangentMode: 34
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 5
-      value: 2
-      inSlope: 0.2
-      outSlope: 0.2
-      tangentMode: 34
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0
+    m_Curve: []
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
@@ -69,7 +51,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  primaryStat: 0
+  primaryStat: 10
   statContributionKind: 1
   projectionMode: 0
   pipelineScale: 1
@@ -77,4 +59,4 @@ MonoBehaviour:
   pipelineMin: -Infinity
   pipelineMax: Infinity
   useSafeValue: 0
-  requiresUnlockForContribution: 0
+  requiresUnlockForContribution: 1

@@ -51,3 +51,12 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  primaryStat: 9
+  statContributionKind: 1
+  projectionMode: 0
+  pipelineScale: 1
+  displayScale: 1
+  pipelineMin: -Infinity
+  pipelineMax: Infinity
+  useSafeValue: 1
+  requiresUnlockForContribution: 0

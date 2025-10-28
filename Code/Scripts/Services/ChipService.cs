@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class ChipService : MonoBehaviour
+public class ChipService : MonoBehaviour, IStatContributor
 {
     public static ChipService Instance { get; private set; }
     
@@ -478,5 +478,59 @@ public class ChipService : MonoBehaviour
         
         TryAddChip(selected.id, 1);
         return true;
+    }
+
+    public void Contribute(StatCollector collector)
+    {
+        if (collector == null) return;
+
+        var bonuses = GetActiveChipBonuses();
+        if (bonuses == null || bonuses.Count == 0)
+            return;
+
+        const float PercentToScalar = 0.01f;
+
+        foreach (var entry in bonuses)
+        {
+            float bonus = entry.Value;
+            switch (entry.Key)
+            {
+                case ChipBonusType.AttackDamageMultiplier:
+                    collector.AddPercentage(StatId.AttackDamage, bonus * PercentToScalar);
+                    break;
+                case ChipBonusType.AttackSpeed:
+                    collector.AddPercentage(StatId.AttackSpeed, bonus * PercentToScalar);
+                    break;
+                case ChipBonusType.CoresPerKillMultiplier:
+                    collector.AddPercentage(StatId.CoresPerKillMultiplier, bonus * PercentToScalar);
+                    break;
+                case ChipBonusType.Health:
+                    collector.AddPercentage(StatId.MaxHealth, bonus * PercentToScalar);
+                    break;
+                case ChipBonusType.HealthRecoverySpeed:
+                    collector.AddPercentage(StatId.HealPerSecond, bonus * PercentToScalar);
+                    break;
+                case ChipBonusType.FragmentsBoost:
+                    collector.AddPercentage(StatId.FragmentMultiplier, bonus * PercentToScalar);
+                    break;
+                case ChipBonusType.CriticalChance:
+                {
+                    float critAdd = Mathf.Clamp01(Mathf.Max(0f, bonus * PercentToScalar));
+                    collector.AddPercentage(StatId.CritChance, critAdd);
+                    break;
+                }
+                case ChipBonusType.CriticalDamage:
+                    collector.AddPercentage(StatId.CritMultiplier, bonus * PercentToScalar);
+                    break;
+                case ChipBonusType.ProjectileSpeed:
+                    collector.AddPercentage(StatId.BulletSpeed, bonus * PercentToScalar);
+                    break;
+                case ChipBonusType.TurretRange:
+                    collector.AddPercentage(StatId.TargetingRange, bonus * PercentToScalar);
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 }

@@ -13,6 +13,7 @@ public enum ChipBonusType
 {
     AttackDamageMultiplier,
     AttackSpeed,
+    CoresPerKillMultiplier,
     Health,
     HealthRecoverySpeed,
     FragmentsBoost,

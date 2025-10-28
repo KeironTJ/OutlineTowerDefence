@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SkillService : MonoBehaviour
+public class SkillService : MonoBehaviour, IStatContributor
 {
     public static SkillService Instance { get; private set; }
 
@@ -17,6 +17,45 @@ public class SkillService : MonoBehaviour
 
     private bool roundActive = false; 
     public bool RoundActive => roundActive;
+
+    public void Contribute(StatCollector collector)
+    {
+        if (collector == null) return;
+
+        foreach (var definition in defs.Values)
+        {
+            if (definition == null || !definition.HasStatMapping)
+                continue;
+
+            if (definition.requiresUnlockForContribution && !IsUnlocked(definition.id, persistentOnly: false))
+                continue;
+
+            if (definition.statContributionKind == SkillContributionKind.None)
+                continue;
+
+            float rawValue = definition.useSafeValue
+                ? GetValueSafe(definition.id)
+                : GetValue(definition.id);
+
+            float pipelineValue = definition.ToPipelineValue(rawValue);
+
+            switch (definition.statContributionKind)
+            {
+                case SkillContributionKind.Base:
+                    collector.AddBase(definition.primaryStat, pipelineValue);
+                    break;
+                case SkillContributionKind.FlatBonus:
+                    collector.AddFlatBonus(definition.primaryStat, pipelineValue);
+                    break;
+                case SkillContributionKind.Multiplier:
+                    collector.AddMultiplier(definition.primaryStat, pipelineValue);
+                    break;
+                case SkillContributionKind.Percentage:
+                    collector.AddPercentage(definition.primaryStat, pipelineValue);
+                    break;
+            }
+        }
+    }
 
 
     // --- PUBLIC DEFINITION ACCESS ---
@@ -322,20 +361,16 @@ public class SkillService : MonoBehaviour
         if (!persistent.TryGetValue(id, out var ps)) return false;
         if (ps.unlocked) return true;
 
-        // prerequisite must be unlocked
-        if (!string.IsNullOrEmpty(def.prerequisiteSkillId))
-        {
-            if (!persistent.TryGetValue(def.prerequisiteSkillId, out var pre) || !pre.unlocked)
-                return false;
-        }
-
         float cost = Mathf.Max(0f, def.coresToUnlock);
         if (cost > 0f && !wallet.TrySpend(CurrencyType.Cores, cost))
             return false;
 
         ps.unlocked = true;
-        // optional: notify listeners
+        if (roundActive && round.TryGetValue(id, out var roundState))
+            roundState.unlocked = true;
+
         SkillValueChanged?.Invoke(id);
+        EventManager.TriggerEvent(EventNames.SkillUnlocked, new SkillUnlockedEvent(id));
         return true;
     }
 

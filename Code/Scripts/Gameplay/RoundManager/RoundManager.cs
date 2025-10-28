@@ -502,11 +502,10 @@ public class RoundManager : MonoBehaviour
             float finalLoops = rawEnemyReward.loops;   // no modifiers for now
 
             AddFragmentsWithModifiers(finalFragments);
-            playerManager.Wallet.Add(CurrencyType.Cores, finalCores);
+            AddCoresWithModifiers(finalCores);
             playerManager.Wallet.Add(CurrencyType.Prisms, finalPrisms);
             playerManager.Wallet.Add(CurrencyType.Loops, finalLoops);
 
-            currencyEarnedThisRound[CurrencyType.Cores] += finalCores;
             currencyEarnedThisRound[CurrencyType.Prisms] += finalPrisms;
             currencyEarnedThisRound[CurrencyType.Loops] += finalLoops;
             
@@ -558,17 +557,39 @@ public class RoundManager : MonoBehaviour
         roundWallet?.Add(CurrencyType.Fragments, amount);
     }
 
+    private void AddCoresWithModifiers(float baseCores)
+    {
+        if (baseCores <= 0f) return;
+
+        var pipeline = TowerStatPipeline.Instance;
+        pipeline?.EnsureServiceHooks();
+        float coreMult = pipeline?.CurrentBundle.GetOrDefault(StatId.CoresPerKillMultiplier, 1f) ?? 1f;
+        float finalCores = baseCores * coreMult;
+
+        playerManager.Wallet.Add(CurrencyType.Cores, finalCores);
+
+        // Track earned (final credited amount)
+        currencyEarnedThisRound[CurrencyType.Cores] += finalCores;
+    }
+
     private float ComputeFinalFragments(float baseAmount)
     {
-        // Skill: additive percent (e.g. 0.25 => +25%)
-        float fragmentsSkillMult = Mathf.Max(0f, GetSkillValueSafe(FragmentsModifierSkillId));
+        float fragmentsMultiplier = 0f;
+        var pipeline = TowerStatPipeline.Instance;
+        if (pipeline != null)
+        {
+            pipeline.EnsureServiceHooks();
+            fragmentsMultiplier = pipeline.CurrentBundle.GetOrDefault(StatId.FragmentMultiplier, 0f);
+        }
+
+        if (fragmentsMultiplier <= 0f)
+            fragmentsMultiplier = Mathf.Max(0f, GetSkillValueSafe(FragmentsModifierSkillId));
 
         // Difficulty multiplier (1 = no change)
         float difficultyMult = 1f * roundDifficulty;
 
-        // Order: base * (1 + additive) * difficulty * temp
-        //Debug.Log($"Fragment Gain Calc: base {baseAmount} * (additive {fragmentsSkillMult}) * diff {difficultyMult} * temp {tempBuffMult}");
-        return baseAmount * fragmentsSkillMult * difficultyMult;
+        // Order: base * fragmentsMultiplier * difficulty * temp
+        return baseAmount * fragmentsMultiplier * difficultyMult;
         
     }
 

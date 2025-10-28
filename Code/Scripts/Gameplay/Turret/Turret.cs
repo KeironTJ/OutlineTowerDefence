@@ -44,15 +44,10 @@ public class Turret : MonoBehaviour
     private const int rangeSegments = 50;
     private float lastRange = -1f;
 
+    private TowerStatPipeline statPipeline;
+    private TowerStatBundle cachedStats = TowerStatBundle.Empty;
+    private bool pipelineSubscribed;
     private SkillService skillService => SkillService.Instance;
-
-    // skill ids (global constants you keep/use elsewhere)
-    private const string attackDamageSkillId = "Attack Damage";
-    private const string attackSpeedSkillId = "Attack Speed";
-    private const string bulletSpeedSkillId = "Bullet Speed";
-    private const string criticalChanceSkillId = "Critical Chance";
-    private const string criticalMultiplierSkillId = "Critical Multiplier";
-    private const string targetingRangeSkillId = "Targeting Range";
 
     private void Start()
     {
@@ -75,6 +70,8 @@ public class Turret : MonoBehaviour
             skillPrefix = string.IsNullOrEmpty(def.id) ? "" : def.id + "_";
         }
 
+        EnsurePipelineHook();
+
         // compute initial runtime stats (composition)
         RecomputeRuntimeStats();
 
@@ -90,25 +87,38 @@ public class Turret : MonoBehaviour
     {
         if (skillService != null)
             skillService.SkillUpgraded -= OnSkillUpgraded;
+        if (statPipeline != null && pipelineSubscribed)
+            statPipeline.StatsRebuilt -= OnPipelineStatsRebuilt;
     }
 
-    // recompute runtime stats using SkillService only (definition only supplies suffix keys)
+    private void EnsurePipelineHook()
+    {
+        if (pipelineSubscribed)
+            return;
+
+        statPipeline = TowerStatPipeline.Instance;
+        if (statPipeline == null)
+            return;
+
+        cachedStats = statPipeline.CurrentBundle;
+        statPipeline.StatsRebuilt += OnPipelineStatsRebuilt;
+        pipelineSubscribed = true;
+    }
+
+    private void OnPipelineStatsRebuilt(TowerStatBundle bundle)
+    {
+        cachedStats = bundle;
+        RecomputeRuntimeStats();
+    }
+
+    // recompute runtime stats using pipeline for global values and skills for turret-specific multipliers
     private void RecomputeRuntimeStats()
     {
-        if (skillService == null)
-        {
-            // conservative defaults if SkillService missing
-            runtimeDamage = 0f;
-            runtimeFireRate = 0.0001f;
-            runtimeRange = 0.01f;
-            runtimeRotationSpeed = baseRotationSpeed;
-            return;
-        }
+        EnsurePipelineHook();
 
-        // Core/global base values come from SkillService (GetValueSafe should provide sensible defaults)
-        float globalAttack = skillService.GetValueSafe(attackDamageSkillId);
-        float globalAttackSpeed = skillService.GetValueSafe(attackSpeedSkillId);
-        float globalRange = skillService.GetValueSafe(targetingRangeSkillId);
+        float globalAttack = Mathf.Max(0.001f, cachedStats.AttackDamage);
+        float globalAttackSpeed = Mathf.Max(0.0001f, cachedStats.AttackSpeed);
+        float globalRange = Mathf.Max(0.01f, cachedStats.TargetingRange);
 
         // Turret-specific skill entries (treated as multipliers for damage/fireRate/range)
         float turretDamageMultiplier = 1f;
@@ -116,7 +126,7 @@ public class Turret : MonoBehaviour
         float turretRangeMultiplier = 1f;
         float turretRotationMultiplier = 1f;
 
-        if (activeDefinition != null)
+        if (activeDefinition != null && skillService != null)
         {
             if (!string.IsNullOrEmpty(activeDefinition.skillSuffixDamage))
             {
@@ -149,8 +159,8 @@ public class Turret : MonoBehaviour
 
         // Compose final runtime stats (slot multipliers still apply)
         runtimeDamage = globalAttack * turretDamageMultiplier * storedSlotDamageMult;
-        runtimeFireRate = globalAttackSpeed * turretFireRateMultiplier * storedSlotFireRateMult;
-        runtimeRange = globalRange * turretRangeMultiplier;
+        runtimeFireRate = Mathf.Max(0.0001f, globalAttackSpeed * turretFireRateMultiplier * storedSlotFireRateMult);
+        runtimeRange = Mathf.Max(0.01f, globalRange * turretRangeMultiplier);
         runtimeRotationSpeed = baseRotationSpeed * turretRotationMultiplier;
 
         // diagnostics
@@ -163,12 +173,8 @@ public class Turret : MonoBehaviour
         if (activeDefinition == null) return;
         if (string.IsNullOrEmpty(skillPrefix)) return;
 
-        // if the upgraded skill affects this turret or is a global attack skill, recompute runtime stats
-        if (skillId.StartsWith(skillPrefix) ||
-            skillId == attackDamageSkillId || skillId == attackSpeedSkillId || skillId == targetingRangeSkillId)
-        {
+        if (skillId.StartsWith(skillPrefix))
             RecomputeRuntimeStats();
-        }
     }
 
     private void Update()
@@ -235,21 +241,14 @@ public class Turret : MonoBehaviour
 
     private float GetCritChance01()
     {
-        if (skillService == null) return 0f;
-        bool unlocked = skillService.IsUnlocked(criticalChanceSkillId, persistentOnly: false);
-        if (!unlocked) return 0f;
-
-        float raw = GetSkillValue(criticalChanceSkillId); // authored as percent, 1 => 1%
-        return Mathf.Clamp01(raw * 0.01f);
+        EnsurePipelineHook();
+        return Mathf.Clamp01(cachedStats.CritChance);
     }
 
     private float GetCritMultiplier()
     {
-        if (skillService == null) return 1f;
-        bool unlocked = skillService.IsUnlocked(criticalMultiplierSkillId, persistentOnly: false);
-        if (!unlocked) return 1f;
-
-        return Mathf.Max(1f, GetSkillValue(criticalMultiplierSkillId));
+        EnsurePipelineHook();
+        return Mathf.Max(1f, cachedStats.CritMultiplier);
     }
 
     private void Shoot()
@@ -288,7 +287,7 @@ public class Turret : MonoBehaviour
         if (bulletScript)
         {
             bulletScript.SetTarget(currentTarget);
-            bulletScript.SetSpeed(GetSkillValue(bulletSpeedSkillId));
+            bulletScript.SetSpeed(GetBulletSpeed());
             bulletScript.SetOriginAndMaxRange(firingPoint.position, runtimeRange);
 
             // Use runtimeDamage composed from SkillService/definition/slot multipliers
@@ -446,11 +445,13 @@ public class Turret : MonoBehaviour
         rangeRenderer.material = rangeMaterial;
     }
 
-    // --- Skill Helpers ---
-    private float GetSkillValue(string id)
+    private float GetBulletSpeed()
     {
-        // use GetValueSafe so missing keys return sensible default (implementation-specific)
-        return (skillService != null) ? skillService.GetValueSafe(id) : 0f;
+        EnsurePipelineHook();
+        float speed = cachedStats.BulletSpeed;
+        if (speed <= 0f)
+            speed = 1f;
+        return speed;
     }
     
     // --- Projectile Management ---

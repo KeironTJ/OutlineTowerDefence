@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
 
 [RequireComponent(typeof(LineRenderer))]
 public class Tower : MonoBehaviour
@@ -13,11 +12,6 @@ public class Tower : MonoBehaviour
     [SerializeField] private bool isHealing = false;
     [SerializeField] private bool towerAlive = true;
 
-    [Header("Support Skill Ids")]
-    [SerializeField] private string healthSkillId = "Health";
-    [SerializeField] private string healSpeedSkillId = "Heal Speed";
-    [SerializeField] private string armorSkillId = "Armor";
-
     // Events
     public event System.Action<float, float> HealthChanged; // (current,max)
     public event System.Action TowerDestroyed;
@@ -29,7 +23,9 @@ public class Tower : MonoBehaviour
     private RoundManager roundManager;
     private EnemySpawner enemySpawner;
     private UIManager uiManager;
-    private SkillService skillService;
+    private TowerStatPipeline statPipeline;
+    private TowerStatBundle cachedStats = TowerStatBundle.Empty;
+    private bool pipelineSubscribed;
 
     private float lastKnownMaxHealth = 0f;
 
@@ -40,14 +36,16 @@ public class Tower : MonoBehaviour
 
     private void OnEnable()
     {
-        if (SkillService.Instance != null)
-            SkillService.Instance.SkillUpgraded += OnSkillUpgraded;
+        EnsurePipelineHook();
     }
 
     private void OnDisable()
     {
-        if (SkillService.Instance != null)
-            SkillService.Instance.SkillUpgraded -= OnSkillUpgraded;
+        if (statPipeline != null && pipelineSubscribed)
+        {
+            statPipeline.StatsRebuilt -= OnPipelineStatsRebuilt;
+            pipelineSubscribed = false;
+        }
     }
 
     public void Initialize(RoundManager roundManager, EnemySpawner enemySpawner, UIManager uiManager)
@@ -55,7 +53,8 @@ public class Tower : MonoBehaviour
         this.roundManager = roundManager;
         this.enemySpawner = enemySpawner;
         this.uiManager = uiManager;
-        skillService = SkillService.Instance;
+
+        EnsurePipelineHook();
 
         lastKnownMaxHealth = GetMaxHealth();
         currentHealth = lastKnownMaxHealth;
@@ -68,21 +67,9 @@ public class Tower : MonoBehaviour
         ManageHealth();
     }
 
-    // --- Skill Helpers ---
-    private float GetSkillValue(string id)
-    {
-        return (skillService != null) ? skillService.GetValue(id) : 0f;
-    }
-
     private float GetMaxHealth()
     {
-        return Mathf.Max(1f, GetSkillValue(healthSkillId));
-    }
-
-    private void OnSkillUpgraded(string skillId)
-    {
-        if (skillId == healthSkillId)
-            OnMaxHealthChanged();
+        return Mathf.Max(1f, cachedStats.MaxHealth);
     }
 
     private void OnMaxHealthChanged()
@@ -114,7 +101,7 @@ public class Tower : MonoBehaviour
 
         while (towerAlive && currentHealth < GetMaxHealth())
         {
-            float healSpeed = GetSkillValue(healSpeedSkillId);
+            float healSpeed = Mathf.Max(0f, cachedStats.HealPerSecond);
             if (healSpeed <= 0f) break;
             currentHealth = Mathf.Min(currentHealth + healSpeed * Time.deltaTime, GetMaxHealth());
             InvokeHealthChanged();
@@ -158,13 +145,7 @@ public class Tower : MonoBehaviour
     {
         if (dmg <= 0f || !towerAlive) return;
 
-        float armorPct = 0f;
-        bool armorUnlocked = skillService != null && skillService.IsUnlocked(armorSkillId, persistentOnly: false);
-        if (armorUnlocked)
-        {
-            float armorRaw = GetSkillValue(armorSkillId);
-            armorPct = Mathf.Clamp01(armorRaw * 0.01f);
-        }
+        float armorPct = Mathf.Clamp01(cachedStats.ArmorPercent);
 
         float reducedDamage = dmg * (1f - armorPct);
         AddHealth(-reducedDamage);
@@ -197,5 +178,38 @@ public class Tower : MonoBehaviour
 
         if (currentHealth < GetMaxHealth() && towerAlive)
             StartHealing();
+    }
+
+    private void EnsurePipelineHook()
+    {
+        var pipeline = TowerStatPipeline.Instance;
+        if (pipeline == null)
+            return;
+
+        if (pipelineSubscribed && statPipeline == pipeline)
+        {
+            cachedStats = pipeline.CurrentBundle;
+            if (lastKnownMaxHealth > 0f)
+                OnMaxHealthChanged();
+            return;
+        }
+
+        if (pipelineSubscribed && statPipeline != null)
+            statPipeline.StatsRebuilt -= OnPipelineStatsRebuilt;
+
+        statPipeline = pipeline;
+        statPipeline.StatsRebuilt -= OnPipelineStatsRebuilt; // avoid duplicate handlers
+        statPipeline.StatsRebuilt += OnPipelineStatsRebuilt;
+        pipelineSubscribed = true;
+
+        cachedStats = statPipeline.CurrentBundle;
+        if (lastKnownMaxHealth > 0f)
+            OnMaxHealthChanged();
+    }
+
+    private void OnPipelineStatsRebuilt(TowerStatBundle bundle)
+    {
+        cachedStats = bundle;
+        OnMaxHealthChanged();
     }
 }

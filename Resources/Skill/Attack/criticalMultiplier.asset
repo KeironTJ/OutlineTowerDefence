@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: Critical Multiplier
   displayName: Critical Multiplier
+  description: 
   category: 0
   startsUnlocked: 0
+  upgradableInRound: 1
   maxLevel: 50
   maxResearchLevel: 10
   baseValue: 1
@@ -24,6 +26,7 @@ MonoBehaviour:
   baseCoresCost: 10
   prerequisiteSkillId: Critical Chance
   coresToUnlock: 0
+  requiredTurretId: 
   valueCurve: 4
   valueGrowth: 0.05
   fragmentsCostCurve: 1
@@ -66,3 +69,12 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  primaryStat: 5
+  statContributionKind: 1
+  projectionMode: 0
+  pipelineScale: 1
+  displayScale: 1
+  pipelineMin: -Infinity
+  pipelineMax: Infinity
+  useSafeValue: 0
+  requiresUnlockForContribution: 0
