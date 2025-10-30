@@ -16,10 +16,15 @@ MonoBehaviour:
   chipName: Velocity
   description: Increases projectile travel speed
   icon: {fileID: 21300000, guid: 89e1890258b796b449cb131922318506, type: 3}
-  bonusType: 7
-  baseBonus: 10
-  bonusPerRarity: 5
-  bonusFormat: +{0}%
+  baseBonus: 1.1
+  bonusPerRarity: 0.05
+  bonusFormat: x{0}
+  targetStat: 3
+  contributionKind: 3
+  pipelineScale: 1
+  displayScale: 1
+  pipelineMin: -Infinity
+  pipelineMax: Infinity
   chipsNeededForRarity: 0000000003000000080000000f00000019000000
   canChangeInRound: 1
   unlockWave: 1

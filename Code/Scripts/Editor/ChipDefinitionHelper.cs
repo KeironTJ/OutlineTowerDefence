@@ -23,10 +23,13 @@ public class ChipDefinitionHelper : EditorWindow
             "ATK_BOOST_01",
             "Power Surge",
             "Increases attack damage by a percentage",
-            ChipBonusType.AttackDamageMultiplier,
+            StatId.AttackDamage,
+            SkillContributionKind.Percentage,
             5.0f,
             3.0f,
-            "+{0}%"
+            "+{0}%",
+            0.01f,
+            100f
         );
         
         // Example 2: Attack Speed Boost
@@ -35,10 +38,13 @@ public class ChipDefinitionHelper : EditorWindow
             "ATK_SPD_01",
             "Rapid Fire",
             "Increases attack speed for faster shots",
-            ChipBonusType.AttackSpeed,
+            StatId.AttackSpeed,
+            SkillContributionKind.Percentage,
             8.0f,
             4.0f,
-            "+{0}%"
+            "+{0}%",
+            0.01f,
+            100f
         );
         
         // Example 3: Health Boost
@@ -47,10 +53,13 @@ public class ChipDefinitionHelper : EditorWindow
             "HEALTH_01",
             "Fortify",
             "Increases tower maximum health",
-            ChipBonusType.Health,
+            StatId.MaxHealth,
+            SkillContributionKind.Percentage,
             10.0f,
             5.0f,
-            "+{0}%"
+            "+{0}%",
+            0.01f,
+            100f
         );
         
         // Example 4: Fragments Boost
@@ -59,10 +68,13 @@ public class ChipDefinitionHelper : EditorWindow
             "FRAG_BOOST_01",
             "Wealth",
             "Increases fragments earned from enemies",
-            ChipBonusType.FragmentsBoost,
+            StatId.FragmentMultiplier,
+            SkillContributionKind.Percentage,
             15.0f,
             5.0f,
-            "+{0}%"
+            "+{0}%",
+            0.01f,
+            100f
         );
         
         // Example 5: Critical Chance
@@ -71,10 +83,13 @@ public class ChipDefinitionHelper : EditorWindow
             "CRIT_CHANCE_01",
             "Lucky Shot",
             "Increases chance for critical hits",
-            ChipBonusType.CriticalChance,
+            StatId.CritChance,
+            SkillContributionKind.Percentage,
             5.0f,
             2.0f,
-            "+{0}%"
+            "+{0}%",
+            0.01f,
+            100f
         );
         
         // Example 6: Critical Damage
@@ -83,10 +98,13 @@ public class ChipDefinitionHelper : EditorWindow
             "CRIT_DMG_01",
             "Devastation",
             "Increases damage of critical hits",
-            ChipBonusType.CriticalDamage,
+            StatId.CritMultiplier,
+            SkillContributionKind.Percentage,
             25.0f,
             10.0f,
-            "+{0}%"
+            "+{0}%",
+            0.01f,
+            100f
         );
         
         // Example 7: Health Recovery
@@ -95,10 +113,13 @@ public class ChipDefinitionHelper : EditorWindow
             "HEALTH_REGEN_01",
             "Regeneration",
             "Increases health recovery speed",
-            ChipBonusType.HealthRecoverySpeed,
+            StatId.HealPerSecond,
+            SkillContributionKind.Percentage,
             10.0f,
             5.0f,
-            "+{0}%"
+            "+{0}%",
+            0.01f,
+            100f
         );
         
         // Example 8: Projectile Speed
@@ -107,10 +128,13 @@ public class ChipDefinitionHelper : EditorWindow
             "PROJ_SPD_01",
             "Velocity",
             "Increases projectile travel speed",
-            ChipBonusType.ProjectileSpeed,
+            StatId.BulletSpeed,
+            SkillContributionKind.Percentage,
             10.0f,
             5.0f,
-            "+{0}%"
+            "+{0}%",
+            0.01f,
+            100f
         );
         
         // Example 9: Turret Range
@@ -119,10 +143,13 @@ public class ChipDefinitionHelper : EditorWindow
             "RANGE_01",
             "Eagle Eye",
             "Increases turret targeting range",
-            ChipBonusType.TurretRange,
+            StatId.TargetingRange,
+            SkillContributionKind.Percentage,
             8.0f,
             4.0f,
-            "+{0}%"
+            "+{0}%",
+            0.01f,
+            100f
         );
         
         // Example 10: Experience Boost
@@ -131,10 +158,13 @@ public class ChipDefinitionHelper : EditorWindow
             "EXP_BOOST_01",
             "Knowledge",
             "Increases experience gained",
-            ChipBonusType.ExperienceBoost,
+            StatId.CoresPerKillMultiplier,
+            SkillContributionKind.Percentage,
             12.0f,
             6.0f,
-            "+{0}%"
+            "+{0}%",
+            0.01f,
+            100f
         );
         
         AssetDatabase.SaveAssets();
@@ -153,10 +183,13 @@ public class ChipDefinitionHelper : EditorWindow
         string id,
         string chipName,
         string description,
-        ChipBonusType bonusType,
+        StatId targetStat,
+        SkillContributionKind contributionKind,
         float baseBonus,
         float bonusPerRarity,
-        string bonusFormat)
+        string bonusFormat,
+        float pipelineScale,
+        float displayScale)
     {
         string assetPath = $"{folderPath}/{id}.asset";
         
@@ -172,10 +205,13 @@ public class ChipDefinitionHelper : EditorWindow
         chip.id = id;
         chip.chipName = chipName;
         chip.description = description;
-        chip.bonusType = bonusType;
         chip.baseBonus = baseBonus;
         chip.bonusPerRarity = bonusPerRarity;
         chip.bonusFormat = bonusFormat;
+    chip.targetStat = targetStat;
+    chip.contributionKind = contributionKind;
+    chip.pipelineScale = pipelineScale;
+    chip.displayScale = displayScale;
         chip.chipsNeededForRarity = new int[] { 0, 3, 5, 7, 10 };
         chip.canChangeInRound = true;
         chip.unlockWave = 1;

@@ -9,21 +9,6 @@ public enum ChipRarity
     Level5 = 4
 }
 
-public enum ChipBonusType
-{
-    AttackDamageMultiplier,
-    AttackSpeed,
-    CoresPerKillMultiplier,
-    Health,
-    HealthRecoverySpeed,
-    FragmentsBoost,
-    CriticalChance,
-    CriticalDamage,
-    ProjectileSpeed,
-    TurretRange,
-    ExperienceBoost
-}
-
 [CreateAssetMenu(menuName = "Outline/ChipDefinition")]
 public class ChipDefinition : ScriptableObject
 {
@@ -37,13 +22,24 @@ public class ChipDefinition : ScriptableObject
     public Sprite icon;
     
     [Header("Bonus Configuration")]
-    public ChipBonusType bonusType;
     [Tooltip("Base bonus value at rarity level 0 (Common)")]
     public float baseBonus = 1.0f;
     [Tooltip("Bonus multiplier per rarity level")]
     public float bonusPerRarity = 0.5f;
     [Tooltip("Format string for display (e.g., '+{0}%' or '{0}x')")]
     public string bonusFormat = "+{0}%";
+
+    [Header("Stat Mapping")]
+    public StatId targetStat = StatId.Count;
+    public SkillContributionKind contributionKind = SkillContributionKind.FlatBonus;
+    [Tooltip("Multiplier applied before pushing the value into the pipeline (e.g. convert percent to scalar by using 0.01).")]
+    public float pipelineScale = 1f;
+    [Tooltip("Optional scaling used for display helpers (e.g. convert scalar back to percent).")] 
+    public float displayScale = 1f;
+    [Tooltip("Minimum pipeline value after scaling (useful for clamping multipliers).")]
+    public float pipelineMin = float.NegativeInfinity;
+    [Tooltip("Maximum pipeline value after scaling (useful for clamping multipliers).")]
+    public float pipelineMax = float.PositiveInfinity;
     
     [Header("Rarity Progression")]
     [Tooltip("Number of chips needed to reach each rarity level. Array size = max rarity level")]
@@ -85,4 +81,6 @@ public class ChipDefinition : ScriptableObject
         rarityLevel = Mathf.Clamp(rarityLevel, 0, 4);
         return (ChipRarity)rarityLevel;
     }
+
+    public bool HasStatMapping => targetStat != StatId.Count;
 }

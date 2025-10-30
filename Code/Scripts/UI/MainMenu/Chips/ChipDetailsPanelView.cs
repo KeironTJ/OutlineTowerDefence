@@ -48,7 +48,7 @@ public class ChipDetailsPanelView : MonoBehaviour
         }
 
         if (chipBonusText != null)
-            chipBonusText.text = $"Bonus: {definition.GetFormattedBonus(progress.rarityLevel)} {definition.bonusType}";
+            chipBonusText.text = $"Bonus: {definition.GetFormattedBonus(progress.rarityLevel)}";
 
         if (chipProgressText != null)
         {

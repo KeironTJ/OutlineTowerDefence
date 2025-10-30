@@ -226,47 +226,6 @@ public class RoundManager : MonoBehaviour
     private void ApplyRoundStartBonuses()
     {
         SetStartFragments(); // starting fragments
-        ApplyChipBonuses(); // chip bonuses
-    }
-    
-    private void ApplyChipBonuses()
-    {
-        var chipService = ChipService.Instance;
-        if (chipService == null) return;
-        
-        var bonuses = chipService.GetActiveChipBonuses();
-        
-        // Apply chip bonuses to skill system if available
-        if (skillService == null) return;
-        
-        foreach (var bonus in bonuses)
-        {
-            Debug.Log($"[RoundManager] Applying chip bonus: {bonus.Key} = {bonus.Value}");
-            
-            // Map chip bonuses to skill modifiers
-            // This applies bonuses to the round layer of skills
-            switch (bonus.Key)
-            {
-                case ChipBonusType.AttackDamageMultiplier:
-                    // Could modify "Attack Damage" skill or similar
-                    break;
-                case ChipBonusType.AttackSpeed:
-                    // Could modify "Fire Rate" skill or similar
-                    break;
-                case ChipBonusType.FragmentsBoost:
-                    // Apply fragments multiplier
-                    if (roundWallet != null)
-                    {
-                        float currentFragments = roundWallet.Get(CurrencyType.Fragments);
-                        float boostedFragments = currentFragments * (1f + bonus.Value / 100f);
-                        float difference = boostedFragments - currentFragments;
-                        if (difference > 0)
-                            roundWallet.Add(CurrencyType.Fragments, difference);
-                    }
-                    break;
-                // Add more cases as needed
-            }
-        }
     }
 
     public void EndRound()

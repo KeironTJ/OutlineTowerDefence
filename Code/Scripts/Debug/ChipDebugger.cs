@@ -117,20 +117,30 @@ public class ChipDebugger : MonoBehaviour
         
         GUILayout.Space(10);
         
-        // Active Bonuses
-        GUILayout.Label("=== Active Bonuses ===", GUI.skin.box);
-        var bonuses = chipService.GetActiveChipBonuses();
-        if (bonuses.Count == 0)
+        // Active Contributions
+        GUILayout.Label("=== Active Contributions ===", GUI.skin.box);
+        bool printedContribution = false;
+        for (int i = 0; i < unlockedSlots; i++)
         {
-            GUILayout.Label("No chips equipped");
+            string chipId = chipService.GetEquippedChip(i);
+            if (string.IsNullOrEmpty(chipId))
+                continue;
+
+            var def = chipService.GetDefinition(chipId);
+            var progress = chipService.GetProgress(chipId);
+            if (def == null || progress == null || !progress.unlocked || !def.HasStatMapping)
+                continue;
+
+            float rawBonus = def.GetBonusAtRarity(progress.rarityLevel);
+            float pipelineValue = def.ToPipelineValue(rawBonus);
+            float displayValue = def.FromPipelineToDisplay(pipelineValue);
+
+            GUILayout.Label($"Slot {i}: {def.chipName} → {def.contributionKind} {def.targetStat} = {displayValue:F2}");
+            printedContribution = true;
         }
-        else
-        {
-            foreach (var bonus in bonuses)
-            {
-                GUILayout.Label($"{bonus.Key}: +{bonus.Value:F1}");
-            }
-        }
+
+        if (!printedContribution)
+            GUILayout.Label("No stat-contributing chips equipped");
         
         GUILayout.Space(10);
         

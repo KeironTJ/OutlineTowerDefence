@@ -16,10 +16,15 @@ MonoBehaviour:
   chipName: Regeneration
   description: Increases health recovery speed
   icon: {fileID: 21300000, guid: a4c32f1f84c2bfe4b9237417b55b9276, type: 3}
-  bonusType: 3
-  baseBonus: 25
-  bonusPerRarity: 25
-  bonusFormat: +{0}%
+  baseBonus: 1.25
+  bonusPerRarity: 0.25
+  bonusFormat: x{0}
+  targetStat: 7
+  contributionKind: 3
+  pipelineScale: 1
+  displayScale: 1
+  pipelineMin: -Infinity
+  pipelineMax: Infinity
   chipsNeededForRarity: 0000000003000000080000000f00000019000000
   canChangeInRound: 1
   unlockWave: 1

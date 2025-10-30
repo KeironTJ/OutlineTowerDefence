@@ -16,10 +16,15 @@ MonoBehaviour:
   chipName: Cores / Kill Multiplier
   description: 'Multiplies cores receiving from killing enemies. '
   icon: {fileID: 21300000, guid: caf7ba4aae0034f4baf1a95964ed093d, type: 3}
-  bonusType: 2
-  baseBonus: 10
-  bonusPerRarity: 5
-  bonusFormat: +{0}%
+  baseBonus: 1.1
+  bonusPerRarity: 0.05
+  bonusFormat: x{0}
+  targetStat: 10
+  contributionKind: 3
+  pipelineScale: 1
+  displayScale: 1
+  pipelineMin: -Infinity
+  pipelineMax: Infinity
   chipsNeededForRarity: 0000000003000000080000000f00000019000000
   canChangeInRound: 1
   unlockWave: 1

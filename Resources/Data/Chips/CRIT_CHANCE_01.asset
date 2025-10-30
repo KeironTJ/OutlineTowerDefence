@@ -16,10 +16,15 @@ MonoBehaviour:
   chipName: Lucky Shot
   description: Increases chance for critical hits
   icon: {fileID: 21300000, guid: 76e82c6a24421cc4988cb8ce270db0f4, type: 3}
-  bonusType: 6
-  baseBonus: 20
-  bonusPerRarity: 20
+  baseBonus: 1
+  bonusPerRarity: 1
   bonusFormat: +{0}%
+  targetStat: 4
+  contributionKind: 2
+  pipelineScale: 1
+  displayScale: 1
+  pipelineMin: -Infinity
+  pipelineMax: Infinity
   chipsNeededForRarity: 0000000003000000080000000f00000019000000
   canChangeInRound: 1
   unlockWave: 1

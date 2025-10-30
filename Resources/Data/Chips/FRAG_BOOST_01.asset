@@ -16,10 +16,15 @@ MonoBehaviour:
   chipName: Wealth
   description: Increases fragments earned from enemies
   icon: {fileID: 21300000, guid: c6029c5c589919542ae919fd4e78b760, type: 3}
-  bonusType: 4
-  baseBonus: 15
-  bonusPerRarity: 5
-  bonusFormat: +{0}%
+  baseBonus: 1.15
+  bonusPerRarity: 0.05
+  bonusFormat: x{0}
+  targetStat: 9
+  contributionKind: 3
+  pipelineScale: 1
+  displayScale: 1
+  pipelineMin: -Infinity
+  pipelineMax: Infinity
   chipsNeededForRarity: 0000000003000000080000000f00000019000000
   canChangeInRound: 1
   unlockWave: 1

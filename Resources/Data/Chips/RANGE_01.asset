@@ -16,10 +16,15 @@ MonoBehaviour:
   chipName: Eagle Eye
   description: Increases turret targeting range
   icon: {fileID: 21300000, guid: 612788e7e304c554ab656ee180a899f9, type: 3}
-  bonusType: 8
   baseBonus: 2
   bonusPerRarity: 2
   bonusFormat: +{0}%
+  targetStat: 2
+  contributionKind: 4
+  pipelineScale: 0.01
+  displayScale: 100
+  pipelineMin: -Infinity
+  pipelineMax: Infinity
   chipsNeededForRarity: 0000000003000000080000000f00000019000000
   canChangeInRound: 1
   unlockWave: 1

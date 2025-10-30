@@ -24,7 +24,7 @@ MonoBehaviour:
   valueFormat: x
   baseFragmentsCost: 3
   baseCoresCost: 30
-  prerequisiteSkillId: 
+  prerequisiteSkillId: Start Fragments
   coresToUnlock: 250
   requiredTurretId: 
   valueCurve: 5

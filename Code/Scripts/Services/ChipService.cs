@@ -392,42 +392,6 @@ public class ChipService : MonoBehaviour, IStatContributor
         return true;
     }
     
-    // Bonus Calculation
-    public Dictionary<ChipBonusType, float> GetActiveChipBonuses()
-    {
-        var bonuses = new Dictionary<ChipBonusType, float>();
-        
-        var equipped = GetEquippedSlotsInternal();
-        if (equipped == null)
-            return bonuses;
-        
-        foreach (var slot in equipped)
-        {
-            if (string.IsNullOrEmpty(slot.equippedChipId)) continue;
-            
-            var def = GetDefinition(slot.equippedChipId);
-            if (def == null) continue;
-            
-            var progress = GetProgress(slot.equippedChipId);
-            if (progress == null || !progress.unlocked) continue;
-            
-            float bonus = def.GetBonusAtRarity(progress.rarityLevel);
-            
-            if (!bonuses.ContainsKey(def.bonusType))
-                bonuses[def.bonusType] = 0f;
-            
-            bonuses[def.bonusType] += bonus;
-        }
-        
-        return bonuses;
-    }
-    
-    public float GetBonusValue(ChipBonusType bonusType)
-    {
-        var bonuses = GetActiveChipBonuses();
-        return bonuses.TryGetValue(bonusType, out float value) ? value : 0f;
-    }
-    
     // Purchase System
     public int GetChipPurchaseCost()
     {
@@ -484,51 +448,42 @@ public class ChipService : MonoBehaviour, IStatContributor
     {
         if (collector == null) return;
 
-        var bonuses = GetActiveChipBonuses();
-        if (bonuses == null || bonuses.Count == 0)
+        var equipped = GetEquippedSlotsInternal();
+        if (equipped == null || equipped.Count == 0)
             return;
 
-        const float PercentToScalar = 0.01f;
-
-        foreach (var entry in bonuses)
+        foreach (var slot in equipped)
         {
-            float bonus = entry.Value;
-            switch (entry.Key)
+            if (slot == null || string.IsNullOrEmpty(slot.equippedChipId))
+                continue;
+
+            var def = GetDefinition(slot.equippedChipId);
+            if (def == null || !def.HasStatMapping)
+                continue;
+
+            var progress = GetProgress(slot.equippedChipId);
+            if (progress == null || !progress.unlocked)
+                continue;
+
+            if (def.contributionKind == SkillContributionKind.None)
+                continue;
+
+            float rawBonus = def.GetBonusAtRarity(progress.rarityLevel);
+            float pipelineValue = def.ToPipelineValue(rawBonus);
+
+            switch (def.contributionKind)
             {
-                case ChipBonusType.AttackDamageMultiplier:
-                    collector.AddPercentage(StatId.AttackDamage, bonus * PercentToScalar);
+                case SkillContributionKind.Base:
+                    collector.AddBase(def.targetStat, pipelineValue);
                     break;
-                case ChipBonusType.AttackSpeed:
-                    collector.AddPercentage(StatId.AttackSpeed, bonus * PercentToScalar);
+                case SkillContributionKind.FlatBonus:
+                    collector.AddFlatBonus(def.targetStat, pipelineValue);
                     break;
-                case ChipBonusType.CoresPerKillMultiplier:
-                    collector.AddPercentage(StatId.CoresPerKillMultiplier, bonus * PercentToScalar);
+                case SkillContributionKind.Multiplier:
+                    collector.AddMultiplier(def.targetStat, pipelineValue);
                     break;
-                case ChipBonusType.Health:
-                    collector.AddPercentage(StatId.MaxHealth, bonus * PercentToScalar);
-                    break;
-                case ChipBonusType.HealthRecoverySpeed:
-                    collector.AddPercentage(StatId.HealPerSecond, bonus * PercentToScalar);
-                    break;
-                case ChipBonusType.FragmentsBoost:
-                    collector.AddPercentage(StatId.FragmentMultiplier, bonus * PercentToScalar);
-                    break;
-                case ChipBonusType.CriticalChance:
-                {
-                    float critAdd = Mathf.Clamp01(Mathf.Max(0f, bonus * PercentToScalar));
-                    collector.AddPercentage(StatId.CritChance, critAdd);
-                    break;
-                }
-                case ChipBonusType.CriticalDamage:
-                    collector.AddPercentage(StatId.CritMultiplier, bonus * PercentToScalar);
-                    break;
-                case ChipBonusType.ProjectileSpeed:
-                    collector.AddPercentage(StatId.BulletSpeed, bonus * PercentToScalar);
-                    break;
-                case ChipBonusType.TurretRange:
-                    collector.AddPercentage(StatId.TargetingRange, bonus * PercentToScalar);
-                    break;
-                default:
+                case SkillContributionKind.Percentage:
+                    collector.AddPercentage(def.targetStat, pipelineValue);
                     break;
             }
         }

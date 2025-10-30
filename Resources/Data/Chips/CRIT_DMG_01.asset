@@ -16,10 +16,15 @@ MonoBehaviour:
   chipName: Devastation
   description: Increases damage of critical hits
   icon: {fileID: 21300000, guid: 5b217290994eb4046ba9818d627e5b11, type: 3}
-  bonusType: 7
-  baseBonus: 25
-  bonusPerRarity: 25
-  bonusFormat: +{0}%
+  baseBonus: 0.25
+  bonusPerRarity: 0.25
+  bonusFormat: +{0}x
+  targetStat: 5
+  contributionKind: 2
+  pipelineScale: 1
+  displayScale: 1
+  pipelineMin: -Infinity
+  pipelineMax: Infinity
   chipsNeededForRarity: 0000000003000000080000000f00000019000000
   canChangeInRound: 1
   unlockWave: 1
