@@ -54,8 +54,8 @@ MonoBehaviour:
   primaryStat: 8
   statContributionKind: 1
   projectionMode: 0
-  pipelineScale: 1
-  displayScale: 1
+  pipelineScale: 0.01
+  displayScale: 100
   pipelineMin: -Infinity
   pipelineMax: Infinity
   useSafeValue: 0

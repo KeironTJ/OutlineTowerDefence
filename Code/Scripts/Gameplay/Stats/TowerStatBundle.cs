@@ -12,15 +12,20 @@ public readonly struct TowerStatBundle
 
     public float this[StatId stat] => values[(int)stat];
 
+    // Attack
     public float AttackDamage => this[StatId.AttackDamage];
     public float AttackSpeed => this[StatId.AttackSpeed];
     public float TargetingRange => this[StatId.TargetingRange];
     public float BulletSpeed => this[StatId.BulletSpeed];
     public float CritChance => this[StatId.CritChance];
     public float CritMultiplier => this[StatId.CritMultiplier];
+
+    // Defence
     public float MaxHealth => this[StatId.MaxHealth];
     public float HealPerSecond => this[StatId.HealPerSecond];
     public float ArmorPercent => this[StatId.ArmorPercent];
+
+    // Utility
     public float FragmentMultiplier => this[StatId.FragmentMultiplier];
 
     public float GetOrDefault(StatId stat, float fallback)
