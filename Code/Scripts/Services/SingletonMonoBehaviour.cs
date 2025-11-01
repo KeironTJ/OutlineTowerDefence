@@ -9,6 +9,11 @@ public abstract class SingletonMonoBehaviour<T> : MonoBehaviour where T : MonoBe
 {
     private static T instance;
 
+    /// <summary>
+    /// Gets the singleton instance. Attempts to find an existing instance if none is cached.
+    /// Note: If called before any instance exists, this will return null. 
+    /// Instances should be created in scene or via DontDestroyOnLoad.
+    /// </summary>
     public static T Instance
     {
         get
@@ -16,6 +21,10 @@ public abstract class SingletonMonoBehaviour<T> : MonoBehaviour where T : MonoBe
             if (instance == null)
             {
                 instance = FindFirstObjectByType<T>();
+                if (instance == null)
+                {
+                    Debug.LogWarning($"[SingletonMonoBehaviour] No instance of {typeof(T).Name} found. Ensure it exists in the scene or is created before access.");
+                }
             }
             return instance;
         }

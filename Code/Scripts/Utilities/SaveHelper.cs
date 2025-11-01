@@ -1,6 +1,7 @@
 /// <summary>
 /// Helper utility for common save and cloud sync operations.
 /// Centralizes the pattern of saving data and scheduling cloud uploads.
+/// Note: SaveManager and CloudSyncService use .main pattern (not yet refactored to .Instance).
 /// </summary>
 public static class SaveHelper
 {
@@ -10,7 +11,8 @@ public static class SaveHelper
     /// </summary>
     public static void SaveAndSync()
     {
-        SaveManager.main?.QueueSave();
+        if (SaveManager.main != null)
+            SaveManager.main.QueueSave();
         CloudSyncService.main?.ScheduleUpload();
     }
 
@@ -20,7 +22,8 @@ public static class SaveHelper
     /// </summary>
     public static void SaveImmediateAndSync()
     {
-        SaveManager.main?.QueueImmediateSave();
+        if (SaveManager.main != null)
+            SaveManager.main.QueueImmediateSave();
         CloudSyncService.main?.ScheduleUpload();
     }
     
@@ -30,7 +33,8 @@ public static class SaveHelper
     /// </summary>
     public static void SaveImmediate()
     {
-        SaveManager.main?.QueueImmediateSave();
+        if (SaveManager.main != null)
+            SaveManager.main.QueueImmediateSave();
     }
     
     /// <summary>

@@ -52,6 +52,7 @@ public static class DefinitionLoader
     /// <summary>
     /// Creates a dictionary lookup from a list of definitions by ID.
     /// Handles null checks and empty ID validation.
+    /// Logs a warning if duplicate IDs are encountered.
     /// </summary>
     public static Dictionary<string, T> CreateLookup<T>(IEnumerable<T> definitions, System.Func<T, string> getIdFunc) 
         where T : class
@@ -64,6 +65,13 @@ public static class DefinitionLoader
             if (def == null) continue;
             string id = getIdFunc(def);
             if (string.IsNullOrEmpty(id)) continue;
+            
+            if (lookup.ContainsKey(id))
+            {
+                Debug.LogWarning($"[DefinitionLoader] Duplicate definition ID '{id}' found for type {typeof(T).Name}. Using first occurrence.");
+                continue;
+            }
+            
             lookup[id] = def;
         }
         return lookup;
