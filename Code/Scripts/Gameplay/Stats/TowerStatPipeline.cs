@@ -12,6 +12,7 @@ public class TowerStatPipeline : SingletonMonoBehaviour<TowerStatPipeline>
     private bool dirty = true;
     private bool skillServiceHooked;
     private bool chipServiceHooked;
+    private bool loadoutServiceHooked;
     private ChipService chipServiceRef;
 
     protected override void OnAwakeAfterInit()
@@ -23,13 +24,15 @@ public class TowerStatPipeline : SingletonMonoBehaviour<TowerStatPipeline>
     {
         UnhookSkillService();
         UnhookChipService();
+        UnhookLoadoutService();
         base.OnDestroy();
     }
 
     private void Update()
     {
         TryHookSkillService();
-    TryHookChipService();
+        TryHookChipService();
+        TryHookLoadoutService();
         if (dirty)
             RebuildImmediate();
     }
@@ -38,6 +41,7 @@ public class TowerStatPipeline : SingletonMonoBehaviour<TowerStatPipeline>
     {
         TryHookSkillService();
         TryHookChipService();
+        TryHookLoadoutService();
     }
 
     public void RegisterContributor(IStatContributor contributor)
@@ -185,4 +189,38 @@ public class TowerStatPipeline : SingletonMonoBehaviour<TowerStatPipeline>
     private void OnChipUpgraded(string __, int ___) => MarkDirty();
     private void OnChipUnlocked(string __) => MarkDirty();
     private void OnChipSlotUnlocked(int _) => MarkDirty();
+    
+    private void TryHookLoadoutService()
+    {
+        if (loadoutServiceHooked)
+        {
+            if (TowerLoadoutService.Instance == null)
+            {
+                UnhookLoadoutService();
+            }
+            return;
+        }
+
+        var loadoutService = TowerLoadoutService.Instance;
+        if (loadoutService == null)
+            return;
+
+        RegisterContributor(loadoutService);
+        loadoutServiceHooked = true;
+        MarkDirty();
+    }
+
+    private void UnhookLoadoutService()
+    {
+        if (!loadoutServiceHooked)
+            return;
+
+        var loadoutService = TowerLoadoutService.Instance;
+        if (loadoutService != null)
+        {
+            UnregisterContributor(loadoutService);
+        }
+
+        loadoutServiceHooked = false;
+    }
 }

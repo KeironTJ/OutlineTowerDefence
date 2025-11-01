@@ -455,27 +455,8 @@ public class ChipService : SingletonMonoBehaviour<ChipService>, IStatContributor
             if (progress == null || !progress.unlocked)
                 continue;
 
-            if (def.contributionKind == SkillContributionKind.None)
-                continue;
-
-            float rawBonus = def.GetBonusAtRarity(progress.rarityLevel);
-            float pipelineValue = def.ToPipelineValue(rawBonus);
-
-            switch (def.contributionKind)
-            {
-                case SkillContributionKind.Base:
-                    collector.AddBase(def.targetStat, pipelineValue);
-                    break;
-                case SkillContributionKind.FlatBonus:
-                    collector.AddFlatBonus(def.targetStat, pipelineValue);
-                    break;
-                case SkillContributionKind.Multiplier:
-                    collector.AddMultiplier(def.targetStat, pipelineValue);
-                    break;
-                case SkillContributionKind.Percentage:
-                    collector.AddPercentage(def.targetStat, pipelineValue);
-                    break;
-            }
+            // Use the new ApplyStatBonuses method which handles both legacy and new multi-stat modes
+            def.ApplyStatBonuses(collector, progress.rarityLevel);
         }
     }
 }
