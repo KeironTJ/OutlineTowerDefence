@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class StoreService : MonoBehaviour
+public class StoreService : SingletonMonoBehaviour<StoreService>
 {
-    public static StoreService Instance { get; private set; }
-
     public struct PrismPackAvailability
     {
         public bool isAvailable;
@@ -33,17 +31,8 @@ public class StoreService : MonoBehaviour
     private readonly Dictionary<string, PrismPackDefinition> packLookup = new Dictionary<string, PrismPackDefinition>();
     private PlayerManager playerManager;
 
-    private void Awake()
+    protected override void OnAwakeAfterInit()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
-
         CacheDefinitions();
     }
 
