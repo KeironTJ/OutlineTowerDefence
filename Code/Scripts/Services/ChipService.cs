@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class ChipService : MonoBehaviour, IStatContributor
+public class ChipService : SingletonMonoBehaviour<ChipService>, IStatContributor
 {
-    public static ChipService Instance { get; private set; }
-    
     [SerializeField] private ChipDefinition[] loadedDefinitions;
     
     private readonly Dictionary<string, ChipDefinition> definitions = new Dictionary<string, ChipDefinition>();
@@ -42,16 +40,8 @@ public class ChipService : MonoBehaviour, IStatContributor
         return EnsurePlayerManager() ? playerManager.GetEquippedChips() : null;
     }
     
-    private void Awake()
+    protected override void OnAwakeAfterInit()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
-        
         IndexDefinitions();
     }
     
