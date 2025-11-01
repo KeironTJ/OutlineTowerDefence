@@ -2,27 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TowerStatPipeline : MonoBehaviour
+public class TowerStatPipeline : SingletonMonoBehaviour<TowerStatPipeline>
 {
-    private static TowerStatPipeline instance;
-
-    public static TowerStatPipeline Instance
-    {
-        get
-        {
-            if (instance == null)
-            {
-                instance = FindFirstObjectByType<TowerStatPipeline>();
-                if (instance == null)
-                {
-                    var go = new GameObject("TowerStatPipeline");
-                    instance = go.AddComponent<TowerStatPipeline>();
-                }
-            }
-            return instance;
-        }
-    }
-
     public TowerStatBundle CurrentBundle { get; private set; } = TowerStatBundle.Empty;
 
     public event Action<TowerStatBundle> StatsRebuilt;
@@ -33,24 +14,16 @@ public class TowerStatPipeline : MonoBehaviour
     private bool chipServiceHooked;
     private ChipService chipServiceRef;
 
-    private void Awake()
+    protected override void OnAwakeAfterInit()
     {
-        if (instance != null && instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        instance = this;
-        DontDestroyOnLoad(gameObject);
+        // Base class handles singleton setup
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
-        if (instance == this)
-            instance = null;
         UnhookSkillService();
         UnhookChipService();
+        base.OnDestroy();
     }
 
     private void Update()
@@ -115,8 +88,8 @@ public class TowerStatPipeline : MonoBehaviour
 
     public static void SignalDirty()
     {
-        if (instance != null)
-            instance.MarkDirty();
+        if (Instance != null)
+            Instance.MarkDirty();
     }
 
     private void TryHookSkillService()
