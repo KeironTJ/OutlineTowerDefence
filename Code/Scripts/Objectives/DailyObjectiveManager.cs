@@ -372,7 +372,7 @@ public class DailyObjectiveManager : MonoBehaviour
                     NotificationRewardType.Currency, 
                     "", 
                     rt.definition.rewardAmount, 
-                    ConvertCurrencyType(rt.definition.rewardType))
+                    rt.definition.rewardType)
             };
             NotificationManager.Instance.ShowQuickNotification(
                 "Daily Objective Complete!",
@@ -380,18 +380,6 @@ public class DailyObjectiveManager : MonoBehaviour
                 NotificationSource.Objective,
                 3f
             );
-        }
-    }
-
-    private CurrencyType ConvertCurrencyType(CurrencyType oldType)
-    {
-        switch (oldType)
-        {
-            case CurrencyType.Cores: return CurrencyType.Cores;
-            case CurrencyType.Prisms: return CurrencyType.Prisms;
-            case CurrencyType.Loops: return CurrencyType.Loops;
-            case CurrencyType.Fragments: return CurrencyType.Fragments;
-            default: return CurrencyType.Prisms;
         }
     }
 

@@ -2,27 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TowerStatPipeline : MonoBehaviour
+public class TowerStatPipeline : SingletonMonoBehaviour<TowerStatPipeline>
 {
-    private static TowerStatPipeline instance;
-
-    public static TowerStatPipeline Instance
-    {
-        get
-        {
-            if (instance == null)
-            {
-                instance = FindFirstObjectByType<TowerStatPipeline>();
-                if (instance == null)
-                {
-                    var go = new GameObject("TowerStatPipeline");
-                    instance = go.AddComponent<TowerStatPipeline>();
-                }
-            }
-            return instance;
-        }
-    }
-
     public TowerStatBundle CurrentBundle { get; private set; } = TowerStatBundle.Empty;
 
     public event Action<TowerStatBundle> StatsRebuilt;
@@ -31,32 +12,27 @@ public class TowerStatPipeline : MonoBehaviour
     private bool dirty = true;
     private bool skillServiceHooked;
     private bool chipServiceHooked;
+    private bool loadoutServiceHooked;
     private ChipService chipServiceRef;
 
-    private void Awake()
+    protected override void OnAwakeAfterInit()
     {
-        if (instance != null && instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        instance = this;
-        DontDestroyOnLoad(gameObject);
+        // Base class handles singleton setup
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
-        if (instance == this)
-            instance = null;
         UnhookSkillService();
         UnhookChipService();
+        UnhookLoadoutService();
+        base.OnDestroy();
     }
 
     private void Update()
     {
         TryHookSkillService();
-    TryHookChipService();
+        TryHookChipService();
+        TryHookLoadoutService();
         if (dirty)
             RebuildImmediate();
     }
@@ -65,6 +41,7 @@ public class TowerStatPipeline : MonoBehaviour
     {
         TryHookSkillService();
         TryHookChipService();
+        TryHookLoadoutService();
     }
 
     public void RegisterContributor(IStatContributor contributor)
@@ -115,8 +92,8 @@ public class TowerStatPipeline : MonoBehaviour
 
     public static void SignalDirty()
     {
-        if (instance != null)
-            instance.MarkDirty();
+        if (Instance != null)
+            Instance.MarkDirty();
     }
 
     private void TryHookSkillService()
@@ -212,4 +189,38 @@ public class TowerStatPipeline : MonoBehaviour
     private void OnChipUpgraded(string __, int ___) => MarkDirty();
     private void OnChipUnlocked(string __) => MarkDirty();
     private void OnChipSlotUnlocked(int _) => MarkDirty();
+    
+    private void TryHookLoadoutService()
+    {
+        if (loadoutServiceHooked)
+        {
+            if (TowerLoadoutService.Instance == null)
+            {
+                UnhookLoadoutService();
+            }
+            return;
+        }
+
+        var loadoutService = TowerLoadoutService.Instance;
+        if (loadoutService == null)
+            return;
+
+        RegisterContributor(loadoutService);
+        loadoutServiceHooked = true;
+        MarkDirty();
+    }
+
+    private void UnhookLoadoutService()
+    {
+        if (!loadoutServiceHooked)
+            return;
+
+        var loadoutService = TowerLoadoutService.Instance;
+        if (loadoutService != null)
+        {
+            UnregisterContributor(loadoutService);
+        }
+
+        loadoutServiceHooked = false;
+    }
 }

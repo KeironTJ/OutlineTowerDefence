@@ -30,7 +30,9 @@ public class ChipDefinition : ScriptableObject
     public string bonusFormat = "+{0}%";
 
     [Header("Stat Mapping")]
+    [Tooltip("LEGACY: Single stat target (use statBonuses array for multiple bonuses)")]
     public StatId targetStat = StatId.Count;
+    [Tooltip("LEGACY: Single contribution kind (use statBonuses array for multiple bonuses)")]
     public SkillContributionKind contributionKind = SkillContributionKind.FlatBonus;
     [Tooltip("Multiplier applied before pushing the value into the pipeline (e.g. convert percent to scalar by using 0.01).")]
     public float pipelineScale = 1f;
@@ -40,6 +42,10 @@ public class ChipDefinition : ScriptableObject
     public float pipelineMin = float.NegativeInfinity;
     [Tooltip("Maximum pipeline value after scaling (useful for clamping multipliers).")]
     public float pipelineMax = float.PositiveInfinity;
+    
+    [Header("Multiple Stat Bonuses (New System)")]
+    [Tooltip("Multiple stat bonuses this chip provides at base rarity. Values scale with rarity.")]
+    public StatBonus[] statBonuses = new StatBonus[0];
     
     [Header("Rarity Progression")]
     [Tooltip("Number of chips needed to reach each rarity level. Array size = max rarity level")]
@@ -82,5 +88,71 @@ public class ChipDefinition : ScriptableObject
         return (ChipRarity)rarityLevel;
     }
 
-    public bool HasStatMapping => targetStat != StatId.Count;
+    public bool HasStatMapping => targetStat != StatId.Count || (statBonuses != null && statBonuses.Length > 0);
+    
+    /// <summary>
+    /// Apply all stat bonuses from this chip to the collector.
+    /// Supports both legacy single-stat mode and new multi-stat mode.
+    /// Values are scaled by rarity level.
+    /// </summary>
+    public void ApplyStatBonuses(StatCollector collector, int rarityLevel)
+    {
+        if (collector == null) return;
+        
+        // Legacy single-stat mode
+        if (targetStat != StatId.Count && contributionKind != SkillContributionKind.None)
+        {
+            float rawBonus = GetBonusAtRarity(rarityLevel);
+            float pipelineValue = ToPipelineValue(rawBonus);
+            
+            switch (contributionKind)
+            {
+                case SkillContributionKind.Base:
+                    collector.AddBase(targetStat, pipelineValue);
+                    break;
+                case SkillContributionKind.FlatBonus:
+                    collector.AddFlatBonus(targetStat, pipelineValue);
+                    break;
+                case SkillContributionKind.Multiplier:
+                    collector.AddMultiplier(targetStat, pipelineValue);
+                    break;
+                case SkillContributionKind.Percentage:
+                    collector.AddPercentage(targetStat, pipelineValue);
+                    break;
+            }
+        }
+        
+        // New multi-stat mode
+        if (statBonuses != null && statBonuses.Length > 0)
+        {
+            foreach (var bonus in statBonuses)
+            {
+                if (bonus != null && bonus.IsValid)
+                {
+                    // Scale bonus value by rarity
+                    float scaledValue = bonus.value * (1f + (bonusPerRarity * rarityLevel / baseBonus));
+                    bonus.ApplyTo(collector, scaledValue);
+                }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Legacy method for backward compatibility with ChipDefinitionStatExtensions
+    /// </summary>
+    public float ToPipelineValue(float rawValue)
+    {
+        if (float.IsNaN(rawValue) || float.IsInfinity(rawValue))
+            rawValue = 0f;
+
+        float scaled = rawValue * pipelineScale;
+        
+        if (!float.IsNegativeInfinity(pipelineMin))
+            scaled = Mathf.Max(pipelineMin, scaled);
+        
+        if (!float.IsPositiveInfinity(pipelineMax))
+            scaled = Mathf.Min(pipelineMax, scaled);
+        
+        return scaled;
+    }
 }

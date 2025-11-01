@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class OptionsUIManager : MonoBehaviour
+public class OptionsUIManager : SingletonMonoBehaviour<OptionsUIManager>
 {
     [Header("Panels")]
     [SerializeField] private GameObject background;
@@ -15,20 +15,8 @@ public class OptionsUIManager : MonoBehaviour
 
     [SerializeField] private RewardsUIController rewardsController; // assign in Inspector if possible
 
-
-    private static OptionsUIManager instance;
-    public static OptionsUIManager Instance => instance;
-
-    private void Awake()
+    protected override void OnAwakeAfterInit()
     {
-        if (instance != null && instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        instance = this;
-        DontDestroyOnLoad(gameObject);
-
         // Auto-bind children if missing (by name)
         if (!background) background = transform.Find("Background") ? transform.Find("Background").gameObject : null;
         if (!optionsPanel) optionsPanel = transform.Find("OptionsPanel") ? transform.Find("OptionsPanel").gameObject : null;

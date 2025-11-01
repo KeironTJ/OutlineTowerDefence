@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SkillService : MonoBehaviour, IStatContributor
+public class SkillService : SingletonMonoBehaviour<SkillService>, IStatContributor
 {
-    public static SkillService Instance { get; private set; }
-
     [SerializeField] private SkillDefinition[] loadedDefinitions;
 
     private readonly Dictionary<string, SkillDefinition> defs = new();
@@ -398,11 +396,8 @@ public class SkillService : MonoBehaviour, IStatContributor
     }
 
     // ======== INIT / LOAD ========
-    private void Awake()
+    protected override void OnAwakeAfterInit()
     {
-        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
         IndexDefinitions();
     }
 

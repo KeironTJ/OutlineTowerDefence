@@ -2,10 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WaveManager : MonoBehaviour
+public class WaveManager : SingletonMonoBehaviour<WaveManager>
 {
-    public static WaveManager Instance { get; private set; }
-
     [Header("Round Data")]
     [SerializeField] private RoundType roundType;
     [SerializeField] private EnemyTypeDefinition[] enemyTypes;
@@ -301,16 +299,15 @@ public class WaveManager : MonoBehaviour
         }
     }
 
-    private void Awake()
+    protected override void OnAwakeAfterInit()
     {
-        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
-        Instance = this;
+        // Base class handles singleton setup
     }
 
-    private void OnDisable()
+    protected override void OnDestroy()
     {
         EndAllWaves();
-        if (Instance == this) Instance = null;
+        base.OnDestroy();
     }
 
     public EnemyTypeDefinition[] EnemyDefinitions => enemyTypes;

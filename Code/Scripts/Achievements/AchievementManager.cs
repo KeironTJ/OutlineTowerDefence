@@ -2,10 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class AchievementManager : MonoBehaviour
+public class AchievementManager : SingletonMonoBehaviour<AchievementManager>
 {
-    public static AchievementManager Instance;
-
     public static event System.Action<AchievementRuntime> OnProgress;
     public static event System.Action<AchievementRuntime, AchievementTier> OnTierCompletedEvent;
     public static event System.Action<AchievementRuntime, AchievementTier> OnTierClaimedEvent;
@@ -20,11 +18,9 @@ public class AchievementManager : MonoBehaviour
     private PlayerData PlayerData => PlayerMgr?.playerData;
     private bool initialized;
 
-    private void Awake()
+    protected override void OnAwakeAfterInit()
     {
-        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
+        // Base class handles singleton setup
     }
 
     private void OnEnable()
@@ -66,24 +62,14 @@ public class AchievementManager : MonoBehaviour
         // Auto-load from Resources if not assigned
         if (allAchievements == null || allAchievements.Count == 0)
         {
-            var loaded = Resources.LoadAll<AchievementDefinition>("Data/Achievements");
-            if (loaded != null && loaded.Length > 0)
-                allAchievements = new List<AchievementDefinition>(loaded);
+            allAchievements = DefinitionLoader.LoadAll<AchievementDefinition>("Data/Achievements");
         }
 
-        RebuildMap();
+        achievementById.Clear();
+        achievementById = DefinitionLoader.CreateLookup(allAchievements, def => def.id);
+        
         LoadAchievementProgress();
         initialized = true;
-    }
-
-    private void RebuildMap()
-    {
-        achievementById.Clear();
-        foreach (var def in allAchievements)
-        {
-            if (def == null || string.IsNullOrEmpty(def.id)) continue;
-            achievementById[def.id] = def;
-        }
     }
 
     private void LoadAchievementProgress()

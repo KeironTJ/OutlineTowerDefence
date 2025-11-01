@@ -74,6 +74,10 @@ public class ProjectileDefinition : ScriptableObject
     [Tooltip("Speed bonus per upgrade level (%)")]
     public float speedPerLevel = 3f;
     
+    [Header("Stat Bonuses")]
+    [Tooltip("Multiple stat bonuses this projectile provides")]
+    public StatBonus[] statBonuses = new StatBonus[0];
+    
     [Header("Benefits & Tradeoffs")]
     [TextArea(2, 3)]
     public string benefits = "Standard projectile";
@@ -104,5 +108,21 @@ public class ProjectileDefinition : ScriptableObject
     public float GetSpeedMultiplierAtLevel(int level)
     {
         return speedMultiplier * (1f + (speedPerLevel * level / 100f));
+    }
+    
+    /// <summary>
+    /// Apply all stat bonuses from this projectile to the collector
+    /// </summary>
+    public void ApplyStatBonuses(StatCollector collector)
+    {
+        if (collector == null || statBonuses == null) return;
+        
+        foreach (var bonus in statBonuses)
+        {
+            if (bonus != null && bonus.IsValid)
+            {
+                bonus.ApplyTo(collector);
+            }
+        }
     }
 }
