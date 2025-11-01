@@ -705,6 +705,13 @@ public class PlayerManager : MonoBehaviour
 
     private void OnRoundEnded(object eventData)
     {
+        var svc = skillService != null ? skillService : SkillService.Instance;
+        if (svc != null)
+        {
+            svc.ClearRoundStates();
+            skillService = svc;
+        }
+
         playerData.totalRoundsCompleted++;
         SavePlayerData();
     }

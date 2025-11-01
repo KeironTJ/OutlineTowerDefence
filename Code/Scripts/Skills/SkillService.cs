@@ -238,8 +238,19 @@ public class SkillService : MonoBehaviour, IStatContributor
 
     public void ClearRoundStates() 
     {
+        if (!roundActive && round.Count == 0)
+            return;
+
         round.Clear();
         roundActive = false;
+
+        if (defs != null)
+        {
+            foreach (var kvp in defs)
+                SkillValueChanged?.Invoke(kvp.Key);
+        }
+
+        TowerStatPipeline.SignalDirty();
     }
 
 
