@@ -7,7 +7,6 @@ public class SlowEffect : MonoBehaviour
     private float duration;
     private Enemy targetEnemy;
     private float elapsed = 0f;
-    private bool applied = false;
 
     public void Initialize(float slowMultiplier, float duration, Enemy enemy)
     {

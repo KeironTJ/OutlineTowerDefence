@@ -71,9 +71,9 @@ MonoBehaviour:
     m_RotationOrder: 4
   primaryStat: 4
   statContributionKind: 1
-  projectionMode: 0
+  projectionMode: 1
   pipelineScale: 1
-  displayScale: 1
+  displayScale: 100
   pipelineMin: -Infinity
   pipelineMax: Infinity
   useSafeValue: 0

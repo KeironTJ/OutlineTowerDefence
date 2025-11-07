@@ -66,7 +66,16 @@ public class AchievementManager : SingletonMonoBehaviour<AchievementManager>
         }
 
         achievementById.Clear();
-        achievementById = DefinitionLoader.CreateLookup(allAchievements, def => def.id);
+        if (allAchievements != null)
+        {
+            foreach (var def in allAchievements)
+            {
+                if (def == null || string.IsNullOrEmpty(def.id))
+                    continue;
+
+                achievementById[def.id] = def;
+            }
+        }
         
         LoadAchievementProgress();
         initialized = true;

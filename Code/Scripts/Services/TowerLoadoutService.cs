@@ -24,13 +24,15 @@ public class TowerLoadoutService : SingletonMonoBehaviour<TowerLoadoutService>, 
         }
     }
     
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
         // Unregister from TowerStatPipeline
         if (TowerStatPipeline.Instance != null)
         {
             TowerStatPipeline.Instance.UnregisterContributor(this);
         }
+
+        base.OnDestroy();
     }
     
     public void Contribute(StatCollector collector)

@@ -51,8 +51,6 @@ public class Enemy : MonoBehaviour, IEnemyRuntime
         attackDamage = damage;
         this.damageInterval = damageInterval;
 
-        Debug.Log($"[Enemy] InitStats: H={health} S={speed} D={damage} DI={damageInterval}");
-
     }
 
     public void SetRewards(int fragments, int cores, int prisms, int loops)

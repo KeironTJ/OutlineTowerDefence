@@ -35,18 +35,8 @@ public class StatBonus
     /// </summary>
     public float ToPipelineValue(float rawValue)
     {
-        if (float.IsNaN(rawValue) || float.IsInfinity(rawValue))
-            rawValue = 0f;
-
-        float scaled = rawValue * pipelineScale;
-        
-        if (!float.IsNegativeInfinity(pipelineMin))
-            scaled = Mathf.Max(pipelineMin, scaled);
-        
-        if (!float.IsPositiveInfinity(pipelineMax))
-            scaled = Mathf.Min(pipelineMax, scaled);
-        
-        return scaled;
+        float scaled = StatPipelineScaling.ApplyScaling(targetStat, rawValue, pipelineScale);
+        return StatPipelineScaling.ApplyClamping(scaled, pipelineMin, pipelineMax);
     }
 
     /// <summary>

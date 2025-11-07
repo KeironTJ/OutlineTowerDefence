@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WaveManager : SingletonMonoBehaviour<WaveManager>
+public class WaveManager : MonoBehaviour
 {
+    public static WaveManager Instance { get; private set; }
     [Header("Round Data")]
     [SerializeField] private RoundType roundType;
     [SerializeField] private EnemyTypeDefinition[] enemyTypes;
@@ -49,9 +50,24 @@ public class WaveManager : SingletonMonoBehaviour<WaveManager>
 
     private float currentWaveBudget = 0f; // total budget for the current wave
 
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Debug.LogWarning("[WaveManager] Duplicate instance detected, replacing previous reference.");
+        }
+        Instance = this;
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
+
     public void StartWaveSystem(EnemySpawner spawner, Tower coreTower)
     {
-        if (loopRoutine != null) StopCoroutine(loopRoutine);
+    if (loopRoutine != null) StopCoroutine(loopRoutine);
         if (!roundType)
         {
             Debug.LogError("[WaveManager] RoundType missing.");
@@ -299,15 +315,9 @@ public class WaveManager : SingletonMonoBehaviour<WaveManager>
         }
     }
 
-    protected override void OnAwakeAfterInit()
-    {
-        // Base class handles singleton setup
-    }
-
-    protected override void OnDestroy()
+    private void OnDisable()
     {
         EndAllWaves();
-        base.OnDestroy();
     }
 
     public EnemyTypeDefinition[] EnemyDefinitions => enemyTypes;

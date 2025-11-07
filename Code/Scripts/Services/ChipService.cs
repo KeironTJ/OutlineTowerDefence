@@ -57,13 +57,15 @@ public class ChipService : SingletonMonoBehaviour<ChipService>, IStatContributor
         SlotUnlocked += OnSlotUnlockedInternal;
     }
     
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
         ChipUnlocked -= OnChipUnlockedInternal;
         ChipUpgraded -= OnChipUpgradedInternal;
         ChipEquipped -= OnChipEquippedInternal;
         ChipUnequipped -= OnChipUnequippedInternal;
         SlotUnlocked -= OnSlotUnlockedInternal;
+
+        base.OnDestroy();
     }
     
     private void OnChipUnlockedInternal(string chipId)

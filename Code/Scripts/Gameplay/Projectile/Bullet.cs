@@ -58,22 +58,14 @@ public class Bullet : MonoBehaviour
             rb.linearVelocity = moveDirection * bulletSpeed;
     }
 
-    // Back-compat: if called, treat as base damage without crit
-    public void SetDamage(float damage)
-    {
-        baseDamage = damage;
-        critChance01 = 0f;
-        critMultiplier = 1f;
-        critRolled = true; // no crit
-        isCrit = false;
-    }
-
     // Preferred: configure full damage parameters
     public void ConfigureDamage(float baseDamage, float critChance01, float critMultiplier, bool rollNow = false)
     {
         this.baseDamage = baseDamage;
         this.critChance01 = Mathf.Clamp01(critChance01);
         this.critMultiplier = Mathf.Max(1f, critMultiplier);
+
+        Debug.Log($"[Bullet] Configured Damage: Base={baseDamage}, CritChance={this.critChance01}, CritMultiplier={this.critMultiplier}");
 
         if (rollNow)
         {

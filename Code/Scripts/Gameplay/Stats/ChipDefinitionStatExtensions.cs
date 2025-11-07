@@ -21,10 +21,7 @@ public static class ChipDefinitionStatExtensions
         if (definition == null || !definition.HasStatMapping)
             return rawValue;
 
-        if (float.IsNaN(rawValue) || float.IsInfinity(rawValue))
-            rawValue = 0f;
-
-        float scaled = rawValue * definition.pipelineScale;
+        float scaled = StatPipelineScaling.ApplyScaling(definition.targetStat, rawValue, definition.pipelineScale);
         return definition.ClampPipelineValue(scaled);
     }
 
@@ -33,16 +30,11 @@ public static class ChipDefinitionStatExtensions
         if (definition == null || !definition.HasStatMapping)
             return pipelineValue;
 
-        if (float.IsNaN(pipelineValue) || float.IsInfinity(pipelineValue))
-            pipelineValue = 0f;
-
-        if (!float.IsNegativeInfinity(definition.pipelineMin))
-            pipelineValue = Mathf.Max(definition.pipelineMin, pipelineValue);
-
-        if (!float.IsPositiveInfinity(definition.pipelineMax))
-            pipelineValue = Mathf.Min(definition.pipelineMax, pipelineValue);
-
-        return pipelineValue;
+        return StatPipelineScaling.ApplyClamping(
+            pipelineValue,
+            definition.pipelineMin,
+            definition.pipelineMax
+        );
     }
 
     public static float FromPipelineToDisplay(this ChipDefinition definition, float pipelineValue)

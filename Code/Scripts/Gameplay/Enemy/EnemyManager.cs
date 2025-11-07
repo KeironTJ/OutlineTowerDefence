@@ -2,11 +2,28 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyManager : SingletonMonoBehaviour<EnemyManager>
+public class EnemyManager : MonoBehaviour
 {
+    public static EnemyManager Instance { get; private set; }
+
     private readonly Dictionary<GameObject, float> active = new Dictionary<GameObject, float>();
 
     public event Action OnThreatChanged;
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Debug.LogWarning("[EnemyManager] Duplicate instance detected, replacing previous reference.");
+        }
+        Instance = this;
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
 
     public void RegisterEnemy(GameObject enemyGO, float threatValue)
     {

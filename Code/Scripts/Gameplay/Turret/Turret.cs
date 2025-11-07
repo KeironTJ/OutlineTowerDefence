@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using UnityEngine;
 
 [RequireComponent(typeof(Collider2D))]
@@ -242,7 +243,7 @@ public class Turret : MonoBehaviour
     private float GetCritChance01()
     {
         EnsurePipelineHook();
-        return Mathf.Clamp01(cachedStats.CritChance);
+        return Mathf.Clamp01(Mathf.Max(0f, cachedStats.CritChance));
     }
 
     private float GetCritMultiplier()
@@ -469,7 +470,7 @@ public class Turret : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogWarning($"Turret '{activeDefinition.id}' does not accept projectile type '{projDef.projectileType}'");
+                    UnityEngine.Debug.LogWarning($"Turret '{activeDefinition.id}' does not accept projectile type '{projDef.projectileType}'");
                 }
             }
         }
