@@ -1,53 +1,17 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public class ProjectileDefinitionManager : MonoBehaviour
+public class ProjectileDefinitionManager : SingletonMonoBehaviour<ProjectileDefinitionManager>
 {
-    public static ProjectileDefinitionManager Instance;
-
     [Tooltip("Optional: assign in inspector or leave empty to auto-load from Resources/Data/Projectiles")]
     public List<ProjectileDefinition> allDefinitions = new List<ProjectileDefinition>();
 
     private Dictionary<string, ProjectileDefinition> map = new Dictionary<string, ProjectileDefinition>();
 
-    private void Awake()
+    protected override void OnAwakeAfterInit()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-            if (allDefinitions == null || allDefinitions.Count == 0)
-            {
-                var loaded = Resources.LoadAll<ProjectileDefinition>("Data/Projectiles");
-                if (loaded != null && loaded.Length > 0)
-                    allDefinitions.AddRange(loaded);
-            }
-            BuildMap();
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-
-    private void BuildMap()
-    {
-        map.Clear();
-        foreach (var def in allDefinitions)
-        {
-            if (def == null) continue;
-            if (string.IsNullOrEmpty(def.id))
-            {
-                Debug.LogWarning($"ProjectileDefinition with empty id found: {def.name}");
-                continue;
-            }
-            if (map.ContainsKey(def.id))
-            {
-                Debug.LogWarning($"Duplicate ProjectileDefinition id '{def.id}' - skipping duplicate asset {def.name}");
-                continue;
-            }
-            map[def.id] = def;
-        }
+        DefinitionLoader.LoadAndMerge(ref allDefinitions, "Data/Projectiles", def => def.id);
+        map = DefinitionLoader.CreateLookup(allDefinitions, def => def.id);
     }
 
     public ProjectileDefinition GetById(string id)

@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class ChipService : MonoBehaviour, IStatContributor
+public class ChipService : SingletonMonoBehaviour<ChipService>, IStatContributor
 {
-    public static ChipService Instance { get; private set; }
-    
     [SerializeField] private ChipDefinition[] loadedDefinitions;
     
     private readonly Dictionary<string, ChipDefinition> definitions = new Dictionary<string, ChipDefinition>();
@@ -42,16 +40,8 @@ public class ChipService : MonoBehaviour, IStatContributor
         return EnsurePlayerManager() ? playerManager.GetEquippedChips() : null;
     }
     
-    private void Awake()
+    protected override void OnAwakeAfterInit()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
-        
         IndexDefinitions();
     }
     
@@ -465,27 +455,8 @@ public class ChipService : MonoBehaviour, IStatContributor
             if (progress == null || !progress.unlocked)
                 continue;
 
-            if (def.contributionKind == SkillContributionKind.None)
-                continue;
-
-            float rawBonus = def.GetBonusAtRarity(progress.rarityLevel);
-            float pipelineValue = def.ToPipelineValue(rawBonus);
-
-            switch (def.contributionKind)
-            {
-                case SkillContributionKind.Base:
-                    collector.AddBase(def.targetStat, pipelineValue);
-                    break;
-                case SkillContributionKind.FlatBonus:
-                    collector.AddFlatBonus(def.targetStat, pipelineValue);
-                    break;
-                case SkillContributionKind.Multiplier:
-                    collector.AddMultiplier(def.targetStat, pipelineValue);
-                    break;
-                case SkillContributionKind.Percentage:
-                    collector.AddPercentage(def.targetStat, pipelineValue);
-                    break;
-            }
+            // Use the new ApplyStatBonuses method which handles both legacy and new multi-stat modes
+            def.ApplyStatBonuses(collector, progress.rarityLevel);
         }
     }
 }

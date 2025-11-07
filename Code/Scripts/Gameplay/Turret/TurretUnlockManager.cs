@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TurretUnlockManager : MonoBehaviour
+public class TurretUnlockManager : SingletonMonoBehaviour<TurretUnlockManager>
 {
-    public static TurretUnlockManager Instance;
-
     [Tooltip("Assign in Inspector, or place assets under Resources/Data/TurretUnlocks to auto-load")]
     [SerializeField] private List<TurretUnlockDefinition> defs = new List<TurretUnlockDefinition>();
 
@@ -24,18 +22,15 @@ public class TurretUnlockManager : MonoBehaviour
         }
     }
 
-    private void Awake()
+    protected override void OnAwakeAfterInit()
     {
-        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
-
-        if (defs == null || defs.Count == 0)
+        DefinitionLoader.LoadAndMerge(ref defs, "Data/TurretUnlocks", def => def.turretId);
+        byTurretId.Clear();
+        foreach (var d in defs)
         {
-            var loaded = Resources.LoadAll<TurretUnlockDefinition>("Data/TurretUnlocks");
-            if (loaded != null && loaded.Length > 0) defs = new List<TurretUnlockDefinition>(loaded);
+            if (d == null || string.IsNullOrEmpty(d.turretId)) continue;
+            if (!byTurretId.ContainsKey(d.turretId)) byTurretId[d.turretId] = d;
         }
-        RebuildMap();
 
         // Ensure default-granted turrets are unlocked once
         var pm = PlayerManager.main;
@@ -44,16 +39,6 @@ public class TurretUnlockManager : MonoBehaviour
             foreach (var d in defs)
                 if (d != null && d.grantByDefault && !IsUnlocked(pm, d.turretId))
                     UnlockFree(pm, d.turretId);
-        }
-    }
-
-    private void RebuildMap()
-    {
-        byTurretId.Clear();
-        foreach (var d in defs)
-        {
-            if (d == null || string.IsNullOrEmpty(d.turretId)) continue;
-            if (!byTurretId.ContainsKey(d.turretId)) byTurretId[d.turretId] = d;
         }
     }
 

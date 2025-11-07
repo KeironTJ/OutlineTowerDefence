@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NotificationManager : MonoBehaviour
+public class NotificationManager : SingletonMonoBehaviour<NotificationManager>
 {
-    public static NotificationManager Instance { get; private set; }
-
     [Header("Configuration")]
     [SerializeField] private int maxQueueSize = 50;
     [SerializeField] private bool enableDebugLogs = false;
@@ -14,17 +12,6 @@ public class NotificationManager : MonoBehaviour
     
     private NotificationData currentNotification;
     private bool isProcessing;
-
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
-    }
 
     private void OnEnable()
     {

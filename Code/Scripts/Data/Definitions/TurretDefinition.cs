@@ -28,6 +28,10 @@ public class TurretDefinition : ScriptableObject
     public string skillSuffixRange = "range";
     public string skillSuffixRotation = "rotation";
     
+    [Header("Stat Bonuses")]
+    [Tooltip("Multiple stat bonuses this turret provides")]
+    public StatBonus[] statBonuses = new StatBonus[0];
+    
     // Helper method to check if turret accepts a projectile type
     public bool AcceptsProjectileType(ProjectileType type)
     {
@@ -35,5 +39,21 @@ public class TurretDefinition : ScriptableObject
         if (allowedProjectileTypes == null || allowedProjectileTypes.Count == 0)
             return true;
         return allowedProjectileTypes.Contains(type);
+    }
+    
+    /// <summary>
+    /// Apply all stat bonuses from this turret to the collector
+    /// </summary>
+    public void ApplyStatBonuses(StatCollector collector)
+    {
+        if (collector == null || statBonuses == null) return;
+        
+        foreach (var bonus in statBonuses)
+        {
+            if (bonus != null && bonus.IsValid)
+            {
+                bonus.ApplyTo(collector);
+            }
+        }
     }
 }

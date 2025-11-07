@@ -1,53 +1,17 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public class TowerBaseManager : MonoBehaviour
+public class TowerBaseManager : SingletonMonoBehaviour<TowerBaseManager>
 {
-    public static TowerBaseManager Instance;
-
     public List<TowerBaseData> allBases = new List<TowerBaseData>();
 
     private Dictionary<string, TowerBaseData> towerBaseMap = new Dictionary<string, TowerBaseData>();
 
-
-    private void Awake()
+    protected override void OnAwakeAfterInit()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-
-            // Load all TowerBaseData assets from Resources or assign in Inspector
-            TowerBaseData[] loadedBases = Resources.LoadAll<TowerBaseData>("Data/TowerBases");
-            allBases.AddRange(loadedBases);
-
-            BuildMap();
-        }
-
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-
-    private void BuildMap()
-    {
-        towerBaseMap.Clear();
-        foreach (var baseData in allBases)
-        {
-            if (baseData == null) continue;
-            if (string.IsNullOrEmpty(baseData.id))
-            {
-                Debug.LogWarning($"TowerBaseData with empty id found: {baseData.name}");
-                continue;
-            }
-            if (towerBaseMap.ContainsKey(baseData.id))
-            {
-                Debug.LogWarning($"Duplicate TowerBaseData id '{baseData.id}' - skipping duplicate asset {baseData.name}");
-                continue;
-            }
-            towerBaseMap[baseData.id] = baseData;
-        }
+        // Load all TowerBaseData assets from Resources or assign in Inspector
+        DefinitionLoader.LoadAndMerge(ref allBases, "Data/TowerBases", def => def.id);
+        towerBaseMap = DefinitionLoader.CreateLookup(allBases, def => def.id);
     }
 
 

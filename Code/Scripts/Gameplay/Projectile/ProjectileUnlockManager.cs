@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ProjectileUnlockManager : MonoBehaviour
+public class ProjectileUnlockManager : SingletonMonoBehaviour<ProjectileUnlockManager>
 {
-    public static ProjectileUnlockManager Instance;
-
     [Tooltip("Assign in Inspector, or place assets under Resources/Data/ProjectileUnlocks to auto-load")]
     [SerializeField] private List<ProjectileUnlockDefinition> defs = new List<ProjectileUnlockDefinition>();
 
@@ -24,18 +22,15 @@ public class ProjectileUnlockManager : MonoBehaviour
         }
     }
 
-    private void Awake()
+    protected override void OnAwakeAfterInit()
     {
-        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
-
-        if (defs == null || defs.Count == 0)
+        DefinitionLoader.LoadAndMerge(ref defs, "Data/ProjectileUnlocks", def => def.projectileId);
+        byProjectileId.Clear();
+        foreach (var d in defs)
         {
-            var loaded = Resources.LoadAll<ProjectileUnlockDefinition>("Data/ProjectileUnlocks");
-            if (loaded != null && loaded.Length > 0) defs = new List<ProjectileUnlockDefinition>(loaded);
+            if (d == null || string.IsNullOrEmpty(d.projectileId)) continue;
+            if (!byProjectileId.ContainsKey(d.projectileId)) byProjectileId[d.projectileId] = d;
         }
-        RebuildMap();
 
         // Ensure default-granted projectiles are unlocked once
         var pm = PlayerManager.main;
@@ -44,16 +39,6 @@ public class ProjectileUnlockManager : MonoBehaviour
             foreach (var d in defs)
                 if (d != null && d.grantByDefault && !IsUnlocked(pm, d.projectileId))
                     UnlockFree(pm, d.projectileId);
-        }
-    }
-
-    private void RebuildMap()
-    {
-        byProjectileId.Clear();
-        foreach (var d in defs)
-        {
-            if (d == null || string.IsNullOrEmpty(d.projectileId)) continue;
-            if (!byProjectileId.ContainsKey(d.projectileId)) byProjectileId[d.projectileId] = d;
         }
     }
 
