@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,7 +25,7 @@ public class ChipSelectorUI : MonoBehaviour
     
     private ChipService chipService;
     private PlayerManager playerManager;
-    private LoadoutScreen loadoutScreen;
+    public Action Closed;
     
     private readonly List<ChipListItemView> chipItemViews = new List<ChipListItemView>();
     private readonly List<ChipSlotView> slotViews = new List<ChipSlotView>();
@@ -53,11 +54,6 @@ public class ChipSelectorUI : MonoBehaviour
         if (playerManager == null) playerManager = PlayerManager.main;
         
         RefreshUI();
-    }
-    
-    public void SetLoadoutScreen(LoadoutScreen screen)
-    {
-        loadoutScreen = screen;
     }
     
     public void RefreshUI()
@@ -375,14 +371,14 @@ public class ChipSelectorUI : MonoBehaviour
         RefreshChipSlots();
         RefreshDetailsPanel();
     }
-    
+
     private void OnPurchaseChipClicked()
     {
         if (chipService.TryPurchaseRandomChip(out string chipId))
         {
             Debug.Log($"[ChipSelectorUI] Purchased chip: {chipId}");
             RefreshUI();
-            
+
             // Select the purchased chip
             selectedChipId = chipId;
             RefreshDetailsPanel();
@@ -393,6 +389,12 @@ public class ChipSelectorUI : MonoBehaviour
         }
     }
     
+    public void Hide()
+    {
+        gameObject.SetActive(false);
+        Closed?.Invoke();
+    }
+
     private void OnUnlockSlotClicked()
     {
         if (chipService.TryUnlockSlot())
@@ -444,11 +446,9 @@ public class ChipSelectorUI : MonoBehaviour
     
     private void OnCloseClicked()
     {
-        gameObject.SetActive(false);
-        
-        // Refresh loadout screen if available
-        if (loadoutScreen != null)
-            loadoutScreen.UpdateSlotButtons();
+    gameObject.SetActive(false);
+
+    Closed?.Invoke();
     }
 
     private int FindFirstEmptySlot()

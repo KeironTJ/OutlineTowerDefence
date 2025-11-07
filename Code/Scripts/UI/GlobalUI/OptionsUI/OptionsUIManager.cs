@@ -12,6 +12,8 @@ public class OptionsUIManager : SingletonMonoBehaviour<OptionsUIManager>
     [SerializeField] private GameObject roundHistoryPanel;   // the panel root in Options
     [SerializeField] private GameObject storePanel;
     [SerializeField] private GameObject settingsPanel;
+    [SerializeField] private GameObject chipsPanel;
+    [SerializeField] private ChipSelectorUI chipSelectorUI;
 
     [SerializeField] private RewardsUIController rewardsController; // assign in Inspector if possible
 
@@ -25,6 +27,9 @@ public class OptionsUIManager : SingletonMonoBehaviour<OptionsUIManager>
         if (!roundHistoryPanel) roundHistoryPanel = transform.Find("RoundHistoryPanel") ? transform.Find("RoundHistoryPanel").gameObject : null;
         if (!settingsPanel) settingsPanel = transform.Find("SettingsPanel") ? transform.Find("SettingsPanel").gameObject : null;
         if (!storePanel) storePanel = transform.Find("StorePanel") ? transform.Find("StorePanel").gameObject : null;
+        if (!chipsPanel) chipsPanel = transform.Find("ChipsPanel") ? transform.Find("ChipsPanel").gameObject : null;
+        if (!chipSelectorUI && chipsPanel)
+            chipSelectorUI = chipsPanel.GetComponentInChildren<ChipSelectorUI>(true);
 
         CloseOptions();
     }
@@ -43,6 +48,7 @@ public class OptionsUIManager : SingletonMonoBehaviour<OptionsUIManager>
         SafeSetActive(gameStatsPanel, false);
         SafeSetActive(roundHistoryPanel, false);
         SafeSetActive(settingsPanel, false);
+        SafeSetActive(chipsPanel, false);
         SafeSetActive(background, false);
     }
 
@@ -59,6 +65,22 @@ public class OptionsUIManager : SingletonMonoBehaviour<OptionsUIManager>
     public void ShowRoundHistory() => ShowSubPanel(roundHistoryPanel);
     public void ShowRewards() => OnRewardsButton();
     public void ShowStore() => ShowSubPanel(storePanel);
+    public void ShowChips()
+    {
+        if (!IsValid(chipsPanel))
+        {
+            Debug.LogWarning("OptionsUIManager: Chips panel missing.");
+            return;
+        }
+
+        HideSubPanels();
+        SafeSetActive(chipsPanel, true);
+
+        if (chipSelectorUI == null)
+            chipSelectorUI = chipsPanel.GetComponentInChildren<ChipSelectorUI>(true);
+
+        chipSelectorUI?.RefreshUI();
+    }
 
     public void ShowPanel(GameObject panel)
     {
@@ -87,6 +109,7 @@ public class OptionsUIManager : SingletonMonoBehaviour<OptionsUIManager>
         SafeSetActive(settingsPanel, false);
         SafeSetActive(roundHistoryPanel, false);
         SafeSetActive(storePanel, false);
+        SafeSetActive(chipsPanel, false);
     }
 
     private bool IsOpen()

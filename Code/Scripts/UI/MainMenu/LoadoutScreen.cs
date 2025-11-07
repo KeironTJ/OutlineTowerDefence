@@ -36,6 +36,9 @@ public class LoadoutScreen : MonoBehaviour
     private readonly List<Button> turretSlotButtons = new List<Button>();
     private readonly List<Button> projectileButtons = new List<Button>();
 
+    private ChipService chipService;
+    private bool chipEventsSubscribed;
+
     private readonly Dictionary<Button, TurretSlotUIElements> turretSlotCache = new Dictionary<Button, TurretSlotUIElements>();
     private readonly Dictionary<Button, ProjectileSlotUIElements> projectileSlotCache = new Dictionary<Button, ProjectileSlotUIElements>();
 
@@ -65,6 +68,7 @@ public class LoadoutScreen : MonoBehaviour
     {
         playerManager = PlayerManager.main;
         skillService = SkillService.Instance;
+        chipService = ChipService.Instance;
 
         SetTowerBaseImage();
         UpdateSlotButtons();
@@ -77,9 +81,22 @@ public class LoadoutScreen : MonoBehaviour
     {
         playerManager = PlayerManager.main;
         skillService = SkillService.Instance;
+        chipService = ChipService.Instance;
+
+        SubscribeToChipEvents();
         
         SetTowerBaseImage();
         UpdateSlotButtons();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeFromChipEvents();
+    }
+
+    private void OnDestroy()
+    {
+        UnsubscribeFromChipEvents();
     }
 
     // ================= TOWER BASE =================
@@ -590,7 +607,6 @@ public class LoadoutScreen : MonoBehaviour
         
         if (chipSelector != null)
         {
-            chipSelector.SetLoadoutScreen(this);
             chipSelector.RefreshUI();
         }
         else
@@ -598,4 +614,43 @@ public class LoadoutScreen : MonoBehaviour
             Debug.LogError("[LoadoutScreen] ChipSelectorUI component not found under 'chipSelectionPanel'.");
         }
     }
+
+    private void SubscribeToChipEvents()
+    {
+        if (chipEventsSubscribed)
+            return;
+
+        if (chipService == null)
+            return;
+
+        chipService.ChipEquipped += OnChipEquipped;
+        chipService.ChipUnequipped += OnChipUnequipped;
+        chipService.ChipUnlocked += OnChipUnlocked;
+        chipService.ChipUpgraded += OnChipUpgraded;
+        chipService.SlotUnlocked += OnChipSlotUnlocked;
+        chipEventsSubscribed = true;
+    }
+
+    private void UnsubscribeFromChipEvents()
+    {
+        if (!chipEventsSubscribed)
+            return;
+
+        if (chipService != null)
+        {
+            chipService.ChipEquipped -= OnChipEquipped;
+            chipService.ChipUnequipped -= OnChipUnequipped;
+            chipService.ChipUnlocked -= OnChipUnlocked;
+            chipService.ChipUpgraded -= OnChipUpgraded;
+            chipService.SlotUnlocked -= OnChipSlotUnlocked;
+        }
+
+        chipEventsSubscribed = false;
+    }
+
+    private void OnChipEquipped(int slotIndex, string chipId) => UpdateSlotButtons();
+    private void OnChipUnequipped(int slotIndex) => UpdateSlotButtons();
+    private void OnChipUnlocked(string chipId) => UpdateSlotButtons();
+    private void OnChipUpgraded(string chipId, int level) => UpdateSlotButtons();
+    private void OnChipSlotUnlocked(int slotIndex) => UpdateSlotButtons();
 }
