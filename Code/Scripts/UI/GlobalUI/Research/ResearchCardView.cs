@@ -180,7 +180,7 @@ public class ResearchCardView : MonoBehaviour
     
     private string FormatStatValue(StatBonus bonus, float value)
     {
-        string statName = bonus.stat.ToString();
+        string statName = bonus.targetStat.ToString();
         
         switch (bonus.contributionKind)
         {

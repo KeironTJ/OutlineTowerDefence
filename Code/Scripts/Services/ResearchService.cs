@@ -499,25 +499,10 @@ public class ResearchService : SingletonMonoBehaviour<ResearchService>, IStatCon
             // Apply stat bonuses scaled by level
             foreach (var bonus in def.statBonuses)
             {
-                if (bonus == null) continue;
+                if (bonus == null || !bonus.IsValid) continue;
                 
                 float scaledValue = bonus.value * progress.currentLevel;
-                
-                switch (bonus.contributionKind)
-                {
-                    case SkillContributionKind.Base:
-                        collector.AddBase(bonus.stat, scaledValue);
-                        break;
-                    case SkillContributionKind.FlatBonus:
-                        collector.AddFlatBonus(bonus.stat, scaledValue);
-                        break;
-                    case SkillContributionKind.Multiplier:
-                        collector.AddMultiplier(bonus.stat, scaledValue);
-                        break;
-                    case SkillContributionKind.Percentage:
-                        collector.AddPercentage(bonus.stat, scaledValue);
-                        break;
-                }
+                bonus.ApplyTo(collector, scaledValue);
             }
         }
     }
