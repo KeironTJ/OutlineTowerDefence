@@ -54,4 +54,9 @@ public static class EventNames
     public const string NotificationDismissed = "NotificationDismissed";
     public const string NotificationIndicatorUpdate = "NotificationIndicatorUpdate";
 
+    // Research Events
+    public const string ResearchStarted = "ResearchStarted";
+    public const string ResearchCompleted = "ResearchCompleted";
+    public const string ResearchSpedUp = "ResearchSpedUp";
+
 }
