@@ -14,6 +14,8 @@ public class OptionsUIManager : SingletonMonoBehaviour<OptionsUIManager>
     [SerializeField] private GameObject settingsPanel;
     [SerializeField] private GameObject chipsPanel;
     [SerializeField] private ChipSelectorUI chipSelectorUI;
+    [SerializeField] private GameObject researchPanel;
+    [SerializeField] private ResearchPanelUI researchPanelUI;
 
     [SerializeField] private RewardsUIController rewardsController; // assign in Inspector if possible
 
@@ -30,6 +32,9 @@ public class OptionsUIManager : SingletonMonoBehaviour<OptionsUIManager>
         if (!chipsPanel) chipsPanel = transform.Find("ChipsPanel") ? transform.Find("ChipsPanel").gameObject : null;
         if (!chipSelectorUI && chipsPanel)
             chipSelectorUI = chipsPanel.GetComponentInChildren<ChipSelectorUI>(true);
+        if (!researchPanel) researchPanel = transform.Find("ResearchPanel") ? transform.Find("ResearchPanel").gameObject : null;
+        if (!researchPanelUI && researchPanel)
+            researchPanelUI = researchPanel.GetComponentInChildren<ResearchPanelUI>(true);
 
         CloseOptions();
     }
@@ -49,6 +54,7 @@ public class OptionsUIManager : SingletonMonoBehaviour<OptionsUIManager>
         SafeSetActive(roundHistoryPanel, false);
         SafeSetActive(settingsPanel, false);
         SafeSetActive(chipsPanel, false);
+        SafeSetActive(researchPanel, false);
         SafeSetActive(background, false);
     }
 
@@ -82,6 +88,23 @@ public class OptionsUIManager : SingletonMonoBehaviour<OptionsUIManager>
         chipSelectorUI?.RefreshUI();
     }
 
+    public void ShowResearch()
+    {
+        if (!IsValid(researchPanel))
+        {
+            Debug.LogWarning("OptionsUIManager: Research panel missing.");
+            return;
+        }
+
+        HideSubPanels();
+        SafeSetActive(researchPanel, true);
+
+        if (researchPanelUI == null)
+            researchPanelUI = researchPanel.GetComponentInChildren<ResearchPanelUI>(true);
+
+        researchPanelUI?.RefreshUI();
+    }
+
     public void ShowPanel(GameObject panel)
     {
         if (!IsValid(panel)) { Debug.LogWarning("OptionsUIManager: Panel missing."); return; }
@@ -110,6 +133,7 @@ public class OptionsUIManager : SingletonMonoBehaviour<OptionsUIManager>
         SafeSetActive(roundHistoryPanel, false);
         SafeSetActive(storePanel, false);
         SafeSetActive(chipsPanel, false);
+        SafeSetActive(researchPanel, false);
     }
 
     private bool IsOpen()

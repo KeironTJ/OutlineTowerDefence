@@ -994,4 +994,26 @@ public class PlayerManager : MonoBehaviour
         return playerData.equippedChips;
     }
 
+    // --- Research Management API ---
+    public ResearchSystemConfig GetResearchConfig()
+    {
+        if (playerData == null)
+        {
+            playerData = new PlayerData();
+        }
+        if (playerData.researchConfig == null)
+        {
+            playerData.researchConfig = new ResearchSystemConfig();
+        }
+        return playerData.researchConfig;
+    }
+    
+    public List<ResearchProgressData> GetResearchProgress()
+    {
+        if (playerData == null) return null;
+        if (playerData.researchProgress == null)
+            playerData.researchProgress = new List<ResearchProgressData>();
+        return playerData.researchProgress;
+    }
+
 }

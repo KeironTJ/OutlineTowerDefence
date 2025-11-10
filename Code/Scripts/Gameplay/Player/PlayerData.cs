@@ -131,6 +131,10 @@ public class PlayerData
     public List<ChipProgressData> chipProgress = new List<ChipProgressData>();
     public List<ChipSlotData> equippedChips = new List<ChipSlotData>();
 
+    [Header("Research System")]
+    public ResearchSystemConfig researchConfig = new ResearchSystemConfig();
+    public List<ResearchProgressData> researchProgress = new List<ResearchProgressData>();
+
     public PlayerData()
     {
         UUID = Guid.NewGuid().ToString();
@@ -154,6 +158,10 @@ public class PlayerData
         chipConfig = new ChipSystemConfig();
         chipProgress = new List<ChipProgressData>();
         equippedChips = new List<ChipSlotData>();
+
+        // Initialize research system
+        researchConfig = new ResearchSystemConfig();
+        researchProgress = new List<ResearchProgressData>();
 
         storePackClaims = new List<StorePackClaimRecord>();
     }
