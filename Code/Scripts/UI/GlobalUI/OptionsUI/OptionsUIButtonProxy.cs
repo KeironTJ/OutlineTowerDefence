@@ -17,5 +17,6 @@ public class OptionsUIButtonProxy : MonoBehaviour
     public void ShowAchievements() => OptionsUIManager.Instance?.OnRewardsButtonAchievements();
     public void ShowStore() => OptionsUIManager.Instance?.ShowStore();
     public void ShowChips() => OptionsUIManager.Instance?.ShowChips();
+    public void ShowResearch() => OptionsUIManager.Instance?.ShowResearch();
 }
 

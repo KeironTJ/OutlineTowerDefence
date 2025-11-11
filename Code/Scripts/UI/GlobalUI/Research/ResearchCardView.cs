@@ -17,13 +17,16 @@ public class ResearchCardView : MonoBehaviour
     public TextMeshProUGUI levelText;
     public TextMeshProUGUI currentValueText;
     public TextMeshProUGUI nextValueText;
-    public TextMeshProUGUI timeRemainingText;
+    public TextMeshProUGUI timeToResearchText;
     public TextMeshProUGUI costText;
     public GameObject lockedPanel;
     public GameObject researchingPanel;
     public Image progressBar;
+    public TextMeshProUGUI timeRemainingText;
     public Button speedUpButton;
     public Button instantCompleteButton;
+    [SerializeField] private TextMeshProUGUI actionButtonLabel;
+    [SerializeField] private CanvasGroup canvasGroup;
     
     private string researchId;
     private ResearchDefinition definition;
@@ -84,9 +87,9 @@ public class ResearchCardView : MonoBehaviour
         }
         
         // Check if available
-        bool isAvailable = ResearchService.Instance.IsResearchAvailable(researchId);
-        bool isResearching = progress != null && progress.isResearching;
-        bool isMaxed = currentLevel >= maxLevel;
+    bool isAvailable = ResearchService.Instance.IsResearchAvailable(researchId);
+    bool isResearching = progress != null && progress.isResearching;
+    bool isMaxed = currentLevel >= maxLevel;
         
         // Locked/Available state
         if (lockedPanel != null)
@@ -110,7 +113,7 @@ public class ResearchCardView : MonoBehaviour
             if (progressBar != null)
                 progressBar.fillAmount = 0f;
         }
-        
+
         // Cost display
         if (costText != null)
         {
@@ -126,8 +129,7 @@ public class ResearchCardView : MonoBehaviour
             {
                 int nextLevel = currentLevel + 1;
                 float coreCost = definition.GetCoreCostForLevel(nextLevel);
-                float timeSeconds = definition.GetTimeForLevel(nextLevel);
-                costText.text = $"Cores: {coreCost:F0} | Time: {FormatTime(timeSeconds)}";
+                costText.text = $"Cores: {coreCost:F0}";
             }
             else
             {
@@ -135,8 +137,32 @@ public class ResearchCardView : MonoBehaviour
             }
         }
         
+        // Time to research display
+        if (timeToResearchText != null)
+        {
+            if (isMaxed)
+            {
+                timeToResearchText.text = "MAXED";
+            }
+            else if (isResearching)
+            {
+                timeToResearchText.text = "Researching...";
+            }
+            else if (isAvailable)
+            {
+                int nextLevel = currentLevel + 1;
+                float timeSeconds = definition.GetTimeForLevel(nextLevel);
+                timeToResearchText.text = $"{FormatTime(timeSeconds)}";
+            }
+            else
+            {
+                timeToResearchText.text = "Locked";
+            }
+        }
+        
         // Button states
-        UpdateButtonStates(isAvailable, isResearching, isMaxed);
+    UpdateButtonStates(isAvailable, isResearching, isMaxed);
+    UpdateAffordabilityState(isAvailable, isResearching, isMaxed, currentLevel);
     }
     
     private void UpdateValueDisplay()
@@ -152,44 +178,58 @@ public class ResearchCardView : MonoBehaviour
         
         int currentLevel = progress?.currentLevel ?? 0;
         int nextLevel = currentLevel + 1;
-        
+
         // Show first stat bonus as example
         var bonus = definition.statBonuses[0];
-        float currentValue = bonus.value * currentLevel;
-        float nextValue = bonus.value * nextLevel;
+        float currentPipelineValue = bonus.ToPipelineValue(bonus.value * currentLevel);
+        float nextPipelineValue = bonus.ToPipelineValue(bonus.value * nextLevel);
         
+    string rangeText = FormatStatRange(bonus, currentPipelineValue, nextPipelineValue, currentLevel, nextLevel, definition.maxLevel);
+
         if (currentValueText != null)
         {
-            currentValueText.gameObject.SetActive(true);
-            currentValueText.text = $"Current: {FormatStatValue(bonus, currentValue)}";
-        }
-        
-        if (nextValueText != null)
-        {
-            if (nextLevel <= definition.maxLevel)
+            if (string.IsNullOrEmpty(rangeText))
             {
-                nextValueText.gameObject.SetActive(true);
-                nextValueText.text = $"Next: {FormatStatValue(bonus, nextValue)}";
+                currentValueText.gameObject.SetActive(false);
             }
             else
             {
-                nextValueText.gameObject.SetActive(false);
+                currentValueText.gameObject.SetActive(true);
+                currentValueText.text = rangeText;
             }
+        }
+
+        if (nextValueText != null)
+        {
+            nextValueText.gameObject.SetActive(false);
         }
     }
     
+    private string FormatStatRange(StatBonus bonus, float currentValue, float nextValue, int currentLevel, int nextLevel, int maxLevel)
+    {
+        if (currentLevel >= maxLevel)
+        {
+            return FormatStatValue(bonus, currentValue);
+        }
+
+        if (nextLevel > maxLevel)
+        {
+            return FormatStatValue(bonus, currentValue);
+        }
+
+        return $"{FormatStatValue(bonus, currentValue)} >> {FormatStatValue(bonus, nextValue)}";
+    }
+
     private string FormatStatValue(StatBonus bonus, float value)
     {
-        string statName = bonus.targetStat.ToString();
-        
         switch (bonus.contributionKind)
         {
             case SkillContributionKind.Percentage:
-                return $"{statName} +{value:F1}%";
+                return (1f + value).ToString("F2");
             case SkillContributionKind.Multiplier:
-                return $"{statName} x{value:F2}";
+                return value.ToString("F2");
             default:
-                return $"{statName} +{value:F1}";
+                return value.ToString("F1");
         }
     }
     
@@ -216,17 +256,26 @@ public class ResearchCardView : MonoBehaviour
         if (actionButton != null)
         {
             actionButton.interactable = isAvailable && !isResearching && !isMaxed;
-            var buttonText = actionButton.GetComponentInChildren<TextMeshProUGUI>();
-            if (buttonText != null)
+
+            var label = actionButtonLabel;
+            if (label == null)
+            {
+                label = actionButton.GetComponentInChildren<TextMeshProUGUI>(true);
+                // Cache it so we stop searching every frame and avoid grabbing unrelated labels next time.
+                if (actionButtonLabel == null && label != null && label != researchNameText)
+                    actionButtonLabel = label;
+            }
+
+            if (label != null && label != researchNameText)
             {
                 if (isMaxed)
-                    buttonText.text = "MAXED";
+                    label.text = "MAXED";
                 else if (isResearching)
-                    buttonText.text = "Researching";
+                    label.text = "Researching";
                 else if (isAvailable)
-                    buttonText.text = "Start Research";
+                    label.text = "Start Research";
                 else
-                    buttonText.text = "Locked";
+                    label.text = "Locked";
             }
         }
         
@@ -265,6 +314,9 @@ public class ResearchCardView : MonoBehaviour
             researchingPanel.SetActive(false);
         if (actionButton != null)
             actionButton.interactable = false;
+
+        if (canvasGroup != null)
+            canvasGroup.alpha = 1f;
     }
     
     public void OnActionButtonClicked()
@@ -305,6 +357,24 @@ public class ResearchCardView : MonoBehaviour
         {
             RefreshDisplay();
         }
+    }
+
+    private void UpdateAffordabilityState(bool isAvailable, bool isResearching, bool isMaxed, int currentLevel)
+    {
+        if (canvasGroup == null)
+            return;
+
+        bool canAfford = true;
+
+        if (isAvailable && !isResearching && !isMaxed)
+        {
+            int nextLevel = currentLevel + 1;
+            float coreCost = definition != null ? definition.GetCoreCostForLevel(nextLevel) : 0f;
+            float currentCores = PlayerManager.main != null ? PlayerManager.main.GetCores() : 0f;
+            canAfford = currentCores >= coreCost;
+        }
+
+        canvasGroup.alpha = canAfford ? 1f : 0.45f;
     }
     
     private void Update()

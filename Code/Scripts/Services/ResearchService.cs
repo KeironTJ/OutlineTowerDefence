@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
 
@@ -17,6 +18,7 @@ public class ResearchService : SingletonMonoBehaviour<ResearchService>, IStatCon
     public event Action<string> ResearchStarted;
     public event Action<string, int> ResearchCompleted;
     public event Action<string> ResearchSpedUp;
+    public event Action ResearchSlotsChanged;
     
     private PlayerManager playerManager;
     
@@ -29,12 +31,105 @@ public class ResearchService : SingletonMonoBehaviour<ResearchService>, IStatCon
     
     private ResearchSystemConfig GetConfigInternal()
     {
-        return EnsurePlayerManager() ? playerManager.GetResearchConfig() : null;
+        if (!EnsurePlayerManager())
+            return null;
+
+        var config = playerManager.GetResearchConfig();
+        config?.EnsureValid();
+        return config;
     }
     
     private List<ResearchProgressData> GetProgressInternal()
     {
         return EnsurePlayerManager() ? playerManager.GetResearchProgress() : null;
+    }
+
+    private void NormalizeActiveSlots(ResearchSystemConfig config)
+    {
+        if (config == null)
+            return;
+
+        var progressList = GetProgressInternal();
+        if (progressList == null)
+            return;
+
+        int unlocked = config.GetUnlockedSlotCount();
+        if (unlocked <= 0)
+            return;
+
+        var slotUsed = new bool[ResearchSystemConfig.MaxSlots];
+        bool changed = false;
+
+        foreach (var progress in progressList)
+        {
+            if (progress == null || !progress.isResearching)
+                continue;
+
+            int assigned = progress.slotIndex;
+            if (assigned >= 0 && assigned < unlocked && !slotUsed[assigned])
+            {
+                slotUsed[assigned] = true;
+                continue;
+            }
+
+            int replacement = -1;
+            for (int i = 0; i < unlocked; i++)
+            {
+                if (!slotUsed[i])
+                {
+                    replacement = i;
+                    break;
+                }
+            }
+
+            if (replacement >= 0)
+            {
+                progress.slotIndex = replacement;
+                slotUsed[replacement] = true;
+                changed = true;
+            }
+        }
+
+        if (changed && playerManager != null)
+        {
+            playerManager.SavePlayerData();
+        }
+    }
+
+    private int FindAvailableSlotIndex(ResearchSystemConfig config, List<ResearchProgressData> progressList = null)
+    {
+        if (config == null)
+            return -1;
+
+        int unlocked = config.GetUnlockedSlotCount();
+        if (unlocked <= 0)
+            return -1;
+
+        progressList ??= GetProgressInternal();
+        var slotUsed = new bool[ResearchSystemConfig.MaxSlots];
+
+        if (progressList != null)
+        {
+            foreach (var progress in progressList)
+            {
+                if (progress == null || !progress.isResearching)
+                    continue;
+
+                int assigned = progress.slotIndex;
+                if (assigned >= 0 && assigned < unlocked)
+                {
+                    slotUsed[assigned] = true;
+                }
+            }
+        }
+
+        for (int i = 0; i < unlocked; i++)
+        {
+            if (!slotUsed[i])
+                return i;
+        }
+
+        return -1;
     }
     
     protected override void OnAwakeAfterInit()
@@ -112,10 +207,10 @@ public class ResearchService : SingletonMonoBehaviour<ResearchService>, IStatCon
             if (!definitions.ContainsKey(def.id))
                 definitions.Add(def.id, def);
             else
-                Debug.LogWarning($"[ResearchService] Duplicate research id: {def.id}");
+                UnityEngine.Debug.LogWarning($"[ResearchService] Duplicate research id: {def.id}");
         }
         
-        Debug.Log($"[ResearchService] Indexed {definitions.Count} research definitions");
+        UnityEngine.Debug.Log($"[ResearchService] Indexed {definitions.Count} research definitions");
     }
     
     // Definition Access
@@ -201,6 +296,8 @@ public class ResearchService : SingletonMonoBehaviour<ResearchService>, IStatCon
     
     public int GetActiveResearchCount()
     {
+        var config = GetConfigInternal();
+        NormalizeActiveSlots(config);
         var progressList = GetProgressInternal();
         if (progressList == null) return 0;
         return progressList.Count(p => p.isResearching);
@@ -208,9 +305,88 @@ public class ResearchService : SingletonMonoBehaviour<ResearchService>, IStatCon
     
     public IEnumerable<ResearchProgressData> GetActiveResearch()
     {
+        var config = GetConfigInternal();
+        NormalizeActiveSlots(config);
         var progressList = GetProgressInternal();
         if (progressList == null) return Enumerable.Empty<ResearchProgressData>();
         return progressList.Where(p => p.isResearching);
+    }
+
+    public ResearchProgressData GetActiveProgressInSlot(int slotIndex)
+    {
+        if (slotIndex < 0) return null;
+        var progressList = GetProgressInternal();
+        if (progressList == null) return null;
+        return progressList.FirstOrDefault(p => p != null && p.isResearching && p.slotIndex == slotIndex);
+    }
+
+    public IEnumerable<ResearchProgressData> GetPausedResearch()
+    {
+        var progressList = GetProgressInternal();
+        if (progressList == null) return Enumerable.Empty<ResearchProgressData>();
+        return progressList.Where(p => p != null && p.isPaused && p.pausedRemainingSeconds > 0f);
+    }
+
+    public int GetUnlockedSlotCount()
+    {
+        var config = GetConfigInternal();
+        return config?.GetUnlockedSlotCount() ?? 1;
+    }
+
+    public float GetSlotUnlockCost(int slotIndex)
+    {
+        var config = GetConfigInternal();
+        return config?.GetUnlockCostForSlot(slotIndex) ?? ResearchSystemConfig.GetDefaultUnlockCost(slotIndex);
+    }
+
+    public bool CanUnlockSlot(int slotIndex, out float cost)
+    {
+        cost = 0f;
+        var config = GetConfigInternal();
+        if (config == null || !EnsurePlayerManager())
+            return false;
+
+        if (slotIndex < 0)
+            slotIndex = 0;
+        if (slotIndex >= ResearchSystemConfig.MaxSlots)
+            slotIndex = ResearchSystemConfig.MaxSlots - 1;
+
+        int unlocked = config.GetUnlockedSlotCount();
+        cost = config.GetUnlockCostForSlot(slotIndex);
+
+        if (slotIndex < unlocked)
+            return false;
+        if (slotIndex > unlocked)
+            return false;
+
+    return playerManager.GetPrisms() >= cost;
+    }
+
+    public bool TryUnlockSlot(int slotIndex)
+    {
+        var config = GetConfigInternal();
+        if (config == null || !EnsurePlayerManager())
+            return false;
+
+        if (slotIndex < 0)
+            slotIndex = 0;
+        if (slotIndex >= ResearchSystemConfig.MaxSlots)
+            slotIndex = ResearchSystemConfig.MaxSlots - 1;
+
+        int unlocked = config.GetUnlockedSlotCount();
+        if (slotIndex < unlocked)
+            return false;
+        if (slotIndex > unlocked)
+            return false;
+
+        float cost = config.GetUnlockCostForSlot(slotIndex);
+    if (cost > 0f && !playerManager.TrySpend(CurrencyType.Prisms, cost))
+            return false;
+
+        config.SetUnlockedSlotCount(unlocked + 1);
+        playerManager.SavePlayerData();
+        ResearchSlotsChanged?.Invoke();
+        return true;
     }
     
     // Time Calculations
@@ -236,6 +412,38 @@ public class ResearchService : SingletonMonoBehaviour<ResearchService>, IStatCon
     }
     
     // Start Research
+    private bool PauseResearchInternal(ResearchProgressData progress, bool refundCores)
+    {
+        if (progress == null)
+            return false;
+
+        var def = GetDefinition(progress.researchId);
+        if (def == null)
+            return false;
+
+        float remaining = GetRemainingTime(progress.researchId);
+        if (remaining < 0f)
+            remaining = 0f;
+
+        int nextLevel = progress.currentLevel + 1;
+        float cost = def.GetCoreCostForLevel(nextLevel);
+
+        progress.isResearching = false;
+        progress.startTimeIsoUtc = "";
+        progress.durationSeconds = 0f;
+        progress.isPaused = true;
+        progress.pausedRemainingSeconds = remaining;
+        progress.slotIndex = -1;
+        progress.pausedInvestedCores = refundCores ? cost : 0f;
+
+        if (refundCores && EnsurePlayerManager())
+        {
+            playerManager.AddCurrency(cores: cost);
+        }
+
+        return true;
+    }
+
     public bool CanStartResearch(string researchId)
     {
         if (!EnsurePlayerManager()) return false;
@@ -244,9 +452,17 @@ public class ResearchService : SingletonMonoBehaviour<ResearchService>, IStatCon
         
         var config = GetConfigInternal();
         if (config == null) return false;
-        
-        var activeCount = GetActiveResearchCount();
-        if (activeCount >= config.maxConcurrentResearch) return false;
+
+        var progressList = GetProgressInternal();
+        if (progressList == null) return false;
+
+        NormalizeActiveSlots(config);
+
+        int unlockedSlots = config.GetUnlockedSlotCount();
+        int activeCount = progressList.Count(p => p.isResearching);
+        if (activeCount >= unlockedSlots) return false;
+
+        if (FindAvailableSlotIndex(config, progressList) < 0) return false;
         
         var def = GetDefinition(researchId);
         if (def == null) return false;
@@ -267,8 +483,18 @@ public class ResearchService : SingletonMonoBehaviour<ResearchService>, IStatCon
         var def = GetDefinition(researchId);
         if (def == null) return false;
         
-        var progress = GetOrCreateProgress(researchId);
-        if (progress == null) return false;
+    var progress = GetOrCreateProgress(researchId);
+    if (progress == null) return false;
+
+    var config = GetConfigInternal();
+    if (config == null) return false;
+
+    var progressList = GetProgressInternal();
+    if (progressList == null) return false;
+
+    NormalizeActiveSlots(config);
+    int slotIndex = FindAvailableSlotIndex(config, progressList);
+    if (slotIndex < 0) return false;
         
         int nextLevel = progress.currentLevel + 1;
         float cost = def.GetCoreCostForLevel(nextLevel);
@@ -280,6 +506,10 @@ public class ResearchService : SingletonMonoBehaviour<ResearchService>, IStatCon
         progress.isResearching = true;
         progress.startTimeIsoUtc = DateTime.UtcNow.ToString("o");
         progress.durationSeconds = duration;
+        progress.slotIndex = slotIndex;
+        progress.isPaused = false;
+        progress.pausedRemainingSeconds = 0f;
+        progress.pausedInvestedCores = 0f;
         
         playerManager.SavePlayerData();
         ResearchStarted?.Invoke(researchId);
@@ -300,6 +530,7 @@ public class ResearchService : SingletonMonoBehaviour<ResearchService>, IStatCon
         progress.isResearching = false;
         progress.startTimeIsoUtc = "";
         progress.durationSeconds = 0f;
+        progress.slotIndex = -1;
         
         playerManager.SavePlayerData();
         ResearchCompleted?.Invoke(researchId, progress.currentLevel);
@@ -431,6 +662,7 @@ public class ResearchService : SingletonMonoBehaviour<ResearchService>, IStatCon
         progress.isResearching = false;
         progress.startTimeIsoUtc = "";
         progress.durationSeconds = 0f;
+        progress.slotIndex = -1;
         
         playerManager.SavePlayerData();
         return true;
@@ -503,6 +735,8 @@ public class ResearchService : SingletonMonoBehaviour<ResearchService>, IStatCon
                 
                 float scaledValue = bonus.value * progress.currentLevel;
                 bonus.ApplyTo(collector, scaledValue);
+
+                UnityEngine.Debug.Log($"[ResearchService] Applied research bonus from '{def.id}' level {progress.currentLevel}: {bonus.targetStat}  += {scaledValue}");
             }
         }
     }

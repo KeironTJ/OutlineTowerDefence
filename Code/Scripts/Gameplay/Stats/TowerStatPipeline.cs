@@ -13,7 +13,9 @@ public class TowerStatPipeline : SingletonMonoBehaviour<TowerStatPipeline>
     private bool skillServiceHooked;
     private bool chipServiceHooked;
     private bool loadoutServiceHooked;
+    private bool researchServiceHooked;
     private ChipService chipServiceRef;
+    private ResearchService researchServiceRef;
 
     protected override void OnAwakeAfterInit()
     {
@@ -25,6 +27,7 @@ public class TowerStatPipeline : SingletonMonoBehaviour<TowerStatPipeline>
         UnhookSkillService();
         UnhookChipService();
         UnhookLoadoutService();
+        UnhookResearchService();
         base.OnDestroy();
     }
 
@@ -33,6 +36,7 @@ public class TowerStatPipeline : SingletonMonoBehaviour<TowerStatPipeline>
         TryHookSkillService();
         TryHookChipService();
         TryHookLoadoutService();
+        TryHookResearchService();
         if (dirty)
             RebuildImmediate();
     }
@@ -42,6 +46,7 @@ public class TowerStatPipeline : SingletonMonoBehaviour<TowerStatPipeline>
         TryHookSkillService();
         TryHookChipService();
         TryHookLoadoutService();
+        TryHookResearchService();
     }
 
     public void RegisterContributor(IStatContributor contributor)
@@ -222,5 +227,48 @@ public class TowerStatPipeline : SingletonMonoBehaviour<TowerStatPipeline>
         }
 
         loadoutServiceHooked = false;
+    }
+
+    private void TryHookResearchService()
+    {
+        if (researchServiceHooked)
+        {
+            if (ResearchService.Instance == null)
+            {
+                UnhookResearchService();
+            }
+            return;
+        }
+
+        var researchService = ResearchService.Instance;
+        if (researchService == null)
+            return;
+
+        RegisterContributor(researchService);
+        researchService.ResearchCompleted += OnResearchCompleted;
+        researchServiceHooked = true;
+        researchServiceRef = researchService;
+        MarkDirty();
+    }
+
+    private void UnhookResearchService()
+    {
+        if (!researchServiceHooked)
+            return;
+
+        var researchService = researchServiceRef != null ? researchServiceRef : ResearchService.Instance;
+        if (researchService != null)
+        {
+            researchService.ResearchCompleted -= OnResearchCompleted;
+            UnregisterContributor(researchService);
+        }
+
+        researchServiceRef = null;
+        researchServiceHooked = false;
+    }
+
+    private void OnResearchCompleted(string _, int __)
+    {
+        MarkDirty();
     }
 }

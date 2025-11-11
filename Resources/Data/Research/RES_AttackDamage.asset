@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6f0104643ac7b99478ccf2420f80c037, type: 3}
-  m_Name: AttackDamage
+  m_Name: RES_AttackDamage
   m_EditorClassIdentifier: Assembly-CSharp::ResearchDefinition
   id: RES_ATT_DAM
   displayName: Attack Damage
   description: Increase Attack Damage
   icon: {fileID: 0}
   researchType: 3
-  maxLevel: 10
+  maxLevel: 100
   baseTimeSeconds: 60
   timeGrowthFactor: 2.25
   timeCurve: 1
@@ -42,8 +42,8 @@ MonoBehaviour:
   unlockTargetId: 
   statBonuses:
   - targetStat: 0
-    contributionKind: 3
-    value: 1
-    pipelineScale: 0.05
-    pipelineMin: 0
-    pipelineMax: 0
+    contributionKind: 4
+    value: 0.02
+    pipelineScale: 1
+    pipelineMin: -Infinity
+    pipelineMax: Infinity

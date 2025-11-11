@@ -11,9 +11,16 @@ using TMPro;
 public class ResearchPanelUI : MonoBehaviour
 {
     [Header("UI References")]
+    [SerializeField] private GameObject researchSlotsPanel;
+    [SerializeField] private Transform researchSlotContainer;
+    [SerializeField] private GameObject researchSlotPrefab;
+
+    [SerializeField] private GameObject researchCardPanel;
     [SerializeField] private Transform researchCardContainer;
     [SerializeField] private GameObject researchCardPrefab;
+
     [SerializeField] private Button closeButton;
+    [SerializeField] private Button researchListBackButton;
     
     [Header("Filter Buttons")]
     [SerializeField] private Button filterAllButton;
@@ -30,9 +37,12 @@ public class ResearchPanelUI : MonoBehaviour
     
     private ResearchType? currentFilter = null;
     private List<ResearchCardView> cardViews = new List<ResearchCardView>();
+    private readonly List<ResearchSlotView> slotViews = new List<ResearchSlotView>();
+    private bool isListVisible;
     
     private void OnEnable()
     {
+        ShowSlotsPanel(false);
         RefreshUI();
         
         // Subscribe to research events
@@ -41,6 +51,7 @@ public class ResearchPanelUI : MonoBehaviour
             ResearchService.Instance.ResearchStarted += OnResearchEvent;
             ResearchService.Instance.ResearchCompleted += OnResearchEvent;
             ResearchService.Instance.ResearchSpedUp += OnResearchEvent;
+            ResearchService.Instance.ResearchSlotsChanged += OnResearchSlotsChanged;
         }
     }
     
@@ -52,12 +63,14 @@ public class ResearchPanelUI : MonoBehaviour
             ResearchService.Instance.ResearchStarted -= OnResearchEvent;
             ResearchService.Instance.ResearchCompleted -= OnResearchEvent;
             ResearchService.Instance.ResearchSpedUp -= OnResearchEvent;
+            ResearchService.Instance.ResearchSlotsChanged -= OnResearchSlotsChanged;
         }
     }
     
     private void Start()
     {
         SetupButtons();
+        ShowSlotsPanel(false);
         RefreshUI();
     }
     
@@ -65,6 +78,9 @@ public class ResearchPanelUI : MonoBehaviour
     {
         if (closeButton != null)
             closeButton.onClick.AddListener(OnCloseClicked);
+        
+        if (researchListBackButton != null)
+            researchListBackButton.onClick.AddListener(() => ShowSlotsPanel());
         
         if (filterAllButton != null)
             filterAllButton.onClick.AddListener(() => SetFilter(null));
@@ -96,8 +112,11 @@ public class ResearchPanelUI : MonoBehaviour
             return;
         }
         
+        ApplyListPanelState();
         UpdateInfoDisplay();
-        UpdateResearchCards();
+        UpdateResearchSlots();
+        if (isListVisible)
+            UpdateResearchCards();
     }
     
     private void UpdateInfoDisplay()
@@ -105,10 +124,11 @@ public class ResearchPanelUI : MonoBehaviour
         // Active research count
         if (activeResearchText != null)
         {
-            int activeCount = ResearchService.Instance.GetActiveResearchCount();
-            var config = PlayerManager.main?.GetResearchConfig();
-            int maxConcurrent = config?.maxConcurrentResearch ?? 1;
-            activeResearchText.text = $"Active Research: {activeCount}/{maxConcurrent}";
+            int activeCount = ResearchService.Instance != null ? ResearchService.Instance.GetActiveResearchCount() : 0;
+            int unlockedSlots = ResearchService.Instance != null
+                ? ResearchService.Instance.GetUnlockedSlotCount()
+                : (PlayerManager.main?.GetResearchConfig()?.GetUnlockedSlotCount() ?? 1);
+            activeResearchText.text = $"Active Research: {activeCount}/{unlockedSlots}";
         }
         
         // Currency balances
@@ -187,9 +207,15 @@ public class ResearchPanelUI : MonoBehaviour
     {
         RefreshUI();
     }
+
+    private void OnResearchSlotsChanged()
+    {
+        RefreshUI();
+    }
     
     private void OnCloseClicked()
     {
+        ShowSlotsPanel(false);
         if (OptionsUIManager.Instance != null)
         {
             OptionsUIManager.Instance.HideSubPanels();
@@ -206,6 +232,218 @@ public class ResearchPanelUI : MonoBehaviour
         if (Time.frameCount % 30 == 0) // Every 30 frames
         {
             UpdateInfoDisplay();
+            UpdateSlotProgress();
         }
+    }
+
+    private void UpdateResearchSlots()
+    {
+        if (researchSlotContainer == null)
+            return;
+
+        EnsureSlotViews();
+
+        if (ResearchService.Instance == null)
+        {
+            for (int i = 0; i < slotViews.Count; i++)
+            {
+                var view = slotViews[i];
+                if (view == null) continue;
+                bool shouldShow = i == 0;
+                view.gameObject.SetActive(shouldShow);
+                if (!shouldShow) continue;
+                view.Initialize(i, OnSlotUnlockRequested, OnEmptySlotSelected);
+                view.Bind(new ResearchSlotDisplayData
+                {
+                    SlotIndex = i,
+                    IsUnlocked = true,
+                    IsActive = false,
+                    AllowSelection = true
+                });
+            }
+            return;
+        }
+
+        var service = ResearchService.Instance;
+
+        int unlockedSlots = service.GetUnlockedSlotCount();
+
+        var activeBySlot = new Dictionary<int, ResearchProgressData>();
+        foreach (var progress in service.GetActiveResearch())
+        {
+            if (progress == null || !progress.isResearching)
+                continue;
+            if (progress.slotIndex < 0 || progress.slotIndex >= ResearchSystemConfig.MaxSlots)
+                continue;
+            if (!activeBySlot.ContainsKey(progress.slotIndex))
+                activeBySlot.Add(progress.slotIndex, progress);
+        }
+
+        for (int i = 0; i < slotViews.Count; i++)
+        {
+            var view = slotViews[i];
+            if (view == null)
+                continue;
+
+            bool isUnlocked = i < unlockedSlots;
+            bool isNextUnlock = !isUnlocked && i == unlockedSlots && unlockedSlots < ResearchSystemConfig.MaxSlots;
+            bool shouldShow = isUnlocked || isNextUnlock;
+            view.gameObject.SetActive(shouldShow);
+            if (!shouldShow)
+                continue;
+
+            view.Initialize(i, OnSlotUnlockRequested, OnEmptySlotSelected);
+
+            bool isActive = activeBySlot.TryGetValue(i, out var progress);
+            var definition = isActive ? service.GetDefinition(progress.researchId) : null;
+
+            float unlockCost = 0f;
+            bool canAfford = false;
+            if (isNextUnlock)
+            {
+                canAfford = service.CanUnlockSlot(i, out unlockCost);
+            }
+            else
+            {
+                unlockCost = service.GetSlotUnlockCost(i);
+            }
+
+            float remaining = isActive ? service.GetRemainingTime(progress.researchId) : 0f;
+            float duration = progress?.durationSeconds ?? 0f;
+
+            var data = new ResearchSlotDisplayData
+            {
+                SlotIndex = i,
+                IsUnlocked = isUnlocked,
+                IsActive = isActive,
+                IsNextUnlock = isNextUnlock,
+                CanAffordUnlock = canAfford,
+                UnlockCost = unlockCost,
+                RemainingSeconds = remaining,
+                DurationSeconds = duration,
+                Progress = progress,
+                Definition = definition,
+                AllowSelection = isUnlocked && !isActive
+            };
+
+            view.Bind(data);
+        }
+    }
+
+    private void UpdateSlotProgress()
+    {
+        foreach (var view in slotViews)
+        {
+            if (view == null || !view.gameObject.activeInHierarchy)
+                continue;
+            view.RefreshProgress();
+        }
+    }
+
+    private void OnSlotUnlockRequested(int slotIndex)
+    {
+        if (ResearchService.Instance == null)
+            return;
+
+        if (!ResearchService.Instance.TryUnlockSlot(slotIndex))
+        {
+            Debug.Log($"[ResearchPanelUI] Unable to unlock research slot {slotIndex + 1}");
+            return;
+        }
+
+        UpdateResearchSlots();
+        UpdateInfoDisplay();
+    }
+
+    private void OnEmptySlotSelected(int slotIndex)
+    {
+        ShowResearchListPanel();
+    }
+
+    private void EnsureSlotViews()
+    {
+        if (slotViews.Count >= ResearchSystemConfig.MaxSlots)
+            return;
+
+        if (researchSlotContainer == null)
+            return;
+
+        // Use existing children first
+        if (slotViews.Count == 0)
+        {
+            int index = 0;
+            foreach (Transform child in researchSlotContainer)
+            {
+                if (index >= ResearchSystemConfig.MaxSlots)
+                {
+                    child.gameObject.SetActive(false);
+                    continue;
+                }
+
+                var view = child.GetComponent<ResearchSlotView>();
+                if (view == null)
+                {
+                    Debug.LogWarning("[ResearchPanelUI] Research slot child is missing ResearchSlotView component");
+                    continue;
+                }
+
+                view.Initialize(index, OnSlotUnlockRequested, OnEmptySlotSelected);
+                slotViews.Add(view);
+                index++;
+            }
+        }
+
+        while (slotViews.Count < ResearchSystemConfig.MaxSlots)
+        {
+            if (researchSlotPrefab == null)
+            {
+                Debug.LogWarning("[ResearchPanelUI] Missing research slot prefab");
+                return;
+            }
+
+            var slotObj = Instantiate(researchSlotPrefab, researchSlotContainer);
+            slotObj.name = $"ResearchSlot_{slotViews.Count + 1}";
+            var view = slotObj.GetComponent<ResearchSlotView>();
+            if (view == null)
+            {
+                Debug.LogWarning("[ResearchPanelUI] Research slot prefab needs a ResearchSlotView component attached");
+                Destroy(slotObj);
+                return;
+            }
+
+            view.Initialize(slotViews.Count, OnSlotUnlockRequested, OnEmptySlotSelected);
+            slotViews.Add(view);
+        }
+    }
+
+    private void ShowSlotsPanel(bool updateCards = true)
+    {
+        isListVisible = false;
+        ApplyListPanelState();
+        if (!updateCards)
+            return;
+        ClearExcessCards(0);
+    }
+
+    private void ShowResearchListPanel()
+    {
+        if (isListVisible)
+            return;
+
+        isListVisible = true;
+        ApplyListPanelState();
+        UpdateResearchCards();
+    }
+
+    private void ApplyListPanelState()
+    {
+        if (researchSlotsPanel != null && !researchSlotsPanel.activeSelf)
+            researchSlotsPanel.SetActive(true);
+
+        if (researchCardPanel != null)
+            researchCardPanel.SetActive(isListVisible);
+
+        if (researchListBackButton != null)
+            researchListBackButton.gameObject.SetActive(isListVisible);
     }
 }
