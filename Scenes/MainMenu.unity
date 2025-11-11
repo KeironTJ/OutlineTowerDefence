@@ -2525,30 +2525,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 374113301}
     m_Modifications:
-    - target: {fileID: 1692669013788678728, guid: 0592bdc6e61f97344bfb8579b6637ff1, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1692669013788678728, guid: 0592bdc6e61f97344bfb8579b6637ff1, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1692669013788678728, guid: 0592bdc6e61f97344bfb8579b6637ff1, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1692669013788678728, guid: 0592bdc6e61f97344bfb8579b6637ff1, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1692669013788678728, guid: 0592bdc6e61f97344bfb8579b6637ff1, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1692669013788678728, guid: 0592bdc6e61f97344bfb8579b6637ff1, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 2051908311736700789, guid: 0592bdc6e61f97344bfb8579b6637ff1, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -2629,6 +2605,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3927957273873051521, guid: 0592bdc6e61f97344bfb8579b6637ff1, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: -20
+      objectReference: {fileID: 0}
+    - target: {fileID: 3927957273873051521, guid: 0592bdc6e61f97344bfb8579b6637ff1, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4225287509256233326, guid: 0592bdc6e61f97344bfb8579b6637ff1, type: 3}
       propertyPath: m_Name
       value: NotificationModalPrefab
@@ -2636,6 +2620,30 @@ PrefabInstance:
     - target: {fileID: 4225287509256233326, guid: 0592bdc6e61f97344bfb8579b6637ff1, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4523130591139904977, guid: 0592bdc6e61f97344bfb8579b6637ff1, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: -20
+      objectReference: {fileID: 0}
+    - target: {fileID: 4523130591139904977, guid: 0592bdc6e61f97344bfb8579b6637ff1, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: -150
+      objectReference: {fileID: 0}
+    - target: {fileID: 4523130591139904977, guid: 0592bdc6e61f97344bfb8579b6637ff1, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4523130591139904977, guid: 0592bdc6e61f97344bfb8579b6637ff1, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -65
+      objectReference: {fileID: 0}
+    - target: {fileID: 4973130532833981432, guid: 0592bdc6e61f97344bfb8579b6637ff1, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8311441384848475309, guid: 0592bdc6e61f97344bfb8579b6637ff1, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5119,7 +5127,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 35}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &561915117
 MonoBehaviour:
@@ -11770,7 +11778,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1174332903
 RectTransform:
   m_ObjectHideFlags: 0
@@ -21176,7 +21184,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 50}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1856811468
 MonoBehaviour:

@@ -32,6 +32,9 @@ public class AchievementManager : SingletonMonoBehaviour<AchievementManager>
         EventManager.StartListening(EventNames.CurrencySpent, OnCurrencySpent);
         EventManager.StartListening(EventNames.BulletFired, OnProjectileFired);
         EventManager.StartListening(EventNames.DifficultyAchieved, OnDifficultyAchieved);
+    EventManager.StartListening(EventNames.ResearchCompleted, OnResearchCompleted);
+    EventManager.StartListening(EventNames.ChipUnlocked, OnChipUnlocked);
+    EventManager.StartListening(EventNames.ChipUpgraded, OnChipUpgraded);
     }
 
     private void OnDisable()
@@ -43,6 +46,9 @@ public class AchievementManager : SingletonMonoBehaviour<AchievementManager>
         EventManager.StopListening(EventNames.CurrencySpent, OnCurrencySpent);
         EventManager.StopListening(EventNames.BulletFired, OnProjectileFired);
         EventManager.StopListening(EventNames.DifficultyAchieved, OnDifficultyAchieved);
+    EventManager.StopListening(EventNames.ResearchCompleted, OnResearchCompleted);
+    EventManager.StopListening(EventNames.ChipUnlocked, OnChipUnlocked);
+    EventManager.StopListening(EventNames.ChipUpgraded, OnChipUpgraded);
     }
 
     private void Start()
@@ -655,6 +661,44 @@ public class AchievementManager : SingletonMonoBehaviour<AchievementManager>
                 case CurrencyType.Prisms:    if (sce.prisms > 0)    Progress(rt, sce.prisms); break;
                 case CurrencyType.Loops:     if (sce.loops > 0)     Progress(rt, sce.loops); break;
             }
+        }
+    }
+
+    private void OnResearchCompleted(object data)
+    {
+        InitializeIfNeeded();
+        if (data is not ResearchCompletedEvent) return;
+
+        IncrementAchievementProgress(AchievementType.ResearchProgress, 1f);
+    }
+
+    private void OnChipUnlocked(object data)
+    {
+        InitializeIfNeeded();
+        if (data is not ChipUnlockedEvent) return;
+
+        IncrementAchievementProgress(AchievementType.ChipProgress, 1f);
+    }
+
+    private void OnChipUpgraded(object data)
+    {
+        InitializeIfNeeded();
+        if (data is not ChipUpgradedEvent) return;
+
+        // Treat each rarity increase as a single milestone, even when multiple levels are granted at once.
+        IncrementAchievementProgress(AchievementType.ChipProgress, 1f);
+    }
+
+    private void IncrementAchievementProgress(AchievementType targetType, float amount)
+    {
+        if (amount <= 0f) return;
+
+        foreach (var rt in activeAchievements)
+        {
+            if (rt.definition.type != targetType) continue;
+            if (rt.IsComplete) continue;
+
+            Progress(rt, amount);
         }
     }
 

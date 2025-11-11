@@ -27,6 +27,7 @@ public class NotificationPopupUI : MonoBehaviour
     private RectTransform rectTransform;
     private Vector2 originalPosition;
     private bool isAnimating;
+    private Coroutine activeAnimation;
 
     private void Awake()
     {
@@ -55,73 +56,69 @@ public class NotificationPopupUI : MonoBehaviour
 
     private void OnNotificationTriggered(object eventData)
     {
-        Debug.Log("[NotificationPopupUI] Notification triggered");
         if (eventData is NotificationData notification)
         {
             // Only handle quick notifications
             if (notification.type == NotificationType.Quick)
-            {
                 Show(notification);
-            }
         }
     }
 
     private void OnNotificationDismissed(object eventData)
     {
         if (eventData is NotificationData notification && notification == currentNotification)
-        {
             Hide();
-        }
     }
 
     public void Show(NotificationData notification)
     {
-        if (isAnimating) return;
+        CancelInvoke(nameof(HideContainer));
+
+        if (animator == null)
+            StopActiveAnimation();
 
         currentNotification = notification;
 
-        // Set text
         if (titleText != null)
             titleText.text = notification.title;
         
         if (descriptionText != null)
             descriptionText.text = notification.description;
 
-        // Set icon based on source (could be expanded with sprite mapping)
         if (iconImage != null)
-        {
-            // For now, just enable/disable based on whether we have a sprite
-            // You could map sources to specific icons here
             iconImage.gameObject.SetActive(iconImage.sprite != null);
-        }
 
-        // Show container
         if (container != null)
             container.SetActive(true);
 
-        // Trigger animation
         if (animator != null && !string.IsNullOrEmpty(showTrigger))
         {
+            animator.ResetTrigger(hideTrigger);
             animator.SetTrigger(showTrigger);
         }
         else
         {
-            // Fallback slide-in animation
-            StartCoroutine(AnimateSlideIn());
+            if (rectTransform != null)
+                rectTransform.anchoredPosition = originalPosition + hiddenPosition;
+
+            activeAnimation = StartCoroutine(AnimateSlideIn());
         }
     }
 
     public void Hide()
     {
+        CancelInvoke(nameof(HideContainer));
+
         if (animator != null && !string.IsNullOrEmpty(hideTrigger))
         {
+            animator.ResetTrigger(showTrigger);
             animator.SetTrigger(hideTrigger);
-            // Container will be hidden after animation via event or delay
             Invoke(nameof(HideContainer), slideOutDuration);
         }
         else
         {
-            StartCoroutine(AnimateSlideOut());
+            StopActiveAnimation();
+            activeAnimation = StartCoroutine(AnimateSlideOut());
         }
 
         currentNotification = null;
@@ -133,9 +130,21 @@ public class NotificationPopupUI : MonoBehaviour
             container.SetActive(false);
     }
 
+    private void StopActiveAnimation()
+    {
+        if (activeAnimation != null)
+        {
+            StopCoroutine(activeAnimation);
+            activeAnimation = null;
+        }
+
+        isAnimating = false;
+    }
+
     private System.Collections.IEnumerator AnimateSlideIn()
     {
-        if (rectTransform == null) yield break;
+        if (rectTransform == null)
+            yield break;
         
         isAnimating = true;
         float elapsed = 0f;
@@ -145,7 +154,7 @@ public class NotificationPopupUI : MonoBehaviour
         {
             elapsed += Time.unscaledDeltaTime;
             float t = Mathf.Clamp01(elapsed / slideInDuration);
-            t = Mathf.SmoothStep(0f, 1f, t); // Smooth easing
+            t = Mathf.SmoothStep(0f, 1f, t);
             
             rectTransform.anchoredPosition = Vector2.Lerp(startPos, originalPosition, t);
             yield return null;
@@ -153,11 +162,13 @@ public class NotificationPopupUI : MonoBehaviour
         
         rectTransform.anchoredPosition = originalPosition;
         isAnimating = false;
+        activeAnimation = null;
     }
 
     private System.Collections.IEnumerator AnimateSlideOut()
     {
-        if (rectTransform == null) yield break;
+        if (rectTransform == null)
+            yield break;
         
         isAnimating = true;
         float elapsed = 0f;
@@ -167,7 +178,7 @@ public class NotificationPopupUI : MonoBehaviour
         {
             elapsed += Time.unscaledDeltaTime;
             float t = Mathf.Clamp01(elapsed / slideOutDuration);
-            t = Mathf.SmoothStep(0f, 1f, t); // Smooth easing
+            t = Mathf.SmoothStep(0f, 1f, t);
             
             rectTransform.anchoredPosition = Vector2.Lerp(originalPosition, endPos, t);
             yield return null;
@@ -176,14 +187,13 @@ public class NotificationPopupUI : MonoBehaviour
         rectTransform.anchoredPosition = endPos;
         HideContainer();
         isAnimating = false;
+        activeAnimation = null;
     }
 
     // Can be called from UI button if user wants to dismiss early
     public void DismissEarly()
     {
         if (currentNotification != null && NotificationManager.Instance != null)
-        {
             NotificationManager.Instance.DismissCurrentNotification();
-        }
     }
 }

@@ -12,7 +12,9 @@ public enum AchievementType
     SpendCurrency,
     UnlockTurret,
     UnlockProjectile,
-    UpgradeProjectile
+    UpgradeProjectile,
+    ResearchProgress,
+    ChipProgress
 }
 
 public enum AchievementCategory 

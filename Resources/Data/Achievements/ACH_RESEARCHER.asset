@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40cfce9b3120f1847bbcd2de0296d33a, type: 3}
+  m_Name: ACH_RESEARCHER
+  m_EditorClassIdentifier: 
+  id: ACH_RESEARCH_MASTER
+  displayName: Research Master
+  description: Complete research upgrades to push our technology forward.
+  category: 1
+  type: 11
+  tiers:
+  - tierLevel: 0
+    targetAmount: 1
+    requiredDifficultyLevel: 0
+    rewards:
+    - rewardType: 0
+      rewardId: Loops
+      amount: 10
+      currencyType: 3
+    tierName: Initiate
+    tierDescription: Complete your first research upgrade.
+  - tierLevel: 1
+    targetAmount: 5
+    requiredDifficultyLevel: 0
+    rewards:
+    - rewardType: 0
+      rewardId: Loops
+      amount: 25
+      currencyType: 3
+    tierName: Scholar
+    tierDescription: Complete five research upgrades.
+  - tierLevel: 2
+    targetAmount: 10
+    requiredDifficultyLevel: 0
+    rewards:
+    - rewardType: 0
+      rewardId: Loops
+      amount: 60
+      currencyType: 3
+    tierName: Archivist
+    tierDescription: Complete ten research upgrades.
+  - tierLevel: 3
+    targetAmount: 20
+    requiredDifficultyLevel: 0
+    rewards:
+    - rewardType: 0
+      rewardId: Loops
+      amount: 150
+      currencyType: 3
+    tierName: Mastermind
+    tierDescription: Complete twenty research upgrades.
+  - tierLevel: 4
+    targetAmount: 40
+    requiredDifficultyLevel: 0
+    rewards:
+    - rewardType: 0
+      rewardId: Loops
+      amount: 400
+      currencyType: 3
+    tierName: Grand Master
+    tierDescription: Complete forty research upgrades.
+  targetDefinitionId: 
+  useTierFilter: 0
+  targetEnemyTier: 0
+  useFamilyFilter: 0
+  targetFamily: 
+  useTraitFilter: 0
+  targetTraits: 0
+  currencyType: 0
+  targetProjectileId: 
+  targetProjectileTrait: 0
+  icon: {fileID: 0}
+  isHidden: 0

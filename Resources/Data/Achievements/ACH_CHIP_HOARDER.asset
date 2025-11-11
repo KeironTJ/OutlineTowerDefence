@@ -1,0 +1,93 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40cfce9b3120f1847bbcd2de0296d33a, type: 3}
+  m_Name: ACH_CHIP_HOARDER
+  m_EditorClassIdentifier: 
+  id: ACH_CHIP_HOARDER
+  displayName: Chip Hoarder
+  description: Unlock and upgrade chips to enhance your loadouts.
+  category: 2
+  type: 12
+  tiers:
+  - tierLevel: 0
+    targetAmount: 1
+    rewards:
+    - rewardType: 0
+      rewardId: Cores
+      amount: 250
+      currencyType: 1
+    tierName: Collector
+    tierDescription: Unlock or upgrade your first chip.
+  - tierLevel: 1
+    targetAmount: 5
+    rewards:
+    - rewardType: 0
+      rewardId: Cores
+      amount: 500
+      currencyType: 1
+    - rewardType: 0
+      rewardId: Prisms
+      amount: 5
+      currencyType: 2
+    tierName: Enthusiast
+    tierDescription: Reach five chip unlocks or upgrades.
+  - tierLevel: 2
+    targetAmount: 10
+    rewards:
+    - rewardType: 0
+      rewardId: Cores
+      amount: 1000
+      currencyType: 1
+    - rewardType: 0
+      rewardId: Prisms
+      amount: 15
+      currencyType: 2
+    tierName: Specialist
+    tierDescription: Reach ten chip unlocks or upgrades.
+  - tierLevel: 3
+    targetAmount: 20
+    rewards:
+    - rewardType: 0
+      rewardId: Cores
+      amount: 2500
+      currencyType: 1
+    - rewardType: 0
+      rewardId: Prisms
+      amount: 40
+      currencyType: 2
+    tierName: Architect
+    tierDescription: Reach twenty chip unlocks or upgrades.
+  - tierLevel: 4
+    targetAmount: 35
+    rewards:
+    - rewardType: 0
+      rewardId: Cores
+      amount: 6000
+      currencyType: 1
+    - rewardType: 0
+      rewardId: Prisms
+      amount: 100
+      currencyType: 2
+    tierName: Hoarder Supreme
+    tierDescription: Reach thirty-five chip unlocks or upgrades.
+  targetDefinitionId: 
+  useTierFilter: 0
+  targetEnemyTier: 0
+  useFamilyFilter: 0
+  targetFamily: 
+  useTraitFilter: 0
+  targetTraits: 0
+  currencyType: 0
+  targetProjectileId: 
+  targetProjectileTrait: 0
+  icon: {fileID: 0}
+  isHidden: 0
