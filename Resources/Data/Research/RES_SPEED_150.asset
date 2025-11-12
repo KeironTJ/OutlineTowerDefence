@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f0104643ac7b99478ccf2420f80c037, type: 3}
+  m_Name: RES_SPEED_150
+  m_EditorClassIdentifier: Assembly-CSharp::ResearchDefinition
+  id: RES_SPEED_150
+  displayName: Speed Boost II
+  description: Unlock 1.5x game speed for even faster gameplay
+  icon: {fileID: 0}
+  researchType: 3
+  maxLevel: 1
+  baseTimeSeconds: 600
+  timeGrowthFactor: 1
+  timeCurve: 0
+  customTimeCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  baseCoreCost: 1000
+  coreCostGrowthFactor: 1
+  coreCostCurve: 0
+  customCoreCostCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  loopsPerHourSpeedup: 150
+  prismsPerHourInstant: 250
+  prerequisiteResearchIds:
+  - RES_SPEED_125
+  unlockTargetId: 
+  statBonuses: []
