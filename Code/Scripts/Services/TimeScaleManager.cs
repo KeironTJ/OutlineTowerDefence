@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Manages game time scale for pause and speedup functionality.
@@ -42,6 +43,9 @@ public class TimeScaleManager : SingletonMonoBehaviour<TimeScaleManager>
         // Start at normal speed
         currentSpeed = NormalSpeed;
         maxUnlockedSpeed = NormalSpeed;
+        
+        // Ensure timeScale is reset (in case it was left in a different state)
+        Time.timeScale = 1f;
         ApplyTimeScale();
         
         // Load auto-pause setting from PlayerPrefs
@@ -56,12 +60,23 @@ public class TimeScaleManager : SingletonMonoBehaviour<TimeScaleManager>
         // Subscribe to options menu events if they exist
         EventManager.StartListening("OptionsMenuOpened", OnOptionsMenuOpened);
         EventManager.StartListening("OptionsMenuClosed", OnOptionsMenuClosed);
+        
+        // Subscribe to scene changes to reset time scale
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
     
     private void OnDisable()
     {
         EventManager.StopListening("OptionsMenuOpened", OnOptionsMenuOpened);
         EventManager.StopListening("OptionsMenuClosed", OnOptionsMenuClosed);
+        
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+    
+    private void OnDestroy()
+    {
+        // Reset time scale when manager is destroyed to avoid issues
+        Time.timeScale = 1f;
     }
     
     /// <summary>
@@ -213,6 +228,14 @@ public class TimeScaleManager : SingletonMonoBehaviour<TimeScaleManager>
             wasAutoPaused = false;
             SetSpeed(speedBeforeAutoPause);
         }
+    }
+    
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Reset to normal speed when a new scene loads
+        // This prevents issues with paused/sped up states carrying over
+        ResetToNormalSpeed();
+        wasAutoPaused = false;
     }
     
     /// <summary>
