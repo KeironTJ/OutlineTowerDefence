@@ -12,11 +12,17 @@ The Round Speedup and Pause system allows players to control the speed of in-rou
 - **Pause**: Players can pause the game at any time (0x speed)
 
 ### Research Integration
-Speed levels are unlocked through the research system:
-- `RES_SPEED_125`: Unlocks 1.25x speed
-- `RES_SPEED_150`: Unlocks 1.5x speed (requires RES_SPEED_125)
-- `RES_SPEED_200`: Unlocks 2x speed (requires RES_SPEED_150)
-- Additional research items can be created following the same pattern up to 5x
+Speed levels are unlocked through a single research item with multiple levels:
+- **Research ID**: `RES_GAME_SPEED`
+- **Max Level**: 16 levels
+- **Level 1**: Unlocks 1.25x speed
+- **Level 2**: Unlocks 1.5x speed
+- **Level 3**: Unlocks 1.75x speed
+- **Level 4**: Unlocks 2x speed
+- ... (each level adds 0.25x)
+- **Level 16**: Unlocks 5x speed
+
+Each research level costs progressively more cores and takes longer to complete, following exponential growth curves.
 
 ### Auto-Pause on Options Menu
 - When the options menu (or any child panel) is opened, the game can automatically pause
@@ -72,11 +78,13 @@ Singleton service that manages the game's time scale.
 Manages unlocking speed levels through research completion.
 
 **Configuration**:
-- `speedUnlockResearchIds`: Array of research IDs that unlock each speed tier
+- `speedResearchId`: The research ID for speed unlocks (default: `RES_GAME_SPEED`)
 
 **Behavior**:
 - Listens for `ResearchCompleted` events
-- Automatically updates `TimeScaleManager` when speed research is completed
+- Checks the current level of the speed research
+- Calculates max speed as: 1x + (level × 0.25x)
+- Automatically updates `TimeScaleManager` when speed research levels up
 - Maintains synchronization between research progress and available speeds
 
 ### SpeedControlUI
@@ -136,22 +144,22 @@ In your Settings panel UI:
 - Assign it to `autoPauseToggle` field in SettingsPanel
 - Add a TextMeshProUGUI label and assign to `autoPauseLabel`
 
-### 5. Create Research Assets
-Research assets are already created for the first few tiers in `Resources/Data/Research/`:
-- RES_SPEED_125.asset
-- RES_SPEED_150.asset
-- RES_SPEED_200.asset
+### 5. Add Research Asset
+The research asset is already created in `Resources/Data/Research/`:
+- **RES_GameSpeed.asset** - Single research item with 16 levels
+  - Level 1-16 unlock speeds from 1.25x to 5x
+  - Exponential cost and time growth
+  - Each level adds 0.25x speed increment
 
-To add more speed tiers:
-1. Duplicate an existing speed research asset
-2. Update the ID, name, description
-3. Increase the cost and time requirements
-4. Set prerequisites to the previous tier
-5. Add the new research ID to `SpeedUnlockManager.speedUnlockResearchIds` array
+To modify the research:
+1. Open `RES_GameSpeed.asset` in Unity Inspector
+2. Adjust `baseCoreCost`, `coreCostGrowthFactor` for cost scaling
+3. Adjust `baseTimeSeconds`, `timeGrowthFactor` for time scaling
+4. `maxLevel` is set to 16 (for speeds up to 5x)
 
-### 6. Load Research Definitions
-Make sure the ResearchService loads these definitions:
-- Add the new research assets to `ResearchService.loadedDefinitions` in the Inspector
+### 6. Load Research Definition
+Make sure the ResearchService loads the definition:
+- Add `RES_GameSpeed.asset` to `ResearchService.loadedDefinitions` in the Inspector
 
 ## Technical Details
 

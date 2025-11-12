@@ -69,28 +69,23 @@ Successfully implemented pause and speed control functionality for the Outline T
 
 ### Research Assets
 
-Created 3 research definition assets for speed unlocks:
+Created a single multi-level research definition asset for speed unlocks:
 
-#### RES_SPEED_125.asset
-- **ID**: `RES_SPEED_125`
-- **Unlocks**: 1.25x speed
-- **Cost**: 500 cores
-- **Time**: 300 seconds (5 minutes)
-- **Prerequisites**: None
-
-#### RES_SPEED_150.asset
-- **ID**: `RES_SPEED_150`
-- **Unlocks**: 1.5x speed
-- **Cost**: 1000 cores
-- **Time**: 600 seconds (10 minutes)
-- **Prerequisites**: RES_SPEED_125
-
-#### RES_SPEED_200.asset
-- **ID**: `RES_SPEED_200`
-- **Unlocks**: 2x speed
-- **Cost**: 2000 cores
-- **Time**: 1200 seconds (20 minutes)
-- **Prerequisites**: RES_SPEED_150
+#### RES_GameSpeed.asset
+- **ID**: `RES_GAME_SPEED`
+- **Display Name**: Game Speed
+- **Max Level**: 16
+- **Research Type**: BaseStat (type 3)
+- **Level Progression**:
+  - Level 1 → 1.25x speed (500 cores, 5 min)
+  - Level 2 → 1.5x speed (700 cores, 6.5 min)
+  - Level 3 → 1.75x speed (980 cores, 8.5 min)
+  - Level 4 → 2x speed (1,372 cores, 11 min)
+  - ... (exponential growth)
+  - Level 16 → 5x speed
+- **Cost Growth**: Exponential (1.4x multiplier)
+- **Time Growth**: Exponential (1.3x multiplier)
+- **Prerequisites**: None (all tiers in one research item)
 
 ### Documentation
 
@@ -121,13 +116,15 @@ Created 3 research definition assets for speed unlocks:
 - Encourages longer play sessions
 - No code changes needed (verified existing implementation)
 
-### Sequential Speed Unlocks
-**Decision**: Each speed tier requires previous tier as prerequisite  
+### Single Multi-Level Research vs Multiple Research Items
+**Decision**: Use one research item with 16 levels instead of 16 separate research items  
 **Rationale**:
-- Natural progression curve
-- Prevents confusion with too many options
-- Encourages steady research progression
-- Easy to balance difficulty
+- Cleaner UI in research menu (one item instead of cluttering with many)
+- Follows pattern of other research items (Attack Damage, Health, etc.)
+- Simpler to manage and balance
+- Natural progression through leveling up
+- Less asset file management overhead
+- Matches existing game patterns
 
 ### Auto-Pause on Options Menu
 **Decision**: Default enabled, user-configurable  

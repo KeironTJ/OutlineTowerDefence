@@ -3,30 +3,13 @@ using UnityEngine;
 /// <summary>
 /// Handles unlocking speed multipliers through the research system.
 /// Listens for research completion events and updates TimeScaleManager accordingly.
+/// Uses a single research item with multiple levels, where each level unlocks a speed tier.
 /// </summary>
 public class SpeedUnlockManager : MonoBehaviour
 {
-    [Header("Speed Unlock Research IDs")]
-    [Tooltip("Research IDs that unlock speed levels in order: 1.25x, 1.5x, 1.75x, 2x, etc.")]
-    [SerializeField] private string[] speedUnlockResearchIds = new string[]
-    {
-        "RES_SPEED_125",  // 1.25x
-        "RES_SPEED_150",  // 1.50x
-        "RES_SPEED_175",  // 1.75x
-        "RES_SPEED_200",  // 2.00x
-        "RES_SPEED_225",  // 2.25x
-        "RES_SPEED_250",  // 2.50x
-        "RES_SPEED_275",  // 2.75x
-        "RES_SPEED_300",  // 3.00x
-        "RES_SPEED_325",  // 3.25x
-        "RES_SPEED_350",  // 3.50x
-        "RES_SPEED_375",  // 3.75x
-        "RES_SPEED_400",  // 4.00x
-        "RES_SPEED_425",  // 4.25x
-        "RES_SPEED_450",  // 4.50x
-        "RES_SPEED_475",  // 4.75x
-        "RES_SPEED_500",  // 5.00x
-    };
+    [Header("Speed Unlock Research")]
+    [Tooltip("Research ID that unlocks speed levels. Each research level unlocks 0.25x speed increment.")]
+    [SerializeField] private string speedResearchId = "RES_GAME_SPEED";
     
     private TimeScaleManager timeScaleManager;
     private ResearchService researchService;
@@ -77,27 +60,17 @@ public class SpeedUnlockManager : MonoBehaviour
         // Base speed is always unlocked
         float maxSpeed = 1f;
         
-        // Check each speed unlock research
-        for (int i = 0; i < speedUnlockResearchIds.Length; i++)
+        // Get the current level of the speed research
+        int currentLevel = GetResearchLevel(speedResearchId);
+        
+        if (currentLevel > 0)
         {
-            string researchId = speedUnlockResearchIds[i];
+            // Each level unlocks 0.25x speed increment
+            // Level 1 = 1.25x, Level 2 = 1.5x, etc.
+            maxSpeed = 1f + (currentLevel * TimeScaleManager.GetSpeedIncrement());
             
-            if (string.IsNullOrEmpty(researchId))
-                continue;
-            
-            // Check if this research is completed
-            if (IsResearchCompleted(researchId))
-            {
-                // Calculate the speed for this tier
-                // Base 1x + (i+1) * 0.25
-                float speedForThisTier = 1f + (i + 1) * TimeScaleManager.GetSpeedIncrement();
-                maxSpeed = Mathf.Max(maxSpeed, speedForThisTier);
-            }
-            else
-            {
-                // Since research should be sequential, stop at first uncompleted
-                break;
-            }
+            // Cap at maximum speed (5x)
+            maxSpeed = Mathf.Min(maxSpeed, 5f);
         }
         
         // Update the time scale manager
@@ -105,43 +78,25 @@ public class SpeedUnlockManager : MonoBehaviour
     }
     
     /// <summary>
-    /// Check if a research item is completed
+    /// Get the current level of a research item
     /// </summary>
-    private bool IsResearchCompleted(string researchId)
+    private int GetResearchLevel(string researchId)
     {
-        if (playerManager == null)
-            return false;
+        if (playerManager == null || string.IsNullOrEmpty(researchId))
+            return 0;
         
         var progressList = playerManager.GetResearchProgress();
         if (progressList == null)
-            return false;
+            return 0;
         
         foreach (var progress in progressList)
         {
             if (progress != null && progress.researchId == researchId)
             {
-                return progress.completedLevels > 0;
+                return progress.currentLevel;
             }
         }
         
-        return false;
-    }
-    
-    /// <summary>
-    /// Get the research ID for a specific speed level
-    /// </summary>
-    public string GetResearchIdForSpeed(float speed)
-    {
-        if (speed <= 1f)
-            return null;
-        
-        int index = Mathf.RoundToInt((speed - 1f) / TimeScaleManager.GetSpeedIncrement()) - 1;
-        
-        if (index >= 0 && index < speedUnlockResearchIds.Length)
-        {
-            return speedUnlockResearchIds[index];
-        }
-        
-        return null;
+        return 0;
     }
 }
