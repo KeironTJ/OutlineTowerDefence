@@ -59,4 +59,11 @@ public static class EventNames
     public const string ResearchCompleted = "ResearchCompleted";
     public const string ResearchSpedUp = "ResearchSpedUp";
 
+    // Time Scale Events
+    public const string TimeScaleChanged = "TimeScaleChanged";
+    public const string GamePaused = "GamePaused";
+    public const string GameResumed = "GameResumed";
+    public const string OptionsMenuOpened = "OptionsMenuOpened";
+    public const string OptionsMenuClosed = "OptionsMenuClosed";
+
 }

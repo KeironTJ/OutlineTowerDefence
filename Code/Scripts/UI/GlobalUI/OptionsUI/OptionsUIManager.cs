@@ -44,6 +44,7 @@ public class OptionsUIManager : SingletonMonoBehaviour<OptionsUIManager>
         SafeSetActive(background, true);
         SafeSetActive(optionsPanel, true);
         HideSubPanels();
+        EventManager.TriggerEvent(EventNames.OptionsMenuOpened);
     }
 
     public void CloseOptions()
@@ -56,6 +57,7 @@ public class OptionsUIManager : SingletonMonoBehaviour<OptionsUIManager>
         SafeSetActive(chipsPanel, false);
         SafeSetActive(researchPanel, false);
         SafeSetActive(background, false);
+        EventManager.TriggerEvent(EventNames.OptionsMenuClosed);
     }
 
     public void ToggleOptions()
