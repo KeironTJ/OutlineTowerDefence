@@ -84,12 +84,19 @@ public class TimeScaleManager : SingletonMonoBehaviour<TimeScaleManager>
     /// </summary>
     public void SetMaxUnlockedSpeed(float maxSpeed)
     {
-        maxUnlockedSpeed = Mathf.Clamp(maxSpeed, NormalSpeed, MaxSpeed);
-        
-        // If current speed exceeds new max, reduce to max
+        float clamped = Mathf.Clamp(maxSpeed, NormalSpeed, MaxSpeed);
+        if (Mathf.Approximately(clamped, maxUnlockedSpeed))
+            return;
+
+        maxUnlockedSpeed = clamped;
+
         if (currentSpeed > maxUnlockedSpeed)
         {
             SetSpeed(maxUnlockedSpeed);
+        }
+        else
+        {
+            SpeedChanged?.Invoke(currentSpeed);
         }
     }
     
@@ -164,6 +171,13 @@ public class TimeScaleManager : SingletonMonoBehaviour<TimeScaleManager>
     /// </summary>
     public void DecreaseSpeed()
     {
+        // Pause when dropping from normal speed or lower.
+        if (Mathf.Approximately(currentSpeed, NormalSpeed) || currentSpeed <= SpeedIncrement)
+        {
+            Pause();
+            return;
+        }
+
         float newSpeed = currentSpeed - SpeedIncrement;
         if (newSpeed >= MinSpeed)
         {
@@ -171,7 +185,6 @@ public class TimeScaleManager : SingletonMonoBehaviour<TimeScaleManager>
         }
         else
         {
-            // If going below min, pause
             Pause();
         }
     }

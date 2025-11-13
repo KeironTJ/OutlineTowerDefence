@@ -14,6 +14,7 @@ public class SpeedUnlockManager : MonoBehaviour
     private TimeScaleManager timeScaleManager;
     private ResearchService researchService;
     private PlayerManager playerManager;
+    private Coroutine refreshRoutine;
     
     private void Start()
     {
@@ -28,25 +29,29 @@ public class SpeedUnlockManager : MonoBehaviour
             return;
         }
         
-        // Initialize max unlocked speed based on completed research
-        UpdateMaxUnlockedSpeed();
+        QueueRefresh();
     }
     
     private void OnEnable()
     {
         EventManager.StartListening(EventNames.ResearchCompleted, OnResearchCompleted);
+        QueueRefresh();
     }
     
     private void OnDisable()
     {
         EventManager.StopListening(EventNames.ResearchCompleted, OnResearchCompleted);
+
+        if (refreshRoutine != null)
+        {
+            StopCoroutine(refreshRoutine);
+            refreshRoutine = null;
+        }
     }
     
     private void OnResearchCompleted(object data)
     {
-        // Update max speed when any research is completed
-        // (in case it's a speed unlock)
-        UpdateMaxUnlockedSpeed();
+        QueueRefresh();
     }
     
     /// <summary>
@@ -54,7 +59,7 @@ public class SpeedUnlockManager : MonoBehaviour
     /// </summary>
     private void UpdateMaxUnlockedSpeed()
     {
-        if (timeScaleManager == null || researchService == null)
+        if (timeScaleManager == null || researchService == null || playerManager == null || !playerManager.IsInitialized)
             return;
         
         // Base speed is always unlocked
@@ -98,5 +103,32 @@ public class SpeedUnlockManager : MonoBehaviour
         }
         
         return 0;
+    }
+
+    private void QueueRefresh()
+    {
+        if (!isActiveAndEnabled)
+            return;
+
+        if (refreshRoutine == null)
+            refreshRoutine = StartCoroutine(RefreshWhenReady());
+    }
+
+    private System.Collections.IEnumerator RefreshWhenReady()
+    {
+        while (timeScaleManager == null || researchService == null || playerManager == null || !playerManager.IsInitialized)
+        {
+            if (timeScaleManager == null)
+                timeScaleManager = TimeScaleManager.Instance;
+            if (researchService == null)
+                researchService = ResearchService.Instance;
+            if (playerManager == null)
+                playerManager = PlayerManager.main;
+
+            yield return null;
+        }
+
+        UpdateMaxUnlockedSpeed();
+        refreshRoutine = null;
     }
 }
