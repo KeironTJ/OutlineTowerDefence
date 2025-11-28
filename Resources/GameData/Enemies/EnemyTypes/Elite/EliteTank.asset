@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2336ef87077c26a4784ea837953a7b87, type: 3}
+  m_Name: EliteTank
+  m_EditorClassIdentifier: 
+  id: Elite_Tank
+  displayName: Elite Tank
+  description: A basic enemy.
+  tier: 2
+  family: Tank
+  traits: 2
+  unlockWave: 600
+  replaceFamilyFromWave: 850
+  weightByWave:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 100
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  prefab: {fileID: 913476891759774307, guid: 8d82deb908205674e91ee3b2a892fab2, type: 3}
+  budgetCost: 3
+  baseHealth: 18
+  baseSpeed: 1
+  baseDamage: 3
+  damageInterval: 1
+  baseFragments: 12
+  baseCores: 6
+  basePrisms: 0
+  baseLoops: 0
+  scalingProfile: 1

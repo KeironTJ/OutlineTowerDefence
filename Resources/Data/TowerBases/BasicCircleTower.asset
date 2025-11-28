@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d5698ef7f07e934a80445bca4bb6fcc, type: 3}
+  m_Name: BasicCircleTower
+  m_EditorClassIdentifier: 
+  id: 0001
+  displayName: Basic Circle Base
+  description: A basic tower that holds 5 turrets. Meh..
+  previewSprite: {fileID: -2413806693520163455, guid: 69da9ad0974ee2246bc386f1fca7d127, type: 3}
+  towerBasePrefab: {fileID: 3098058871314541354, guid: 0bcf26ca9b7b4cc439c0f2b86eb081e5, type: 3}
+  unlockCost: 0
+  isPurchasable: 0

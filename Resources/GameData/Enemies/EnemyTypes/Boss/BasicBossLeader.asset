@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2336ef87077c26a4784ea837953a7b87, type: 3}
+  m_Name: BasicBossLeader
+  m_EditorClassIdentifier: 
+  id: Basic_Boss_Leader
+  displayName: Basic Boss Leader
+  description: A basic enemy.
+  tier: 3
+  family: Boss
+  traits: 0
+  unlockWave: 1
+  replaceFamilyFromWave: 0
+  weightByWave:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 100
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  prefab: {fileID: 913476891759774307, guid: 4ccb980b10b4e9744861d711e9924527, type: 3}
+  budgetCost: 5
+  baseHealth: 20
+  baseSpeed: 0.85
+  baseDamage: 1
+  damageInterval: 1
+  baseFragments: 20
+  baseCores: 5
+  basePrisms: 0
+  baseLoops: 0
+  scalingProfile: 0

@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7, type: 3}
+  m_Name: RANGE_01
+  m_EditorClassIdentifier: Assembly-CSharp::ChipDefinition
+  id: RANGE_01
+  chipName: Eagle Eye
+  description: Increases turret targeting range
+  icon: {fileID: 21300000, guid: 612788e7e304c554ab656ee180a899f9, type: 3}
+  baseBonus: 2
+  bonusPerRarity: 2
+  bonusFormat: +{0}%
+  targetStat: 2
+  contributionKind: 4
+  pipelineScale: 0.01
+  displayScale: 100
+  pipelineMin: -Infinity
+  pipelineMax: Infinity
+  chipsNeededForRarity: 0000000003000000080000000f00000019000000
+  canChangeInRound: 1
+  unlockWave: 1

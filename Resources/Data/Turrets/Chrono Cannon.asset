@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8100d78ffae20fc4e891afe5a449f50b, type: 3}
+  m_Name: Chrono Cannon
+  m_EditorClassIdentifier: 
+  id: CC
+  displayName: Chrono Cannon
+  turretDescription: Fire energy based projectiles
+  turretPrefab: {fileID: 4304509950014231380, guid: 7e67f06fec0cbe640ad46392d6a7e9aa, type: 3}
+  previewSprite: {fileID: 5808186972362433900, guid: 53fa9ba0fb81d6544b96545f1139b021, type: 3}
+  baseRotationSpeed: 360
+  allowedProjectileTypes: 0200000000000000
+  defaultProjectileId: CHRONOSHOT
+  skillSuffixDamage: damage
+  skillSuffixFireRate: fireRate
+  skillSuffixRange: range
+  skillSuffixRotation: rotation

@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f0104643ac7b99478ccf2420f80c037, type: 3}
+  m_Name: RES_CORES_MULT
+  m_EditorClassIdentifier: Assembly-CSharp::ResearchDefinition
+  id: RES_CORES_MULT
+  displayName: Cores Multiplier
+  description: Increase Cores Multiplier
+  icon: {fileID: 0}
+  researchType: 3
+  maxLevel: 10
+  baseTimeSeconds: 90
+  timeGrowthFactor: 2.35
+  timeCurve: 1
+  customTimeCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  baseCoreCost: 175
+  coreCostGrowthFactor: 1.5
+  coreCostCurve: 1
+  customCoreCostCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  loopsPerHourSpeedup: 150
+  prismsPerHourInstant: 250
+  prerequisiteResearchIds: []
+  unlockTargetId: 
+  statBonuses:
+  - targetStat: 10
+    contributionKind: 4
+    value: 0.025
+    pipelineScale: 1
+    pipelineMin: -Infinity
+    pipelineMax: Infinity

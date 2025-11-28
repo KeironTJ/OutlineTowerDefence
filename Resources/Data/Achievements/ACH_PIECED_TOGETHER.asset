@@ -1,0 +1,152 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40cfce9b3120f1847bbcd2de0296d33a, type: 3}
+  m_Name: ACH_PIECED_TOGETHER
+  m_EditorClassIdentifier: Assembly-CSharp::AchievementDefinition
+  id: ACH_PIECED_TOGETHER
+  displayName: Pieced Together
+  description: Is there something more to these Fragments?
+  category: 2
+  type: 6
+  tiers:
+  - tierLevel: 0
+    targetAmount: 50
+    requiredDifficultyLevel: 0
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 5
+      currencyType: 1
+    tierName: 50 Fragments
+    tierDescription: Earn 50 Fragments from destroying enemies.
+  - tierLevel: 1
+    targetAmount: 250
+    requiredDifficultyLevel: 0
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 10
+      currencyType: 1
+    tierName: 250 Fragments
+    tierDescription: Earn 250 Fragments from destroying enemies.
+  - tierLevel: 2
+    targetAmount: 1000
+    requiredDifficultyLevel: 0
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 15
+      currencyType: 1
+    tierName: 1k Fragments
+    tierDescription: Earn 1k Fragments from destroying enemies.
+  - tierLevel: 3
+    targetAmount: 3000
+    requiredDifficultyLevel: 0
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 20
+      currencyType: 1
+    tierName: 3k Fragments
+    tierDescription: Earn 3k Fragments from destroying enemies.
+  - tierLevel: 4
+    targetAmount: 12500
+    requiredDifficultyLevel: 0
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 100
+      currencyType: 1
+    tierName: 12.5k Fragments
+    tierDescription: Earn 12.5k Fragments from destroying enemies.
+  - tierLevel: 5
+    targetAmount: 50000
+    requiredDifficultyLevel: 0
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 1500
+      currencyType: 1
+    tierName: 50k Fragments
+    tierDescription: Earn 50k Fragments from destroying enemies.
+  - tierLevel: 6
+    targetAmount: 175000
+    requiredDifficultyLevel: 0
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 5000
+      currencyType: 1
+    tierName: 175k Fragments
+    tierDescription: Earn 175k Fragments from destroying enemies.
+  - tierLevel: 7
+    targetAmount: 750000
+    requiredDifficultyLevel: 0
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 12500
+      currencyType: 1
+    tierName: 750k Fragments
+    tierDescription: Earn 750k Fragments from destroying enemies.
+  - tierLevel: 8
+    targetAmount: 1500000
+    requiredDifficultyLevel: 0
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 25000
+      currencyType: 1
+    tierName: 1.5M Fragments
+    tierDescription: Earn 1.5M Fragments from destroying enemies.
+  - tierLevel: 9
+    targetAmount: 10000000
+    requiredDifficultyLevel: 0
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 100000
+      currencyType: 1
+    tierName: 10M Fragments
+    tierDescription: Earn 10M Fragments from destroying enemies.
+  - tierLevel: 10
+    targetAmount: 150000000
+    requiredDifficultyLevel: 0
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 1000000
+      currencyType: 1
+    tierName: 150M Fragments
+    tierDescription: Earn 150M Fragments from destroying enemies.
+  - tierLevel: 11
+    targetAmount: 1e+9
+    requiredDifficultyLevel: 0
+    rewards:
+    - rewardType: 0
+      rewardId: 
+      amount: 5000000
+      currencyType: 1
+    tierName: 1B Fragments
+    tierDescription: Earn 1B Fragments from destroying enemies.
+  targetDefinitionId: 
+  useTierFilter: 0
+  targetEnemyTier: 0
+  useFamilyFilter: 0
+  targetFamily: 
+  useTraitFilter: 0
+  targetTraits: 0
+  currencyType: 0
+  targetProjectileId: 
+  targetProjectileTrait: 0
+  icon: {fileID: 0}
+  isHidden: 0

@@ -1,0 +1,213 @@
+using System.Collections;
+using UnityEngine;
+
+public class Enemy : MonoBehaviour, IEnemyRuntime
+{
+    [Header("References")]
+    [SerializeField] private Rigidbody2D rb;
+
+    [Header("Runtime Stats")]
+    [SerializeField] private float health;
+    [SerializeField] private float moveSpeed;
+    [SerializeField] private float attackDamage;
+    [SerializeField] private float damageInterval = 1f;
+
+    [Header("Runtime Rewards")]
+    [SerializeField] private int rewardFragments;
+    [SerializeField] private int rewardCores;
+    [SerializeField] private int rewardPrisms;
+    [SerializeField] private int rewardLoops;
+
+    [Header("Definition Link (Meta Cache)")]
+    [SerializeField] private string definitionId;
+    [SerializeField] private EnemyTier cachedTier;
+    [SerializeField] private string cachedFamily;
+    [SerializeField] private EnemyTrait cachedTraits;
+
+    [Header("VFX")]
+    [SerializeField] private GameObject deathEffectPrefab;
+
+    private Tower tower;
+    private Transform target;
+    private Coroutine damageCoroutine;
+    private bool isDestroyed;
+    private float damageMultiplier = 1f; // Increases over time while attacking
+    private float timeAttacking = 0f; // Tracks how long enemy has been attacking
+
+    public string DefinitionId => definitionId;
+    public void SetDefinitionId(string id) => definitionId = id;
+    public void CacheDefinitionMeta(EnemyTier tier, string family, EnemyTrait traits)
+    {
+        cachedTier = tier;
+        cachedFamily = family;
+        cachedTraits = traits;
+    }
+
+    // IEnemyRuntime
+    public void InitStats(float health, float speed, float damage, float damageInterval)
+    {
+        this.health = health;
+        moveSpeed = speed;
+        attackDamage = damage;
+        this.damageInterval = damageInterval;
+
+    }
+
+    public void SetRewards(int fragments, int cores, int prisms, int loops)
+    {
+        rewardFragments = fragments;
+        rewardCores = cores;
+        rewardPrisms = prisms;
+        rewardLoops = loops;
+
+        //Debug.Log($"[Enemy] SetRewards: Fragments={fragments} Cores={cores} Prisms={prisms} Loops={loops}");
+    }
+
+    public void SetTarget(Tower tower)
+    {
+        this.tower = tower;
+        target = tower ? tower.transform : null;
+    }
+
+    private void FixedUpdate()
+    {
+        if (!tower || !target) return;
+        Vector2 dir = (target.position - transform.position).normalized;
+
+        // Face the tower – sprites are authored pointing up, so align transform.up with the target direction
+        if (dir.sqrMagnitude > 0.0001f)
+            transform.up = dir;
+
+#if UNITY_2022_2_OR_NEWER
+        if (rb) rb.linearVelocity = dir * moveSpeed;
+#else
+        if (rb) rb.velocity = dir * moveSpeed;
+#endif
+    }
+
+    private void OnCollisionEnter2D(Collision2D col)
+    {
+        if (col.collider.GetComponentInParent<Tower>() != null)
+            StartDamage();
+    }
+
+    private void OnCollisionExit2D(Collision2D col)
+    {
+        if (col.collider.GetComponentInParent<Tower>() != null)
+            StopDamage();
+    }
+
+    private void StartDamage()
+    {
+        if (damageCoroutine == null)
+        {
+            timeAttacking = 0f;
+            damageMultiplier = 1f;
+            damageCoroutine = StartCoroutine(ApplyDamageOverTime(attackDamage, damageInterval));
+        }
+    }
+
+    private IEnumerator ApplyDamageOverTime(float dmg, float interval)
+    {
+        while (true)
+        {
+            if (tower)
+            {
+                // Apply damage with current multiplier
+                tower.TakeDamage(dmg * damageMultiplier);
+                
+                // Increase time attacking and scale damage
+                timeAttacking += interval;
+                // Damage increases by 10% every 2 seconds of attacking, capped at 2x damage
+                damageMultiplier = Mathf.Min(1f + (timeAttacking / 2f) * 0.1f, 2f);
+            }
+            yield return new WaitForSeconds(interval);
+        }
+    }
+
+    public void StopDamage()
+    {
+        if (damageCoroutine != null)
+        {
+            StopCoroutine(damageCoroutine);
+            damageCoroutine = null;
+            timeAttacking = 0f;
+            damageMultiplier = 1f;
+        }
+    }
+
+    public void TakeDamage(float dmg)
+    {
+        if (isDestroyed) return;
+        health -= dmg;
+        if (health <= 0f)
+        {
+            isDestroyed = true;
+            StopDamage();
+            int wave = WaveManager.Instance ? WaveManager.Instance.SafeCurrentWave() : 0;
+
+            EventManager.TriggerEvent(EventNames.RawEnemyRewardEvent, new RawEnemyRewardEvent(
+                definitionId, wave,
+                rewardFragments, rewardCores, rewardPrisms, rewardLoops,
+                cachedTier == EnemyTier.Boss));
+
+            if (!string.IsNullOrEmpty(definitionId))
+            {
+                EventManager.TriggerEvent(EventNames.EnemyDestroyedDefinition,
+                    new EnemyDestroyedDefinitionEvent(definitionId, cachedTier, cachedFamily, cachedTraits, wave));
+            }
+
+            Die();
+        }
+    }
+
+    private void Die()
+    {
+        if (deathEffectPrefab)
+        {
+            var fx = Instantiate(deathEffectPrefab, transform.position, Quaternion.identity);
+            if (fx.TryGetComponent<ParticleSystem>(out var ps))
+            {
+                EmitCurrencyParticles(ps, rewardFragments, GetCurrencyColor(CurrencyType.Fragments));
+                EmitCurrencyParticles(ps, rewardCores,     GetCurrencyColor(CurrencyType.Cores));
+                EmitCurrencyParticles(ps, rewardPrisms,    GetCurrencyColor(CurrencyType.Prisms));
+                EmitCurrencyParticles(ps, rewardLoops,     GetCurrencyColor(CurrencyType.Loops));
+            }
+        }
+
+        // ensure immediate removal from live threat tracking so UI updates instantly
+        if (EnemyManager.Instance != null)
+            EnemyManager.Instance.UnregisterEnemy(gameObject);
+
+        Destroy(gameObject);
+    }
+
+    private void EmitCurrencyParticles(ParticleSystem ps, int amount, Color color)
+    {
+        if (amount <= 0) return;
+        var emitParams = new ParticleSystem.EmitParams
+        {
+            startSize = Random.Range(0.5f, 0.8f),
+            startColor = new Color(color.r, color.g, color.b, Random.Range(0.7f, 1f))
+        };
+        int particles = Mathf.Clamp(Mathf.RoundToInt(Mathf.Log10(amount + 1) * 5), 5, 30);
+        ps.Emit(emitParams, particles);
+    }
+
+    private Color GetCurrencyColor(CurrencyType t) =>
+        t switch
+        {
+            CurrencyType.Fragments => Color.cyan,
+            CurrencyType.Cores     => Color.yellow,
+            CurrencyType.Prisms    => Color.magenta,
+            CurrencyType.Loops     => Color.green,
+            _ => Color.white
+        };
+
+    // Simple accessors if still needed elsewhere
+    public int Fragments => rewardFragments;
+    public int Cores => rewardCores;
+    public int Prisms => rewardPrisms;
+    public int Loops => rewardLoops;
+
+}
