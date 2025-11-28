@@ -64,12 +64,12 @@ public class TurretButton : MonoBehaviour
         }
     }
 
-    public void ConfigureForUnlock(TurretDefinition def, TurretUnlockManager.CurrencyCost cost, Func<bool> tryUnlock, Action onUnlocked)
+    public void ConfigureForUnlock(UnlockPathInfo path, Func<bool> tryUnlock, Action onUnlocked)
     {
         if (!actionButtonText && actionButton) actionButtonText = actionButton.GetComponentInChildren<TextMeshProUGUI>(true);
 
-        if (actionButtonText) actionButtonText.text = $"Unlock";
-        if (footerText) footerText.text = cost.ToLabel();
+        if (actionButtonText) actionButtonText.text = path.label;
+        if (footerText) footerText.text = BuildFooter(path);
 
         actionButton.interactable = true;
         actionButton.onClick.RemoveAllListeners();
@@ -78,6 +78,16 @@ public class TurretButton : MonoBehaviour
             if (tryUnlock())
                 onUnlocked?.Invoke();
         });
+    }
+
+    private static string BuildFooter(UnlockPathInfo path)
+    {
+        var cost = path.totalCost.ToLabel();
+        if (string.IsNullOrEmpty(cost))
+            return path.description ?? string.Empty;
+        if (string.IsNullOrEmpty(path.description))
+            return cost;
+        return $"{cost} | {path.description}";
     }
 
     public void ConfigureLockedReason(string reason)

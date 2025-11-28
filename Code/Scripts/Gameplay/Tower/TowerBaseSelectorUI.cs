@@ -23,27 +23,54 @@ public class TowerBaseSelectorUI : MonoBehaviour
         }
 
         var towerBases = TowerBaseManager.Instance.allBases;
-        var unlocked = PlayerManager.main.playerData.unlockedTowerBases;
-        var selectedId = PlayerManager.main.playerData.selectedTowerBaseId;
+        var playerManager = PlayerManager.main;
+        var selectedId = playerManager.playerData.selectedTowerBaseId;
+        var unlockService = ContentUnlockService.Instance;
 
         foreach (var towerBase in towerBases)
         {
             GameObject optionGO = Instantiate(optionPrefab, contentParent);
             // Assume your prefab has these components:
-            var image = optionGO.transform.Find("TowerPreview").GetComponent<Image>();
-            var label = optionGO.transform.Find("TowerPreviewHeader").GetComponent<TMPro.TMP_Text>();
-            var description = optionGO.transform.Find("TowerBaseDescription").GetComponent<TMPro.TMP_Text>();
+            var image = optionGO.transform.Find("TowerPreview")?.GetComponent<Image>();
+            var label = optionGO.transform.Find("TowerPreviewHeader")?.GetComponent<TMPro.TMP_Text>();
+            var description = optionGO.transform.Find("TowerBaseDescription")?.GetComponent<TMPro.TMP_Text>();
             var button = optionGO.transform.Find("SelectTowerBtn").GetComponent<Button>();
+            var buttonLabel = button.GetComponentInChildren<TMPro.TMP_Text>();
 
-            Debug.Log($"Setting up base: {towerBase.id}, unlocked: {unlocked.Contains(towerBase.id)}, selected: {selectedId}");
+            bool isUnlocked = unlockService?.IsUnlocked(UnlockableContentType.TowerBase, towerBase.id)
+                ?? playerManager.IsTowerBaseUnlocked(towerBase.id);
+            Debug.Log($"Setting up base: {towerBase.id}, unlocked: {isUnlocked}, selected: {selectedId}");
 
-            image.sprite = towerBase.previewSprite;
-            label.text = towerBase.displayName;
-            description.text = towerBase.description;
+            if (image) image.sprite = towerBase.previewSprite;
+            if (label) label.text = towerBase.displayName;
 
-            bool isUnlocked = unlocked.Contains(towerBase.id);
-            button.interactable = isUnlocked;
-            // Optionally show lock/cost UI here
+            bool isUnlockedSnapshot = isUnlocked;
+            bool isSelected = towerBase.id == selectedId;
+
+            UnlockPathInfo unlockPath = default;
+            bool canUnlock = false;
+            string lockReason = string.Empty;
+
+            if (!isUnlockedSnapshot)
+            {
+                if (unlockService != null)
+                {
+                    canUnlock = unlockService.CanUnlock(UnlockableContentType.TowerBase, towerBase.id, out unlockPath, out lockReason);
+                    if (canUnlock)
+                        lockReason = string.Empty;
+                }
+                else
+                {
+                    lockReason = "Unlock service unavailable";
+                }
+            }
+
+            if (description)
+                description.text = BuildDescription(towerBase.description, (!isUnlockedSnapshot && canUnlock) ? FormatUnlockFooter(unlockPath) : lockReason);
+
+            button.interactable = isUnlockedSnapshot || canUnlock;
+            button.onClick.RemoveAllListeners();
+            if (buttonLabel) buttonLabel.text = isUnlockedSnapshot ? (isSelected ? "Selected" : "Select") : (canUnlock ? unlockPath.label : "Locked");
 
             // Highlight if selected
             var bgImage = optionGO.transform.Find("Background")?.GetComponent<Image>();
@@ -54,22 +81,46 @@ public class TowerBaseSelectorUI : MonoBehaviour
             string id = towerBase.id; // local copy for closure
             button.onClick.AddListener(() =>
             {
-                Debug.Log($"Selected tower base: {id}");
-                if (isUnlocked)
+                if (isUnlockedSnapshot)
                 {
-                    PlayerManager.main.SelectTowerBase(id);
-                    // Update LoadoutScreen image
-                    var loadoutScreen = UnityEngine.Object.FindFirstObjectByType<LoadoutScreen>();
-                    if (loadoutScreen != null)
-                        loadoutScreen.SetTowerBaseImage();
-                    CloseTowerBaseSelection(); // Close the panel after selection
+                    SelectAndRefresh(id);
+                    return;
                 }
-                else
+
+                if (canUnlock && unlockService != null)
                 {
-                    // Optionally handle unlock logic here
+                    if (unlockService.TryUnlock(UnlockableContentType.TowerBase, id, out _))
+                        SelectAndRefresh(id);
                 }
             });
         }
+    }
+
+    private void SelectAndRefresh(string id)
+    {
+        PlayerManager.main.SelectTowerBase(id);
+        var loadoutScreen = UnityEngine.Object.FindFirstObjectByType<LoadoutScreen>();
+        if (loadoutScreen != null)
+            loadoutScreen.SetTowerBaseImage();
+        PopulateOptions();
+        CloseTowerBaseSelection();
+    }
+
+    private static string BuildDescription(string baseDescription, string extra)
+    {
+        if (string.IsNullOrEmpty(extra))
+            return baseDescription;
+        return $"{baseDescription}\n<size=80%><color=#ff8080>{extra}</color></size>";
+    }
+
+    private static string FormatUnlockFooter(UnlockPathInfo path)
+    {
+        var cost = path.totalCost.ToLabel();
+        if (string.IsNullOrEmpty(cost))
+            return path.description;
+        if (string.IsNullOrEmpty(path.description))
+            return cost;
+        return $"{cost} | {path.description}";
     }
 
     public void OpenTowerBaseSelection()

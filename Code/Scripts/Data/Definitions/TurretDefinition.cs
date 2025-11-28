@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 
 [CreateAssetMenu(menuName = "Outline/TurretDefinition")]
-public class TurretDefinition : ScriptableObject
+public class TurretDefinition : ScriptableObject, IUnlockableDefinition
 {
     public string id;
     public string displayName;
@@ -31,6 +31,21 @@ public class TurretDefinition : ScriptableObject
     [Header("Stat Bonuses")]
     [Tooltip("Multiple stat bonuses this turret provides")]
     public StatBonus[] statBonuses = new StatBonus[0];
+
+    [Header("Unlocking")]
+    [SerializeField] private UnlockProfile unlockProfile = new UnlockProfile();
+
+    public string DefinitionId => id;
+    public UnlockableContentType ContentType => UnlockableContentType.Turret;
+    public UnlockProfile UnlockProfile
+    {
+        get
+        {
+            if (unlockProfile == null)
+                unlockProfile = new UnlockProfile();
+            return unlockProfile;
+        }
+    }
     
     // Helper method to check if turret accepts a projectile type
     public bool AcceptsProjectileType(ProjectileType type)

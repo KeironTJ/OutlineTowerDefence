@@ -31,7 +31,7 @@ public class TurretSelectorUI : MonoBehaviour
         if (mgr == null) { Debug.LogWarning("No TurretDefinitionManager in scene"); return; }
 
         var pm = PlayerManager.main;
-        var unlocks = TurretUnlockManager.Instance;
+        var unlockService = ContentUnlockService.Instance;
         var defs = mgr.GetAllTurrets();
         if (defs == null || defs.Count == 0) { Debug.LogWarning("No turret definitions found"); return; }
 
@@ -41,20 +41,21 @@ public class TurretSelectorUI : MonoBehaviour
 
         foreach (var def in defs)
         {
-            bool isUnlocked = pm?.playerData?.unlockedTurretIds != null && pm.playerData.unlockedTurretIds.Contains(def.id);
+            bool isUnlocked = unlockService?.IsUnlocked(UnlockableContentType.Turret, def.id)
+                ?? (pm != null && pm.IsTurretUnlocked(def.id));
             bool isCurrent  = !string.IsNullOrEmpty(currentId) && currentId == def.id;
 
             string lockReason = "Not available";
-            TurretUnlockManager.CurrencyCost cost = default;
+            UnlockPathInfo unlockPath = default;
             bool canUnlockNow = false;
 
             if (!isUnlocked)
             {
-                if (unlocks != null)
+                if (unlockService != null)
                 {
-                    canUnlockNow = unlocks.CanUnlock(pm, def.id, out lockReason, out cost);
+                    canUnlockNow = unlockService.CanUnlock(UnlockableContentType.Turret, def.id, out unlockPath, out lockReason);
                     if (canUnlockNow)
-                        lockReason = "";
+                        lockReason = string.Empty;
                 }
                 else
                     lockReason = "Unlock system unavailable";
@@ -66,7 +67,7 @@ public class TurretSelectorUI : MonoBehaviour
                 isUnlocked = isUnlocked,
                 isCurrent = isCurrent,
                 canUnlock = canUnlockNow,
-                cost = cost,
+                unlockPath = unlockPath,
                 lockReason = string.IsNullOrEmpty(lockReason) ? "Not available" : lockReason
             });
         }
@@ -90,10 +91,10 @@ public class TurretSelectorUI : MonoBehaviour
 
             if (!option.isUnlocked)
             {
-                if (option.canUnlock && unlocks != null)
+                if (option.canUnlock && unlockService != null)
                 {
-                    tile.ConfigureForUnlock(option.definition, option.cost,
-                        tryUnlock: () => unlocks.TryUnlock(pm, option.definition.id, out _),
+                    tile.ConfigureForUnlock(option.unlockPath,
+                        tryUnlock: () => unlockService.TryUnlock(UnlockableContentType.Turret, option.definition.id, out _),
                         onUnlocked: () =>
                         {
                             pm.SetSelectedTurretForSlot(slotIndex, option.definition.id);
@@ -146,7 +147,7 @@ public class TurretSelectorUI : MonoBehaviour
         public bool isUnlocked;
         public bool isCurrent;
         public bool canUnlock;
-        public TurretUnlockManager.CurrencyCost cost;
+        public UnlockPathInfo unlockPath;
         public string lockReason;
 
         public int SortPriority

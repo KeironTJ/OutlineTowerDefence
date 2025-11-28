@@ -1,19 +1,32 @@
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Tower/BaseData")]
-public class TowerBaseData : ScriptableObject
+public class TowerBaseData : ScriptableObject, IUnlockableDefinition
 {
     public string id; // Unique identifier for this base
     public string displayName;
     public string description;
     public Sprite previewSprite;
     public GameObject towerBasePrefab;
-    public int unlockCost;
-    public bool isPurchasable; // true = IAP/currency, false = progress
     
     [Header("Stat Bonuses")]
     [Tooltip("Multiple stat bonuses this tower base provides")]
     public StatBonus[] statBonuses = new StatBonus[0];
+
+    [Header("Unlocking")]
+    [SerializeField] private UnlockProfile unlockProfile = new UnlockProfile();
+
+    public string DefinitionId => id;
+    public UnlockableContentType ContentType => UnlockableContentType.TowerBase;
+    public UnlockProfile UnlockProfile
+    {
+        get
+        {
+            if (unlockProfile == null)
+                unlockProfile = new UnlockProfile();
+            return unlockProfile;
+        }
+    }
     
     /// <summary>
     /// Apply all stat bonuses from this tower base to the collector

@@ -76,7 +76,7 @@ public class ProjectileButton : MonoBehaviour
         }
     }
 
-    public void ConfigureForUnlock(ProjectileDefinition def, ProjectileUnlockManager.CurrencyCost cost, Func<bool> tryUnlock, Action onUnlocked)
+    public void ConfigureForUnlock(UnlockPathInfo path, Func<bool> tryUnlock, Action onUnlocked)
     {
         if (!actionButton)
         {
@@ -87,8 +87,8 @@ public class ProjectileButton : MonoBehaviour
         if (!actionButtonText)
             actionButtonText = actionButton.GetComponentInChildren<TextMeshProUGUI>(true);
 
-        if (actionButtonText) actionButtonText.text = "Unlock";
-        if (footerText) footerText.text = cost.ToLabel();
+        if (actionButtonText) actionButtonText.text = path.label;
+        if (footerText) footerText.text = BuildFooter(path);
 
         actionButton.interactable = true;
         actionButton.onClick.RemoveAllListeners();
@@ -113,5 +113,15 @@ public class ProjectileButton : MonoBehaviour
         if (footerText) footerText.text = reason ?? "";
         actionButton.interactable = false;
         actionButton.onClick.RemoveAllListeners();
+    }
+
+    private static string BuildFooter(UnlockPathInfo path)
+    {
+        var cost = path.totalCost.ToLabel();
+        if (string.IsNullOrEmpty(cost))
+            return path.description ?? string.Empty;
+        if (string.IsNullOrEmpty(path.description))
+            return cost;
+        return $"{cost} | {path.description}";
     }
 }

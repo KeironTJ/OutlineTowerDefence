@@ -34,4 +34,31 @@ MonoBehaviour:
   maxChainTargets: 3
   chainRange: 2
   chainDamageMultiplier: 0.8
-  unlockWave: 1
+  maxUpgradeLevel: 5
+  baseUpgradeCost: 10
+  damagePerLevel: 5
+  speedPerLevel: 3
+  statBonuses: []
+  benefits: Standard projectile
+  tradeoffs: None
+  overallRating: 0
+  unlockProfile:
+    grantByDefault: 0
+    lockedHint: Locked
+    requirementGroups:
+    - label: CC UNLOCK
+      description: 
+      requirements:
+      - requirementType: 3
+        matchMode: 0
+        prerequisiteType: 1
+        referencedIds:
+        - CC
+        thresholdValue: 0
+        difficultyLevel: 0
+        minimumAchievementTier: 0
+        currencyCost:
+          cores: 0
+          prisms: 0
+          loops: 0
+        failureHint: 

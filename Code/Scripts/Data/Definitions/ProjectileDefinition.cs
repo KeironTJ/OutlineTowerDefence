@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Outline/ProjectileDefinition")]
-public class ProjectileDefinition : ScriptableObject
+public class ProjectileDefinition : ScriptableObject, IUnlockableDefinition
 {
     [Header("Identity")]
     public string id;
@@ -60,10 +60,6 @@ public class ProjectileDefinition : ScriptableObject
     [Tooltip("For Chain: damage multiplier per chain (0.8 = 20% reduction per jump)")]
     public float chainDamageMultiplier = 0.8f;
     
-    [Header("Requirements")]
-    [Tooltip("Minimum wave required to unlock")]
-    public int unlockWave = 1;
-    
     [Header("Upgrades")]
     [Tooltip("Maximum upgrade level for this projectile")]
     public int maxUpgradeLevel = 5;
@@ -86,6 +82,21 @@ public class ProjectileDefinition : ScriptableObject
     [Tooltip("Overall rating: -2 (major drawback) to +2 (major benefit)")]
     [Range(-2f, 2f)]
     public float overallRating = 0f;
+
+    [Header("Unlocking")]
+    [SerializeField] private UnlockProfile unlockProfile = new UnlockProfile();
+
+    public string DefinitionId => id;
+    public UnlockableContentType ContentType => UnlockableContentType.Projectile;
+    public UnlockProfile UnlockProfile
+    {
+        get
+        {
+            if (unlockProfile == null)
+                unlockProfile = new UnlockProfile();
+            return unlockProfile;
+        }
+    }
     
     // Helper methods
     public bool HasTrait(ProjectileTrait trait) => (traits & trait) != 0;

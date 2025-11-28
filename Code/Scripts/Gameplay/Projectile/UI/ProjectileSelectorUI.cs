@@ -57,7 +57,7 @@ public class ProjectileSelectorUI : MonoBehaviour
             return;
         }
 
-        var unlocks = ProjectileUnlockManager.Instance;
+        var unlockService = ContentUnlockService.Instance;
         var turretMgr = TurretDefinitionManager.Instance;
 
         string currentProjectileId = pm.GetSelectedProjectileForSlot(slotIndex);
@@ -72,19 +72,20 @@ public class ProjectileSelectorUI : MonoBehaviour
             if (def == null || string.IsNullOrEmpty(def.id))
                 continue;
 
-            bool isUnlocked = pm.IsProjectileUnlocked(def.id);
+            bool isUnlocked = unlockService?.IsUnlocked(UnlockableContentType.Projectile, def.id)
+                ?? pm.IsProjectileUnlocked(def.id);
             bool isCurrent = !string.IsNullOrEmpty(currentProjectileId) && currentProjectileId == def.id;
             bool isCompatible = turretAssigned && turretDef.AcceptsProjectileType(def.projectileType);
 
             string lockReason = string.Empty;
-            ProjectileUnlockManager.CurrencyCost cost = default;
+            UnlockPathInfo unlockPath = default;
             bool canUnlock = false;
 
             if (!isUnlocked)
             {
-                if (unlocks != null)
+                if (unlockService != null)
                 {
-                    canUnlock = unlocks.CanUnlock(pm, def.id, out lockReason, out cost);
+                    canUnlock = unlockService.CanUnlock(UnlockableContentType.Projectile, def.id, out unlockPath, out lockReason);
                     if (canUnlock)
                         lockReason = string.Empty;
                 }
@@ -115,7 +116,7 @@ public class ProjectileSelectorUI : MonoBehaviour
                 turretAssigned = turretAssigned,
                 isCompatible = isCompatible,
                 canUnlock = canUnlock,
-                cost = cost,
+                unlockPath = unlockPath,
                 lockReason = string.IsNullOrEmpty(lockReason) ? "Locked" : lockReason
             });
         }
@@ -152,11 +153,11 @@ public class ProjectileSelectorUI : MonoBehaviour
             }
             else if (!option.isUnlocked)
             {
-                if (option.canUnlock && unlocks != null)
+                if (option.canUnlock && unlockService != null)
                 {
                     var localDef = option.definition;
-                    tile.ConfigureForUnlock(option.definition, option.cost,
-                        tryUnlock: () => unlocks.TryUnlock(pm, localDef.id, out _),
+                    tile.ConfigureForUnlock(option.unlockPath,
+                        tryUnlock: () => unlockService.TryUnlock(UnlockableContentType.Projectile, localDef.id, out _),
                         onUnlocked: () =>
                         {
                             if (turretAssigned && turretDef != null && turretDef.AcceptsProjectileType(localDef.projectileType))
@@ -218,7 +219,7 @@ public class ProjectileSelectorUI : MonoBehaviour
         public bool turretAssigned;
         public bool isCompatible;
         public bool canUnlock;
-        public ProjectileUnlockManager.CurrencyCost cost;
+        public UnlockPathInfo unlockPath;
         public string lockReason;
 
         public bool CanSelect => turretAssigned && isUnlocked && isCompatible;

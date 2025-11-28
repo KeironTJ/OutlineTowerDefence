@@ -68,6 +68,9 @@ public class PlayerManager : MonoBehaviour
         playerData = payload.player ?? (payload.player = new PlayerData());
         ValidatePlayerData();
 
+        if (playerData.unlockedTowerBases == null)
+            playerData.unlockedTowerBases = new List<string>();
+
         // Ensure turret lists exist (migrate older saves)
         if (playerData.unlockedTurretIds == null) playerData.unlockedTurretIds = new List<string>();
         if (playerData.selectedTurretIds == null) playerData.selectedTurretIds = new List<string> { "", "", "", "" };
@@ -295,8 +298,21 @@ public class PlayerManager : MonoBehaviour
 
 
     // ===== Tower Bases =====
+    public bool IsTowerBaseUnlocked(string id)
+    {
+        if (string.IsNullOrEmpty(id) || playerData == null)
+            return false;
+        return playerData.unlockedTowerBases != null && playerData.unlockedTowerBases.Contains(id);
+    }
+
     public void UnlockTowerBase(string id)
     {
+        if (playerData == null)
+            return;
+
+        if (playerData.unlockedTowerBases == null)
+            playerData.unlockedTowerBases = new List<string>();
+
         if (!playerData.unlockedTowerBases.Contains(id))
         {
             playerData.unlockedTowerBases.Add(id);
@@ -306,7 +322,12 @@ public class PlayerManager : MonoBehaviour
 
     public bool SelectTowerBase(string id)
     {
-        if (!playerData.unlockedTowerBases.Contains(id)) return false;
+        if (playerData == null)
+            return false;
+
+        if (playerData.unlockedTowerBases == null || !playerData.unlockedTowerBases.Contains(id))
+            return false;
+
         playerData.selectedTowerBaseId = id;
         SavePlayerData();
         return true;

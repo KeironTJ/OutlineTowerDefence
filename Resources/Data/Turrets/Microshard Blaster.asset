@@ -24,3 +24,23 @@ MonoBehaviour:
   skillSuffixFireRate: fireRate
   skillSuffixRange: range
   skillSuffixRotation: rotation
+  statBonuses: []
+  unlockProfile:
+    grantByDefault: 0
+    lockedHint: Locked
+    requirementGroups:
+    - label: CORES
+      description: 
+      requirements:
+      - requirementType: 4
+        matchMode: 0
+        prerequisiteType: 0
+        referencedIds: []
+        thresholdValue: 0
+        difficultyLevel: 0
+        minimumAchievementTier: 0
+        currencyCost:
+          cores: 15000
+          prisms: 0
+          loops: 0
+        failureHint: 
