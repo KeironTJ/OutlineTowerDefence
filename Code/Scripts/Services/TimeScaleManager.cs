@@ -16,6 +16,8 @@ public class TimeScaleManager : SingletonMonoBehaviour<TimeScaleManager>
     private const float NormalSpeed = 1f;
     private const float MaxSpeed = 5f;
     private const float SpeedIncrement = 0.25f;
+
+    private float lastNonZeroSpeed = NormalSpeed;
     
     // Auto-pause settings
     [Header("Auto-Pause")]
@@ -42,6 +44,7 @@ public class TimeScaleManager : SingletonMonoBehaviour<TimeScaleManager>
     {
         // Start at normal speed
         currentSpeed = NormalSpeed;
+        lastNonZeroSpeed = NormalSpeed;
         maxUnlockedSpeed = NormalSpeed;
         
         // Ensure timeScale is reset (in case it was left in a different state)
@@ -149,7 +152,7 @@ public class TimeScaleManager : SingletonMonoBehaviour<TimeScaleManager>
     {
         if (IsPaused)
         {
-            SetSpeed(NormalSpeed);
+            SetSpeed(Mathf.Max(lastNonZeroSpeed, NormalSpeed));
             Resumed?.Invoke();
         }
     }
@@ -205,7 +208,11 @@ public class TimeScaleManager : SingletonMonoBehaviour<TimeScaleManager>
         
         if (Mathf.Abs(currentSpeed - speed) > 0.01f)
         {
-            currentSpeed = speed;
+            currentSpeed = speed > 0f ? Mathf.Max(speed, NormalSpeed) : speed;
+
+            if (currentSpeed > 0f)
+                lastNonZeroSpeed = currentSpeed;
+
             ApplyTimeScale();
             SpeedChanged?.Invoke(currentSpeed);
         }
