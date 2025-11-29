@@ -279,9 +279,9 @@ MonoBehaviour:
   animator: {fileID: 0}
   showTrigger: Show
   hideTrigger: Hide
-  slideInDuration: 0.3
-  slideOutDuration: 0.3
-  hiddenPosition: {x: 400, y: 0}
+  slideInDuration: 0.5
+  slideOutDuration: 0.5
+  hiddenPosition: {x: 500, y: 0}
 --- !u!1 &4569696403207168742
 GameObject:
   m_ObjectHideFlags: 0
