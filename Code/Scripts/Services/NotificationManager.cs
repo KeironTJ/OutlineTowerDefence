@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,6 +13,7 @@ public class NotificationManager : SingletonMonoBehaviour<NotificationManager>
     
     private NotificationData currentNotification;
     private bool isProcessing;
+    private Coroutine autoDismissRoutine;
 
     private void OnEnable()
     {
@@ -103,10 +105,10 @@ public class NotificationManager : SingletonMonoBehaviour<NotificationManager>
     /// </summary>
     public void DismissCurrentNotification()
     {
+        StopAutoDismissRoutine();
+
         if (currentNotification != null)
         {
-            CancelInvoke(nameof(DismissCurrentNotification));
-
             // Decrease pending count for this source
             if (pendingNotificationsBySource.ContainsKey(currentNotification.source))
             {
@@ -149,7 +151,7 @@ public class NotificationManager : SingletonMonoBehaviour<NotificationManager>
     /// </summary>
     public void ClearAllNotifications()
     {
-        CancelInvoke(nameof(DismissCurrentNotification));
+        StopAutoDismissRoutine();
         notificationQueue.Clear();
         pendingNotificationsBySource.Clear();
         currentNotification = null;
@@ -174,16 +176,41 @@ public class NotificationManager : SingletonMonoBehaviour<NotificationManager>
         // The UI will handle the actual display
         // For quick notifications, we could auto-dismiss after duration
         if (currentNotification.type == NotificationType.Quick && currentNotification.displayDuration > 0)
-        {
-            CancelInvoke(nameof(DismissCurrentNotification));
-            Invoke(nameof(DismissCurrentNotification), currentNotification.displayDuration);
-        }
+            StartAutoDismissRoutine(currentNotification.displayDuration);
     }
 
     private void UpdateIndicators()
     {
         // Trigger event to update UI indicators
         EventManager.TriggerEvent(EventNames.NotificationIndicatorUpdate);
+    }
+
+    private void StartAutoDismissRoutine(float duration)
+    {
+        StopAutoDismissRoutine();
+        autoDismissRoutine = StartCoroutine(AutoDismissAfterRealtime(duration));
+    }
+
+    private void StopAutoDismissRoutine()
+    {
+        if (autoDismissRoutine != null)
+        {
+            StopCoroutine(autoDismissRoutine);
+            autoDismissRoutine = null;
+        }
+    }
+
+    private IEnumerator AutoDismissAfterRealtime(float duration)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            yield return null;
+            elapsed += Time.unscaledDeltaTime;
+        }
+
+        autoDismissRoutine = null;
+        DismissCurrentNotification();
     }
 
     // Event handlers for auto-generating notifications
